@@ -1,16 +1,8 @@
 import re
 from typing import Optional, Tuple, Union, List, Dict
 import logging
-import tempfile
 from collections import defaultdict
-
-from coqpyt.coq.structs import TermType, Step, Term, ProofStep, ProofTerm, Position
-from coqpyt.coq.exceptions import *
-from coqpyt.coq.changes import *
-from coqpyt.coq.proof_file_light import ProofFileLight
-
-from tqdm import tqdm
-
+from src.coqpyt_ext.proof_file_light import ProofFileLight
 
 def extract_all_notation(data):
     result = []
@@ -104,7 +96,7 @@ class ProofFileMod(ProofFileLight):
     """
 
     @staticmethod
-    def _match_term_name(term):
+    def _match_term_type(term):
         pattern = r'(Lemma|Theorem) (\S+) *(.*) *: *(.*?)(.*).'
         # Extract matchess
         match = re.search(pattern, term)
@@ -143,7 +135,7 @@ class ProofFileMod(ProofFileLight):
     def remove_instr(text, instr_to_delete=['Print','Check', "Show"]):
         text_clean = text
         
-        pattern_instr = f'({"|".join(instr_to_delete)}) .*?\.'
+        pattern_instr = f'({"|".join(instr_to_delete)})' + r' .*?\.'
         all_matches = list(re.finditer(pattern_instr, text_clean, flags=re.DOTALL))
         for match in reversed(all_matches):
             match_start = match.start(0)
@@ -159,13 +151,13 @@ class ProofFileMod(ProofFileLight):
         return text_sanitize
 
 
-    def _extract_all_terms_v2(self):
+    def _extract_all_terms_v2(self, do_existentials=True, do_goals=True, do_notations=True, do_constants=True, remains=set()):
         all_terms = {}
         logging.info('Extract notations and constants')
         for term in self.proofs:
-            term_extract = self._match_term_name(term.step.short_text)
+            term_extract = self._match_term_type(term.step.short_text)
             if term_extract:
-                category, term_name, args, prop = term_extract
+                _, term_name, _, _ = term_extract
                 notations = extract_all_notation(term.ast.span)
                 constants = extract_all_types(term.ast.span)
                 for step in term.steps:
@@ -175,12 +167,12 @@ class ProofFileMod(ProofFileLight):
                 # hacky, extract_all should output sets directly
                 notations = list(set(notations))
                 constants = list(set(constants))
-                all_terms[term_name] = {"notations": notations, "constants": constants, "steps": [step.text for step in term.steps]}
+                all_terms[term_name] = {"notations": notations, "constants": constants}
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
         # Sanitize file: remove all Print/Check/Show and comments to avoid conflict with regex
         aux_saved = self.sanitize(aux_saved)
-        pattern_lemma = "(Lemma|Theorem) (\S+) *.*[ \n]*:[ \n]*[\s\S]*?Proof.[ \n]*([\s\S]*?)(Qed\.)"
+        pattern_lemma = r"(Lemma|Theorem) (\S+) *.*[ \n]*:[ \n]*[\s\S]*?Proof.[ \n]*([\s\S]*?)(Qed\.)"
         all_matches = list(re.finditer(pattern_lemma, aux_saved))
         all_prints = []
         all_checks = []
@@ -195,41 +187,54 @@ class ProofFileMod(ProofFileLight):
                 print(all_terms.keys())
                 raise Exception(f'Unfound term name, probably an issue with parser, look at {term_name} in {aux_file.path}')
 
+            if remains and (term_name not in remains):
+                continue
             tactics = aux_saved[beg_proof:end_proof].split('\n')
             tactics = [tactic for tactic in tactics if '.' in tactic]
+            all_terms[term_name]['steps'] = tactics
             term = all_terms[term_name]
-
-            instr_prop = f'Check {term_name}'
-            instr_term = f'Print {term_name}'
             instr_notations = []
             instr_constants = []
-            instr_all = []
+
+            instr_term = f'Print {term_name}'
+            instr_prop = f'Check {term_name}'
             for notation in term['notations']:
                 instr_notations.append(f'Print "{notation}"')
             for constant in term['constants']:
                 instr_constants.append(f'Check {constant}')
 
-            all_prints = [{"instr": instr, "label": term_name + '#notation'} for instr in instr_notations] + all_prints
-            all_prints = [{"instr": instr_term, "label": term_name + '#term'}] + all_prints
-            
-            all_checks = [{"instr": instr, "label": term_name + '#constant'} for instr in instr_constants] + all_checks
-            all_checks = [{"instr": instr_prop, "label": term_name + '#proposition'}] + all_checks
+            instr_all = []
 
-            all_goals = [{"instr": 'Show Proof', "label": term_name + '#state'} for _ in tactics] + all_goals
-            all_existentials = [{"instr": 'Show Existentials', "label": term_name + '#existentials'} for _ in tactics] + all_existentials
+            instr_all = [instr_term]
+
+            # add print instructions (in backward order)
+            if do_notations:
+                instr_all += instr_notations
+                all_prints = [{"instr": instr, "label": term_name + '#notation'} for instr in instr_notations] + all_prints
+            all_prints = [{"instr": instr_term, "label": term_name + '#term'}] + all_prints
+    
+            instr_all += [instr_prop]
+
+            if do_constants:
+                instr_all += instr_constants
+                all_checks = [{"instr": instr, "label": term_name + '#constant'} for instr in instr_constants] + all_checks
+            
+            all_checks = [{"instr": instr_prop, "label": term_name + '#proposition'}] + all_checks
+            if do_goals:
+                all_goals = [{"instr": 'Show Proof', "label": term_name + '#state'} for _ in tactics] + all_goals
+            if do_existentials:
+                all_existentials = [{"instr": 'Show Existentials', "label": term_name + '#existentials'} for _ in tactics] + all_existentials
             # a bit annoying: to avoid collision when adding instruction I start appending instruction from the end
             # so to keep things in order, and since we need to associate instruction with line number, things should be done in some weird reverse order.
-            instr_all += [instr_term]
-            instr_all += instr_notations
-            instr_all += [instr_prop]
-            instr_all += instr_constants
-
+            
             instr_tot = "\n" + ".\n".join(instr_all) + '.\n'
 
             new_tactics = ""
             for tactic in tactics:
-                new_tactics += "Show Proof.\n"
-                new_tactics += "Show Existentials.\n"
+                if do_goals:
+                    new_tactics += "Show Proof.\n"
+                if do_existentials:
+                    new_tactics += "Show Existentials.\n"
                 new_tactics += tactic + '\n'
             aux_saved = aux_saved[:match_end] + instr_tot + aux_saved[match_end:]
             aux_saved = aux_saved[:beg_proof] + new_tactics + aux_saved[end_proof:]
@@ -258,4 +263,5 @@ class ProofFileMod(ProofFileLight):
         result = get_queries_dict(aux_file, queries_dict)
         for entry in result:
             result[entry]['steps'] = all_terms[entry]["steps"]
+            result[entry]['name'] = entry
         return result
