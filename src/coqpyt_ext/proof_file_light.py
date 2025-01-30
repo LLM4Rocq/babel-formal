@@ -1,16 +1,14 @@
-import re
-from typing import Optional, Tuple, Union, List, Dict
-import logging
-import tempfile
-from collections import defaultdict
+from typing import Optional, List
 
-from coqpyt.coq.structs import TermType, Step, Term, ProofStep, ProofTerm
-from coqpyt.coq.exceptions import *
-from coqpyt.coq.changes import *
-from coqpyt.coq.proof_file import ProofFile, _AuxFile
-from coqpyt.coq.lsp.structs import RangedSpan
+import sys
+import os
 
-from tqdm import tqdm
+# Add the project_2 directory to the Python path
+sys.path.append(os.path.join(os.getcwd(), 'coqpyt/'))
+
+from coqpyt.coq.structs import TermType, Step, ProofStep, ProofTerm
+from coqpyt.coq.proof_file import ProofFile
+
 
 
 class ProofFileLight(ProofFile):
