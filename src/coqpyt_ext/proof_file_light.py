@@ -3,7 +3,6 @@ from typing import Optional, List
 import sys
 import os
 
-# Add the project_2 directory to the Python path
 sys.path.append(os.path.join(os.getcwd(), 'coqpyt/'))
 
 from coqpyt.coq.structs import TermType, Step, ProofStep, ProofTerm
