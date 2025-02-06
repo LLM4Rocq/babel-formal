@@ -8,6 +8,8 @@ __pycache__/
 
 # Term extraction
 export/
+*.zip
+*.cache
 
 # Distribution / packaging
 .vscode/
