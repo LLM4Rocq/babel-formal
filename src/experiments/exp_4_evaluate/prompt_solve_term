@@ -1,0 +1,10 @@
+Here is a lambda term:
+{term}
+
+Your goal is to predict a right sequence of tactics in Rocq (using SSReflect) to generate a proof of this lemma.
+
+Here is some constants that could be useful:
+{constants}
+
+Please read carefully the previous given elements, and infer the tactics.
+Your goal is to predict the right tactic (using SSReflect in Coq). Think step by step, look at the lambda term to try to predict the right sequence of tactics.
