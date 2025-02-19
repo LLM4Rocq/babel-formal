@@ -100,15 +100,11 @@ class ProofFileMod(ProofFileLight):
 
     @staticmethod
     def _match_term_type(term: str):
-        pattern = r'(Lemma|Theorem) (\S+) *(.*) *: *(.*?)(.*).'
-        # Extract matchess
+        pattern = r'(Lemma|Theorem) (\S+?)[:\ ]'
+        # Extract matches
         match = re.search(pattern, term)
         if match:
-            # TO DO, remove this check by improving the regex
-            term_name = match.group(2)
-            if term_name[-1] == ':':
-                term_name = term_name[:-1]
-            return match.group(1), term_name, match.group(3), match.group(4)
+            return match.group(1), match.group(2)
         return None
 
     @staticmethod
@@ -163,7 +159,7 @@ class ProofFileMod(ProofFileLight):
         for term in self.proofs:
             term_extract = self._match_term_type(term.step.short_text)
             if term_extract:
-                _, term_name, _, _ = term_extract
+                _, term_name = term_extract
                 notations = extract_all_notation(term.ast.span)
                 constants = extract_all_types(term.ast.span)
                 for step in term.steps:
@@ -174,15 +170,18 @@ class ProofFileMod(ProofFileLight):
                 notations = list(set(notations))
                 constants = list(set(constants))
                 all_terms[term_name] = {"name": term_name, "notations": notations, "constants": constants}
-        pattern_lemma = r"(Lemma|Theorem) (\S+) *.*?[ \n]*:[ \n]*[\s\S]*?Proof.[ \n]*([\s\S]*?)(Qed\.)"
+        
+        pattern_lemma = r"(Lemma|Theorem) (\S+?)[:\ ] *.*?[ \n]*:[ \n]*[\s\S]*?Proof.[ \n]*([\s\S]*?)(Qed\.)"
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
         all_matches = list(re.finditer(pattern_lemma, aux_saved))
+
+        # final check to avoid mismatch between both regex matching (pattern_lemma vs _match_term)
+        check_equal = 0
+
         for idx, match in enumerate(all_matches):
+            check_equal += 1
             term_name = match.group(2)
-            # TO DO, remove this check by improving the regex
-            if term_name[-1] == ':':
-                term_name = term_name[:-1]
             start_proof = match.start(3)
             end_proof = match.end(3)
             match_end = match.end(4)
@@ -193,6 +192,10 @@ class ProofFileMod(ProofFileLight):
             all_terms[term_name]['end_proof'] = end_proof
             all_terms[term_name]['match_end'] = match_end
             all_terms[term_name]['idx'] = idx
+        
+        assert check_equal == len(all_terms.keys()), "Mismatch between lemmas/theorems found by _match_term_type and the ones found by pattern_lemma regex expr"
+        
+
         return all_terms
 
     def _extract_annotations(self, term, do_notations=True, do_goals=True, do_existentials=True, do_constants=True):
