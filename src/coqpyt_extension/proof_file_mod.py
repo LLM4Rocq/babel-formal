@@ -192,10 +192,7 @@ class ProofFileMod(ProofFileLight):
             all_terms[term_name]['end_proof'] = end_proof
             all_terms[term_name]['match_end'] = match_end
             all_terms[term_name]['idx'] = idx
-        
         assert check_equal == len(all_terms.keys()), "Mismatch between lemmas/theorems found by _match_term_type and the ones found by pattern_lemma regex expr"
-        
-
         return all_terms
 
     def _extract_annotations(self, term, do_notations=True, do_goals=True, do_existentials=True, do_constants=True):
