@@ -15,7 +15,7 @@ from transformers import AutoTokenizer
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/step_0/', help='Output path previous step')
-    parser.add_argument('--output', default='export/step_1/', help='New output path')
+    parser.add_argument('--output', default='export/step_1/', help='Output path')
     parser.add_argument('--tokenizer', default='deepseek-ai/DeepSeek-Prover-V1.5-Base', help='HF path tokenizer')
     args = parser.parse_args()
 
