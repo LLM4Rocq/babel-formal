@@ -45,8 +45,8 @@ class ProofFileLight(ProofFile):
             # be used outside and should be overriden.
             in_module_type = self.context.in_module_type
             self._step(sign)
-            if in_module_type or self.context.in_module_type:
-                continue
+            # if in_module_type or self.context.in_module_type:
+            #     continue
             self.__step(step(), sign == -1)
 
         last, slice = sign == 1, (initial_steps_taken, self.steps_taken)
@@ -71,6 +71,8 @@ class ProofFileLight(ProofFile):
         else:
             index = len(self._ProofFile__proofs) if index is None else index
             open_index = -1 if open_index is None else open_index
+            if not open_proofs:
+                return 
             open_proof = open_proofs.pop(open_index)
             # The goals will be loaded if used (Lazy Loading)
             open_proof.steps.append(ProofStep(step, goals, []))
