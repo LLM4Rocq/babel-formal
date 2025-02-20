@@ -4,3 +4,10 @@ openai
 torch
 transformers
 datasets
+trl
+tiktoken
+protobuf
+blobfile
+sentencepiece
+tensorboardX
+tensorboard
