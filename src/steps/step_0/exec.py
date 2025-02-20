@@ -63,15 +63,15 @@ if __name__ == '__main__':
     v_files = list(v_files)
     random.shuffle(v_files)
     for filepath, filename in tqdm(v_files):
+        print(filepath)
         fullpath = os.path.join(args.output, filename)
         os.makedirs(fullpath, exist_ok=True)
         if os.path.exists(os.path.join(fullpath, 'finish')):
             continue
         with ProofFileMod(filepath, timeout=args.timeout) as proof_file:
             proof_file.run()
-            proof_file.extract_one_by_one(fullpath, debug=False)
+            proof_file.extract_one_by_one(fullpath)
         with open(os.path.join(fullpath, 'finish'), 'w'):
             pass
-
 
 
