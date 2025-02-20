@@ -15,21 +15,18 @@ if __name__ == '__main__':
     
     dataset = {"train": []}
     pattern = r'(term_[0-9]+).json'
-    for root, _, files in os.walk(args.output):
-        for file in files:
-            match = re.match(pattern, file)
-            if match:
-                term_name = match.group(1)
-                filepath = os.path.join(root,file)
-
+    for root, _, files in os.walk(args.input):
+        for filename in files:
+            if filename=="data.json":
+                filepath = os.path.join(root,filename)
                 with open(filepath, 'r') as file:
                     data = json.load(file)
                 
-                data['origin'] = os.path.join(root, file.split('.')[0])
+                data['origin'] = os.path.join(root, filename)
                 dataset["train"].append(data)
 
     with open(args.output, 'w') as file:
-        json.dump(dataset, file)
+        json.dump(dataset, file, indent=4)
 
 
 
