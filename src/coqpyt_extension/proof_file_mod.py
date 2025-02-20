@@ -98,9 +98,13 @@ class ProofFileMod(ProofFileLight):
     Extension of ProofFileLight to enable additionnal information retrieval (lambda-term, type, proof state etc.)
     """
 
+    @staticmethod 
+    def _admitted_all_before(source: str):
+        pass
+
     @staticmethod
     def _match_term_type(term: str):
-        pattern = r'(Lemma|Theorem) (\S+?)[:\ ]'
+        pattern = r'(Lemma|Theorem) (\S+)[:\ \n]'
         # Extract matches
         match = re.search(pattern, term)
         if match:
@@ -156,7 +160,7 @@ class ProofFileMod(ProofFileLight):
     
     def get_all_terms(self):
         all_terms = {}
-        for term in self.proofs:
+        for idx, term in enumerate(self.proofs):
             term_extract = self._match_term_type(term.step.short_text)
             if term_extract:
                 _, term_name = term_extract
@@ -169,42 +173,57 @@ class ProofFileMod(ProofFileLight):
                 # hacky, extract_all should output sets directly
                 notations = list(set(notations))
                 constants = list(set(constants))
-                all_terms[term_name] = {"name": term_name, "notations": notations, "constants": constants}
-        
-        pattern_lemma = r"(Lemma|Theorem) (\S+?)[:\ ] *.*?[ \n]*:[ \n]*[\s\S]*?Proof.[ \n]*([\s\S]*?)(Qed\.)"
+                all_terms[term_name] = {"name": term_name, "notations": notations, "constants": constants, "idx": idx}
+        return all_terms
+
+    def _generate_minimal_source(self, term):
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
-        all_matches = list(re.finditer(pattern_lemma, aux_saved))
+        pattern_lemma = r"\n(Lemma|Theorem) " + term['name'] + r"[^\S][:\ \n]*(.|\n)*?Proof.([\s\S]*?)(Qed\.|Admitted.)"
 
-        # final check to avoid mismatch between both regex matching (pattern_lemma vs _match_term)
-        check_equal = 0
+        lemma_match = re.search(pattern_lemma, aux_saved)
+        if not lemma_match:
+            return None
+        term['start_proof'] = lemma_match.start(3)
+        term['end_proof'] = lemma_match.end(3)
+        term['match_end'] = lemma_match.end(0)
+        trunc_aux_saved = aux_saved[:lemma_match.end(0)]
 
-        for idx, match in enumerate(all_matches):
-            check_equal += 1
-            term_name = match.group(2)
-            start_proof = match.start(3)
-            end_proof = match.end(3)
-            match_end = match.end(4)
+        pattern_any_lemma = r'\n(Lemma|Theorem) (\S+)[:\ \n]'
+        all_lemma_matches = list(re.finditer(pattern_any_lemma, trunc_aux_saved))
+        if not all_lemma_matches:
+            return trunc_aux_saved
 
-            assert term_name in all_terms, f"Term {term_name} not found"
+        last_lemma_match = all_lemma_matches[-1]
+        last_lemma_name = last_lemma_match.group(2)
 
-            all_terms[term_name]['start_proof'] = start_proof
-            all_terms[term_name]['end_proof'] = end_proof
-            all_terms[term_name]['match_end'] = match_end
-            all_terms[term_name]['idx'] = idx
-        assert check_equal == len(all_terms.keys()), "Mismatch between lemmas/theorems found by _match_term_type and the ones found by pattern_lemma regex expr"
-        return all_terms
+        
+
+        assert last_lemma_name == term['name'], f"Parsing issue with {term['name']} in {self.path}, regex detect {last_lemma_name}"
+        return trunc_aux_saved
+        # pattern_any_lemma_w_proof = r'(Lemma|Theorem) (\S+)[:\ \n]*(.|\n)*?Proof.[ \n]*(Admitted.|(([\s\S]*?)Qed\.))'
+        # all_lemma_w_proof_matches = list(re.finditer(pattern_any_lemma_w_proof, trunc_aux_saved))
+
+        # for match in reversed(all_lemma_w_proof_matches[:-1]):
+        #     start, end = match.start(5), match.end(5)
+        #     trunc_aux_saved = trunc_aux_saved[:start] + '\nAdmitted.' + trunc_aux_saved[end:]
+        
+        # last_match = list(re.finditer(pattern_any_lemma_w_proof, trunc_aux_saved))[-1]
+        # term['start_proof'] = last_match.start(6)
+        # term['end_proof'] = last_match.end(6)
+        # term['match_end'] = last_match.end(0)
+        # return trunc_aux_saved
 
     def _extract_annotations(self, term, do_notations=True, do_goals=True, do_existentials=True, do_constants=True):
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
         aux_archive = aux_saved
-    
+
+        aux_saved = self._generate_minimal_source(term)
         all_prints = []
         all_checks = []
         all_goals = []
         all_existentials = []
-        
         term_name = term['name']
         start_proof = term['start_proof']
         end_proof = term['end_proof']
@@ -243,7 +262,6 @@ class ProofFileMod(ProofFileLight):
             all_existentials = [{"instr": 'Show Existentials', "label": term_name + '#existentials'} for _ in tactics] + all_existentials
         # a bit annoying: to avoid collision when adding instruction I start appending instruction from the end
         # so to keep things in order, and since we need to associate instruction with line number, things should be done in some weird reverse order.
-        
         instr_tot = "\n" + ".\n".join(instr_all) + '.\n'
 
         new_tactics = ""
@@ -278,16 +296,18 @@ class ProofFileMod(ProofFileLight):
         aux_file.write(aux_saved)
         aux_file.didChange()
         result = get_queries_dict(aux_file, queries_dict)[term_name]
+        
         aux_file.write(aux_archive)
-
         assert len(result['term'])==1 and len(result['proposition'])==1, "Issue with dict obtains from get_queries_dict, check if aux_saved contains only one Print of 'proposition' and/or 'term'"
 
         result['term'] = result['term'][0]
         result['proposition'] = result['proposition'][0]
-        return result, aux_saved
-
-        
-    def extract_one_by_one(self, export_path, debug=False):
+        result['start_proof'] = start_proof
+        result['end_proof'] = end_proof
+        result['match_end'] = match_end
+        return result
+     
+    def extract_one_by_one(self, export_path):
         # Sanitize file: remove all Print/Check/Show and comments to avoid conflict with regex
         self.sanitize()
         all_terms = self.get_all_terms()
@@ -303,13 +323,18 @@ class ProofFileMod(ProofFileLight):
             with open(done_path, 'r') as file:
                 done = set(json.load(file))
         
+        source_str = self._ProofFile__aux_file.read()
+        source_path = os.path.join(export_path, "source.v")
+        with open(source_path, 'w') as file:
+            file.write(source_str)
+
         for term_name, term in tqdm(list(all_terms.items())):
             if term_name in done or term_name in forbidden:
                 continue
             forbidden.add(term_name)
             with open(forbidden_path, 'w') as file:
                 json.dump(list(forbidden), file, indent=4)
-            extract_term, aux_saved = self._extract_annotations(term)
+            extract_term = self._extract_annotations(term)
             extract_term['steps'] = term["steps"]
             extract_term['name'] = term_name
             forbidden.discard(term_name)
@@ -319,11 +344,6 @@ class ProofFileMod(ProofFileLight):
             term_path = os.path.join(export_path, f"term_{idx}.json")
             with open(term_path, 'w') as file:
                 json.dump(extract_term, file, indent=4)
-
-            if debug:
-                debug_path = os.path.join(export_path, f"term_{idx}_debug")
-                with open(debug_path, 'w') as file:
-                    file.write(aux_saved)
             with open(done_path, 'w') as file:
                 json.dump(list(done), file, indent=4)
             with open(forbidden_path, 'w') as file:
