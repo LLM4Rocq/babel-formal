@@ -1,5 +1,4 @@
 import os
-import random
 import argparse
 
 import sys
@@ -49,11 +48,19 @@ def get_all_source_files(folderpath:str, filter:str='mathcomp'):
     stats_tot = {'count_lemma': tot_count_lemma, 'count_theorem': tot_count_theorem, 'count_proof': tot_count_proof}
     return v_files, stats, stats_tot
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True, help='Mathcomp path')
     parser.add_argument('--output', default='export/step_0/', help='Output dataset path')
-    parser.add_argument('--timeout', default=60*60, type=int, help='Coqpyt timeout')
+    parser.add_argument('--timeout', default=1*60, type=int, help='Coqpyt timeout')
+    parser.add_argument('--num-workers', default=1, type=int, help='Number of worker')
+    parser.add_argument('--idx-worker', default=0, type=int, help='Index of current worker')
+
     args = parser.parse_args()
     
     v_files, _, stats_tot = get_all_source_files('/home/theo/.opam/default/.opam-switch/sources/')
@@ -61,17 +68,25 @@ if __name__ == '__main__':
     remains = set()
 
     v_files = list(v_files)
-    random.shuffle(v_files)
+    v_files = sorted(v_files)
+    v_files = list(chunks(v_files, len(v_files)//args.num_workers))[args.idx_worker]
     for filepath, filename in tqdm(v_files):
         print(filepath)
         fullpath = os.path.join(args.output, filename)
         os.makedirs(fullpath, exist_ok=True)
         if os.path.exists(os.path.join(fullpath, 'finish')):
             continue
-        with ProofFileMod(filepath, timeout=args.timeout) as proof_file:
-            proof_file.run()
-            proof_file.extract_one_by_one(fullpath)
-        with open(os.path.join(fullpath, 'finish'), 'w'):
-            pass
+        
+        for _ in range(100):
+            try:
+                with ProofFileMod(filepath, timeout=args.timeout) as proof_file:
+                    proof_file.run()
+                    proof_file.extract_one_by_one(fullpath)
+                with open(os.path.join(fullpath, 'finish'), 'w'):
+                    pass
+                break
+            except FileNotFoundError as e:
+                print(e)
+
 
 
