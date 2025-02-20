@@ -2,6 +2,8 @@ import re
 import os
 import json
 from tqdm import tqdm
+import logging
+logger = logging.getLogger(__name__)
 
 from collections import defaultdict
 from src.coqpyt_extension.proof_file_light import ProofFileLight
@@ -41,7 +43,7 @@ def get_queries_dict(aux_file, queries_dict, reduced_notation=True):
     if uri not in aux_file.coq_lsp_client.lsp_endpoint.diagnostics:
         return []
 
-    result = defaultdict(lambda : {"proposition": [], "notations": [], "constants": [], "term": [], "states": [], "existentials": []})
+    result = defaultdict(lambda : {"proposition": [], "notations": [], "constants": [], "term": []})
     lines = aux_file.read().split("\n")
     for diagnostic in aux_file.coq_lsp_client.lsp_endpoint.diagnostics[uri]:
         command = lines[diagnostic.range.start.line : diagnostic.range.end.line + 1]
@@ -79,12 +81,6 @@ def get_queries_dict(aux_file, queries_dict, reduced_notation=True):
                 case "constants":
                     if not "was not found" in message:
                         messages = [message]
-                case "states":
-                    if not "No goals to show" in message:
-                        messages = [message]
-                case "existentials":
-                    if not "requires an open proof" in message:
-                        messages = [message]
             if messages:
                 result[term_name][category] += messages
     for term_name in result:
@@ -104,64 +100,27 @@ class ProofFileMod(ProofFileLight):
 
     @staticmethod
     def _match_term_type(term: str):
-        pattern = r'(Lemma|Theorem) (\S+)[:\ \n]'
+        pattern = r'(Lemma|Theorem) (\S+?)[:\ \n]'
         # Extract matches
         match = re.search(pattern, term)
         if match:
             return match.group(1), match.group(2)
         return None
 
-    @staticmethod
-    def remove_comments(text: str):
-        cleaned = []
-        i = 0
-        n = len(text)
-        stack_level = 0  # Tracks nesting level of comments
-
-        while i < n:
-            # Check for comment start '(*'
-            if i + 1 < n and text[i] == '(' and text[i+1] == '*':
-                stack_level += 1
-                i += 2  # Skip the '(*'
-                continue
-
-            # Check for comment end '*)'
-            if i + 1 < n and text[i] == '*' and text[i+1] == ')':
-                if stack_level > 0:
-                    stack_level -= 1
-                    i += 2  # Skip the '*)'
-                    continue
-            # If not inside a comment, add the character to the result
-            if stack_level == 0:
-                cleaned.append(text[i])
-
-            i += 1
-        return ''.join(cleaned)
-
-    @staticmethod 
-    def remove_instr(text: str, instr_to_delete=['Print','Check', "Show"]):
-        text_clean = text
-        
-        pattern_instr = f'({"|".join(instr_to_delete)})' + r' .*?\.'
-        all_matches = list(re.finditer(pattern_instr, text_clean, flags=re.DOTALL))
-        for match in reversed(all_matches):
-            match_start = match.start(0)
-            match_end = match.end(0)
-            text_clean = text_clean[:match_start] + text_clean[match_end:]
-        
-        return text_clean
-    
-    def sanitize(self):
-        aux_file = self._ProofFile__aux_file
-        text = aux_file.read()
-        text_sanitize = self.remove_comments(text)
-        text_sanitize = self.remove_instr(text_sanitize)
-        aux_file.write(text_sanitize)
-    
     def get_all_terms(self):
-        all_terms = {}
+        all_terms = []
         for idx, term in enumerate(self.proofs):
             term_extract = self._match_term_type(term.step.short_text)
+            proposition = term.step.short_text
+            steps = []
+            for step in term.steps:
+                range_start = step.step.ast.range.start
+                range_end = step.step.ast.range.end
+                instr = step.step.short_text
+                steps.append((instr, range_start.line, range_end.line))
+            
+            if 'Admitted' in steps[-1][0] or 'Abort' in steps[-1][0]:
+                continue
             if term_extract:
                 _, term_name = term_extract
                 notations = extract_all_notation(term.ast.span)
@@ -173,143 +132,66 @@ class ProofFileMod(ProofFileLight):
                 # hacky, extract_all should output sets directly
                 notations = list(set(notations))
                 constants = list(set(constants))
-                all_terms[term_name] = {"name": term_name, "notations": notations, "constants": constants, "idx": idx}
+                all_terms.append({"name": term_name, "proposition": proposition, "steps": steps, "notations": notations, "constants": constants, "idx": idx})
         return all_terms
 
-    def _generate_minimal_source(self, term):
-        aux_file = self._ProofFile__aux_file
-        aux_saved = aux_file.read()
-        pattern_lemma = r"\n(Lemma|Theorem) " + term['name'] + r"[^\S][:\ \n]*(.|\n)*?Proof.([\s\S]*?)(Qed\.|Admitted.)"
-
-        lemma_match = re.search(pattern_lemma, aux_saved)
-        if not lemma_match:
-            return None
-        term['start_proof'] = lemma_match.start(3)
-        term['end_proof'] = lemma_match.end(3)
-        term['match_end'] = lemma_match.end(0)
-        trunc_aux_saved = aux_saved[:lemma_match.end(0)]
-
-        pattern_any_lemma = r'\n(Lemma|Theorem) (\S+)[:\ \n]'
-        all_lemma_matches = list(re.finditer(pattern_any_lemma, trunc_aux_saved))
-        if not all_lemma_matches:
-            return trunc_aux_saved
-
-        last_lemma_match = all_lemma_matches[-1]
-        last_lemma_name = last_lemma_match.group(2)
-
-        
-
-        assert last_lemma_name == term['name'], f"Parsing issue with {term['name']} in {self.path}, regex detect {last_lemma_name}"
-        return trunc_aux_saved
-        # pattern_any_lemma_w_proof = r'(Lemma|Theorem) (\S+)[:\ \n]*(.|\n)*?Proof.[ \n]*(Admitted.|(([\s\S]*?)Qed\.))'
-        # all_lemma_w_proof_matches = list(re.finditer(pattern_any_lemma_w_proof, trunc_aux_saved))
-
-        # for match in reversed(all_lemma_w_proof_matches[:-1]):
-        #     start, end = match.start(5), match.end(5)
-        #     trunc_aux_saved = trunc_aux_saved[:start] + '\nAdmitted.' + trunc_aux_saved[end:]
-        
-        # last_match = list(re.finditer(pattern_any_lemma_w_proof, trunc_aux_saved))[-1]
-        # term['start_proof'] = last_match.start(6)
-        # term['end_proof'] = last_match.end(6)
-        # term['match_end'] = last_match.end(0)
-        # return trunc_aux_saved
-
-    def _extract_annotations(self, term, do_notations=True, do_goals=True, do_existentials=True, do_constants=True):
+    def _extract_annotations(self, term, do_notations=True, do_constants=True):
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
         aux_archive = aux_saved
 
-        aux_saved = self._generate_minimal_source(term)
         all_prints = []
         all_checks = []
-        all_goals = []
-        all_existentials = []
         term_name = term['name']
-        start_proof = term['start_proof']
-        end_proof = term['end_proof']
-        match_end = term['match_end']
+        match_end = term['steps'][-1][2]
         
-        tactics = aux_saved[start_proof:end_proof].split('\n')
-        tactics = [tactic for tactic in tactics if '.' in tactic]
-        term['steps'] = tactics
         instr_notations = []
         instr_constants = []
+        instr_term = f'Print {term_name}.'
 
-        instr_term = f'Print {term_name}'
-        instr_prop = f'Check {term_name}'
         for notation in term['notations']:
-            instr_notations.append(f'Print "{notation}"')
+            instr_notations.append(f'Print "{notation}".')
         for constant in term['constants']:
-            instr_constants.append(f'Check {constant}')
+            instr_constants.append(f'Check {constant}.')
         instr_all = [instr_term]
-
-        # add print instructions (in backward order)
+        
         if do_notations:
             instr_all += instr_notations
             all_prints = [{"instr": instr, "label": term_name + '#notations'} for instr in instr_notations] + all_prints
         all_prints = [{"instr": instr_term, "label": term_name + '#term'}] + all_prints
 
-        instr_all += [instr_prop]
-
         if do_constants:
             instr_all += instr_constants
             all_checks = [{"instr": instr, "label": term_name + '#constants'} for instr in instr_constants] + all_checks
         
-        all_checks = [{"instr": instr_prop, "label": term_name + '#proposition'}] + all_checks
-        if do_goals:
-            all_goals = [{"instr": 'Show Proof', "label": term_name + '#states'} for _ in tactics] + all_goals
-        if do_existentials:
-            all_existentials = [{"instr": 'Show Existentials', "label": term_name + '#existentials'} for _ in tactics] + all_existentials
         # a bit annoying: to avoid collision when adding instruction I start appending instruction from the end
         # so to keep things in order, and since we need to associate instruction with line number, things should be done in some weird reverse order.
-        instr_tot = "\n" + ".\n".join(instr_all) + '.\n'
-
-        new_tactics = ""
-        for tactic in tactics:
-            if do_goals:
-                new_tactics += "Show Proof.\n"
-            if do_existentials:
-                new_tactics += "Show Existentials.\n"
-            new_tactics += tactic + '\n'
-        aux_saved = aux_saved[:match_end] + instr_tot + aux_saved[match_end:]
-        aux_saved = aux_saved[:start_proof] + new_tactics + aux_saved[end_proof:]
-        aux_lines = aux_saved.split('\n')
-        idx_print = 0
-        idx_check = 0
-        idx_goals = 0
-        idx_existentials = 0
         queries_dict = {}
-        for num_line, line in enumerate(aux_lines):
-            if line.startswith('Print'):
-                queries_dict[num_line] = all_prints[idx_print]
-                idx_print += 1
-            if line.startswith('Check'):
-                queries_dict[num_line] = all_checks[idx_check]
-                idx_check += 1
-            if line.startswith('Show Proof'):
-                queries_dict[num_line] = all_goals[idx_goals]
-                idx_goals += 1
-            if line.startswith('Show Existentials'):
-                queries_dict[num_line] = all_existentials[idx_existentials]
-                idx_existentials += 1
+        aux_saved_lines = aux_saved.splitlines()
+        aux_saved_lines = aux_saved_lines[:match_end+1] + instr_all + aux_saved_lines[match_end+1:]
+        aux_saved = "\n".join(aux_saved_lines)
+
+        for k, instr in enumerate(all_prints + all_checks, start=1):
+            queries_dict[k + match_end] = instr
+        
         aux_file = self._ProofFile__aux_file
         aux_file.write(aux_saved)
         aux_file.didChange()
         result = get_queries_dict(aux_file, queries_dict)[term_name]
         
         aux_file.write(aux_archive)
-        assert len(result['term'])==1 and len(result['proposition'])==1, "Issue with dict obtains from get_queries_dict, check if aux_saved contains only one Print of 'proposition' and/or 'term'"
+
+        one_prop_one_term = len(result['term'])==1
+        if not one_prop_one_term or True:
+            with open('debug.v', 'w') as file_io:
+                file_io.write(aux_saved)
+        assert one_prop_one_term, "Issue with dict obtains from get_queries_dict, check if debug.v contains one Print of 'term'"
 
         result['term'] = result['term'][0]
-        result['proposition'] = result['proposition'][0]
-        result['start_proof'] = start_proof
-        result['end_proof'] = end_proof
-        result['match_end'] = match_end
-        return result
+        term.update(result)
+        return term
      
     def extract_one_by_one(self, export_path):
-        # Sanitize file: remove all Print/Check/Show and comments to avoid conflict with regex
-        self.sanitize()
         all_terms = self.get_all_terms()
         forbidden = set()
         done = set()
@@ -327,8 +209,8 @@ class ProofFileMod(ProofFileLight):
         source_path = os.path.join(export_path, "source.v")
         with open(source_path, 'w') as file:
             file.write(source_str)
-
-        for term_name, term in tqdm(list(all_terms.items())):
+        for term in tqdm(all_terms):
+            term_name = term['name']
             if term_name in done or term_name in forbidden:
                 continue
             forbidden.add(term_name)
