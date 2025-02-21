@@ -11,7 +11,8 @@ from coqpyt.coq.proof_file import ProofFile
 
 
 class ProofFileLight(ProofFile):
-    """"Lighter version of ProofFile (no recursive Locate search during context retrieval), to avoid recursive blow-up 
+    """Lighter version of ProofFile (no recursive Locate search during context retrieval), to avoid recursive blow-up.
+    Override the hack ignoring steps inside Module Type.
     """
 
     def __step(self, step: Step, undo: bool):

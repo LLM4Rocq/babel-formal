@@ -15,7 +15,14 @@ from openai import OpenAI
 from tqdm import tqdm
 import numpy as np
 
+"""
+Fifth step: Compute score of reasoning based on prediction performance with Qwen 32b R1.
+"""
+
 def compute_logprobs(prompt, client, config):
+    """
+    Send prompt to client using config and retrieve logprobs.
+    """
     completion = client.completions.create(
         prompt=prompt,
         extra_body={
@@ -27,6 +34,9 @@ def compute_logprobs(prompt, client, config):
     return logprobs
 
 def add_hidden_reasonings(data):
+    """
+    Obfuscate reasoning by words matching (keywords, terms, constants etc.).
+    """
     new_data = deepcopy(data)
     pattern = r'(\S*?)\n'
     keywords = ["rewrite", "move", "have", "case", "elim", "by","apply", "=>", "[", "]"]
@@ -63,6 +73,9 @@ def add_hidden_reasonings(data):
     return new_data
 
 def compute_scores(logprobs):
+    """
+    Compute average, decision, and completion scores based on given logprobs.
+    """
     logprob_avg, logprobs_decision, logprobs_completion = [], [], []
     match_boxed = False
     tot_answer = ""
@@ -90,6 +103,9 @@ def compute_scores(logprobs):
     return {"score_avg": exp(logprob_avg.mean())*100, "score_decision": exp(logprobs_decision.mean())*100, "score_completion": exp(logprobs_completion.mean())*100}
 
 def process_prompt(prompts, export_path, data, client, config, delay=0):
+    """
+    Executes multiple generation of the same prompt, export them sequentially.
+    """
     time.sleep(delay)
     for k, prompt in enumerate(prompts):
         logprob = compute_logprobs(prompt, client, config)

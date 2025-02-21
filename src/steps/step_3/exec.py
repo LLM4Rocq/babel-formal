@@ -15,7 +15,14 @@ from tqdm import tqdm
 
 from tqdm import tqdm
 
+"""
+Fourth step: Generate reasoning using deepseek R1.
+"""
+
 def generate_output(prompt, client, config):
+    """
+    Sends prompt to client using config.
+    """
     completion = client.chat.completions.create(
         messages=[
             {"role": "user", "content": prompt}
@@ -25,6 +32,9 @@ def generate_output(prompt, client, config):
     return {"reasoning": completion.choices[0].message.reasoning, "content": completion.choices[0].message.content}
 
 def process_prompt(prompt, export_path, data, client, config, num_gen=10, delay=0):
+    """
+    Executes multiple generation of the same prompt, export them sequentially.
+    """
     time.sleep(delay)
     for k in range(num_gen):
         output_entry = generate_output(prompt, client, config)

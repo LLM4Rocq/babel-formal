@@ -1,9 +1,10 @@
 import os
 import argparse
 import json
-import re
 
-
+"""
+Seventh step: Gather previous dataset into a json
+"""
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

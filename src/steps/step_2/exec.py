@@ -12,8 +12,15 @@ sys.setrecursionlimit(10_000)
 import numpy as np
 import bm25s
 from tqdm import tqdm
+"""
+Third step: Filter previous dataset based on terms length and number of steps in proof, then select a diverse subset using BM25.
+"""
+
 
 def delete_empty_folders(root):
+    """
+    Deletes folder if empty
+    """
     deleted = set()
     for current_dir, subdirs, files in os.walk(root, topdown=False):
         still_has_subdirs = False
@@ -27,6 +34,9 @@ def delete_empty_folders(root):
             deleted.add(current_dir)
 
 def select_diverse_documents(documents, filepaths, k):
+    """
+    Extracts subset of diverse documents using BM25.
+    """
     # Not efficient, but enough for the moment
     retriever = bm25s.BM25(corpus=documents)
     retriever.index(bm25s.tokenize(documents))

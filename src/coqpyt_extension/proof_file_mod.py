@@ -1,44 +1,82 @@
 import re
 import os
 import json
-from tqdm import tqdm
+import copy
+from collections import defaultdict
+from typing import Any, List, Dict, Optional, Tuple
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import defaultdict
+from tqdm import tqdm
+
+from coqpyt.coq.proof_file import _AuxFile
 from src.coqpyt_extension.proof_file_light import ProofFileLight
 
-def extract_all_notation(data):
+def extract_all_notation(ast: Dict) -> List[str]:
+    """
+    Recursively extracts all notations from the given Rocq AST.
+
+    Args:
+        ast: A nested data structure (dict or list) representing parts of a Rocq AST.
+
+    Returns:
+        A list of notation strings extracted from the ast.
+    """
     result = []
-    if isinstance(data, dict):
-        if 'v' in data:
-            result += extract_all_notation(data['v'])
-        if 'expr' in data:
-            result += extract_all_notation(data['expr'])
-    elif isinstance(data, list):
-        if len(data) > 2:
-            if data[0] == 'CNotation':
-                result.append(data[2][1])
-        for entry in data:
+    if isinstance(ast, dict):
+        if 'v' in ast:
+            result += extract_all_notation(ast['v'])
+        if 'expr' in ast:
+            result += extract_all_notation(ast['expr'])
+    elif isinstance(ast, list):
+        if len(ast) > 2:
+            if ast[0] == 'CNotation':
+                result.append(ast[2][1])
+        for entry in ast:
             result += extract_all_notation(entry)
     return result
 
-def extract_all_types(data):
+def extract_all_types(ast: Dict) -> List[str]:
+    """
+    Recursively extracts all types from the given Rocq AST.
+
+    Args:
+        ast: A nested data structure (dict or list) representing parts of a Rocq AST.
+
+    Returns:
+        A list of type identifier strings extracted from the ast.
+    """
     result = []
-    if isinstance(data, dict):
-        if 'v' in data:
-            result += extract_all_types(data['v'])
-        if 'expr' in data:
-            result += extract_all_types(data['expr'])
-    elif isinstance(data, list):
-        if len(data) > 2:
-            if data[0] == 'Ser_Qualid':
-                result.append(data[2][1])
-        for entry in data:
+    if isinstance(ast, dict):
+        if 'v' in ast:
+            result += extract_all_types(ast['v'])
+        if 'expr' in ast:
+            result += extract_all_types(ast['expr'])
+    elif isinstance(ast, list):
+        if len(ast) > 2:
+            if ast[0] == 'Ser_Qualid':
+                result.append(ast[2][1])
+        for entry in ast:
             result += extract_all_types(entry)
     return result
 
-def get_queries_dict(aux_file, queries_dict, reduced_notation=True):
+def get_queries_dict(
+    aux_file: _AuxFile,
+    queries_dict: Dict[int, Dict[str, str]],
+    reduced_notation: bool = True
+) -> Dict[str, Dict[str, List[str]]]:
+    """
+    Retrieves queries and diagnostic messages from the auxiliary file.
+
+    Args:
+        aux_file: An auxiliary file object given by CoqPyt.
+        queries_dict: A dictionary mapping starting line numbers to query (a dict containing 'term_name', and 'category' keys).
+        reduced_notation: If True, limits the extraction of notations to a reduced set.
+
+    Returns:
+        A dictionary mapping term names to a dictionary of message lists for each category:
+        'proposition', 'notations', 'constants', and 'term'.
+    """
     uri = f"file://{aux_file.path}"
     if uri not in aux_file.coq_lsp_client.lsp_endpoint.diagnostics:
         return []
@@ -60,10 +98,9 @@ def get_queries_dict(aux_file, queries_dict, reduced_notation=True):
         command = "".join(command).strip()
 
         start_line = diagnostic.range.start.line
-        end_line = diagnostic.range.end.line
         if start_line in queries_dict:
             query = queries_dict[start_line]
-            term_name, category = query['label'].split('#')
+            term_name, category = query['term_name'], query['category']
             messages = []
             message = diagnostic.message
             match category:
@@ -91,26 +128,40 @@ def get_queries_dict(aux_file, queries_dict, reduced_notation=True):
 
 class ProofFileMod(ProofFileLight):
     """"
-    Extension of ProofFileLight to enable additionnal information retrieval (lambda-term, type, proof state etc.)
+    Extension of ProofFileLight to enable additionnal information retrieval (lambda-term, type, proof state etc.) from a Rocq file.
     """
 
-    @staticmethod 
-    def _admitted_all_before(source: str):
-        pass
-
     @staticmethod
-    def _match_term_type(term: str):
+    def _match_term_kind(term: str) -> Tuple[str, str]:
+        """
+        Extracts the term kind (lemma|theorem) and name from the given term string.
+        """
         pattern = r'(Lemma|Theorem) (\S+?)[:\ \n]'
         # Extract matches
         match = re.search(pattern, term)
         if match:
             return match.group(1), match.group(2)
-        return None
+        return "", ""
 
-    def get_all_terms(self):
+    def get_all_terms(self) -> List[Dict[str, Any]]:
+        """
+        Retrieves all valid terms from the current file.
+
+        Iterates over proofs, extracting the term name, proposition, steps,
+        notations, and constants. Proofs ending with 'Admitted' or 'Abort' are skipped.
+
+        Returns:
+            A list of dictionaries, each containing details of a term including:
+                - name: The term's name.
+                - proposition: The proposition text.
+                - steps: A list of tuples (instruction, start_line, end_line) for each step.
+                - notations: A list of notation.
+                - constants: A list of type/constant.
+                - idx: The index of the term in the proofs list.
+        """
         all_terms = []
         for idx, term in enumerate(self.proofs):
-            term_extract = self._match_term_type(term.step.short_text)
+            term_extract = self._match_term_kind(term.step.short_text)
             proposition = term.step.short_text
             steps = []
             for step in term.steps:
@@ -136,6 +187,20 @@ class ProofFileMod(ProofFileLight):
         return all_terms
 
     def _extract_annotations(self, term, do_notations=True, do_constants=True):
+        """
+        Extracts information (term, notations, constants) for a given term.
+
+        This method writes additional Rocq commands (Print and Check) into the auxiliary file to obtain annotations for the term's notations, constants, and the term itself.
+        It then reads back diagnostics to extract the corresponding messages and updates the term dictionary.
+
+        Args:
+            term: A dictionary containing details of the term (obtained through get_all_terms).
+            do_notations: Whether to process notations.
+            do_constants: Whether to process constants.
+
+        Returns:
+            A copy of the term dictionary with added annotation fields.
+        """
         aux_file = self._ProofFile__aux_file
         aux_saved = aux_file.read()
         aux_archive = aux_saved
@@ -157,12 +222,12 @@ class ProofFileMod(ProofFileLight):
         
         if do_notations:
             instr_all += instr_notations
-            all_prints = [{"instr": instr, "label": term_name + '#notations'} for instr in instr_notations] + all_prints
-        all_prints = [{"instr": instr_term, "label": term_name + '#term'}] + all_prints
+            all_prints = [{"instr": instr, "term_name": term_name, "category": 'notations'} for instr in instr_notations] + all_prints
+        all_prints = [{"instr": instr_term, "term_name": term_name, "category": 'term'}] + all_prints
 
         if do_constants:
             instr_all += instr_constants
-            all_checks = [{"instr": instr, "label": term_name + '#constants'} for instr in instr_constants] + all_checks
+            all_checks = [{"instr": instr, "term_name": term_name, "category": 'constants'} for instr in instr_constants] + all_checks
         
         # a bit annoying: to avoid collision when adding instruction I start appending instruction from the end
         # so to keep things in order, and since we need to associate instruction with line number, things should be done in some weird reverse order.
@@ -188,10 +253,25 @@ class ProofFileMod(ProofFileLight):
         assert one_prop_one_term, "Issue with dict obtains from get_queries_dict, check if debug.v contains one Print of 'term'"
 
         result['term'] = result['term'][0]
+        term = copy.deepcopy(term)
         term.update(result)
         return term
      
     def extract_one_by_one(self, export_path):
+        """
+        Extracts terms one by one and exports their details to JSON files.
+
+        Iterates through all extracted terms, skips those already processed or forbidden,
+        and saves each term's annotations and details in separate JSON files.
+        It also maintains records of processed terms in 'done.json' and forbidden terms in 'forbidden.json',
+        and writes the Rocq source file to 'source.v'.
+
+        Args:
+            export_path: The directory where the export files (JSON and source file) will be saved.
+
+        Returns:
+            None.
+        """
         all_terms = self.get_all_terms()
         forbidden = set()
         done = set()

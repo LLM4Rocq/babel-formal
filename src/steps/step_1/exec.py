@@ -12,6 +12,10 @@ sys.setrecursionlimit(10_000)
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
+"""
+Second step: Compute tokenized length of terms.
+"""
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/step_0/', help='Output path previous step')

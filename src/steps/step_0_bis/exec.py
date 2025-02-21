@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 from tqdm import tqdm
 from src.training.eval import eval_tactics
 
+"""
+First step bis: Check extract steps and source code are compilable using Pytanque. Retrieve (sub)goals from pytanque.
+"""
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/step_0/', help='Output path from previous step')
@@ -35,7 +39,7 @@ if __name__ == '__main__':
         if 'pytanque_check' in data:
             continue
         name_thm = data['name']
-        tactics = data['steps']
+        tactics = [tactic for tactic,_,_ in data['steps'] if 'Proof.' not in tactic and 'Qed.' not in tactic]
         
         goal_init, res = eval_tactics(name_thm, source_path, tactics)
 

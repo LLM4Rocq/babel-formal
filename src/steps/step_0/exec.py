@@ -7,12 +7,16 @@ sys.setrecursionlimit(10_000)
 
 from tqdm import tqdm
 from src.coqpyt_extension.proof_file_mod import ProofFileMod
+from coqpyt.lsp.structs import ResponseError
 
+"""
+First step: compile mathcomp to extract terms, notations, constants, steps etc.
+"""
 
 def get_all_source_files(folderpath:str, filter:str='mathcomp'):
-    '''
-    Extract all sources files (.v files) in sub directories of "folderpath" containing the variable "filter", by default corresponds to mathcomp library
-    '''
+    """
+    Extract all sources files (.v files) in sub directories of "folderpath" containing the variable "filter", by default corresponds to mathcomp library.
+    """
     v_files = set()
     set_filename = set()
     stats = {}
@@ -26,7 +30,6 @@ def get_all_source_files(folderpath:str, filter:str='mathcomp'):
                 # few checks: not already done, not an auxiliary file, and is a source file
                 if file in set_filename or 'coqpyt' in file or not file.endswith('.v'):
                     continue
-                
                 with open(filepath, 'r') as file_io:
                     content = file_io.read()
                 count_lemma = content.count('\nLemma')
@@ -67,10 +70,18 @@ if __name__ == '__main__':
     print(f"Lemma count: {stats_tot['count_lemma']}\nTheorem count: {stats_tot['count_theorem']}\nProof count: {stats_tot['count_proof']}")
     remains = set()
 
+    
     v_files = list(v_files)
+    v_files_filtered = []
     v_files = sorted(v_files)
-    v_files = list(chunks(v_files, len(v_files)//args.num_workers))[args.idx_worker]
-    for filepath, filename in tqdm(v_files):
+    for filepath, filename in v_files:
+        fullpath = os.path.join(args.output, filename)
+        if os.path.exists(os.path.join(fullpath, 'finish')):
+            continue
+        v_files_filtered.append((filepath, filename))
+
+    v_files_filtered = list(chunks(v_files_filtered, len(v_files_filtered)//args.num_workers))[args.idx_worker]
+    for filepath, filename in tqdm(v_files_filtered):
         print(filepath)
         fullpath = os.path.join(args.output, filename)
         os.makedirs(fullpath, exist_ok=True)
@@ -87,6 +98,5 @@ if __name__ == '__main__':
                 break
             except FileNotFoundError as e:
                 print(e)
-
-
-
+            except ResponseError as e:
+                print(e)

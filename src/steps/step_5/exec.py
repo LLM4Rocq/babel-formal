@@ -15,7 +15,14 @@ from tqdm import tqdm
 
 from tqdm import tqdm
 
+"""
+Sixth step: Filter best reasonings (previous criteria) by asking an LLM to check additionnal constraints.
+"""
+
 def delete_empty_folders(root):
+    """
+    Deletes folders if empty
+    """
     deleted = set()
     for current_dir, subdirs, files in os.walk(root, topdown=False):
         still_has_subdirs = False
@@ -29,6 +36,9 @@ def delete_empty_folders(root):
             deleted.add(current_dir)
 
 def generate_output(prompt, client, config):
+    """
+    Sends prompt to client using config.
+    """
     completion = client.chat.completions.create(
         messages=[
             {"role": "user", "content": prompt}
@@ -38,6 +48,9 @@ def generate_output(prompt, client, config):
     return {"reasoning": completion.choices[0].message.reasoning, "content": completion.choices[0].message.content}
 
 def process_prompt(prompts, export_path, data, client, config, delay=0):
+    """
+    Executes multiple generation of the same prompt, export them sequentially.
+    """
     time.sleep(delay)
     for prompt, reasoning, score in zip(prompts, data['reasonings'], data['scores']):
         output = generate_output(client, prompt, config)
