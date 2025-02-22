@@ -50,7 +50,7 @@ if __name__ == '__main__':
             continue
         
         if 'coqpyt_aux' in data['term']:
-            logger.warning(f'{data_path} term seems to contains trace of partial compilation.')
+            logger.warning(f'{data_path} term seems to contain trace of partial compilation.')
             os.remove(data_path)
             continue
 

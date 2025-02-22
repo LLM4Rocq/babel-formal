@@ -16,7 +16,7 @@ from tqdm import tqdm
 from tqdm import tqdm
 
 """
-Fourth step: Generate reasoning using deepseek R1.
+Fourth step: Generate reasonings using deepseek R1.
 """
 
 def generate_output(prompt, client, config):
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/step_2/', help='Input dataset path')
     parser.add_argument('--output', default='export/step_3/', help='Output dataset path')
-    parser.add_argument('--num_gen', default=1, type=int, help='Number of reasoning to generate per term')
+    parser.add_argument('--num_gen', default=20, type=int, help='Number of reasoning to generate per term')
     parser.add_argument('--max_workers', default=100, type=int, help='Max number of concurrent workers')
     parser.add_argument('--mean_delay', default=10, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     args = parser.parse_args()

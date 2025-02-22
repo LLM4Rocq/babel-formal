@@ -120,7 +120,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/step_3/', help='Input dataset path')
     parser.add_argument('--output', default='export/step_4/', help='Output dataset path')
-    parser.add_argument('--max_workers', default=6, type=int, help='Max number of concurrent workers')
+    parser.add_argument('--max_workers', default=1, type=int, help='Max number of concurrent workers')
     parser.add_argument('--mean_delay', default=0, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     args = parser.parse_args()
 

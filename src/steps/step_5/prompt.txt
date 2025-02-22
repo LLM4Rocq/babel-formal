@@ -1,7 +1,4 @@
-You are tasked with evaluating the following reasoning text that attempts to convert a Rocq/Coq lambda term into a sequence of tactics. Your goal is to determine if the reasoning simulates satisfies the following criteria:
-
-Here is the reasoning:
-"{reasoning}"
+You are tasked with evaluating the following reasoning text that attempts to convert a Rocq/Coq lambda term into a sequence of tactics. Your goal is to determine if the reasoning satisfies the following criteria:
 
     Avoidance of Copying: The text must not treat the final sequence of tactics as a given fact or pre-determined answer.
     No Overreliance on the Final Answer: The reasoning should not include phrases that indicate the final tactic sequence was known in advance. Such as "The tactics provided " and so on.
@@ -10,6 +7,9 @@ Based on these criteria, provide your analysis in one of the following formats:
 
     Yes: If the reasoning simulates a discovery process without prior knowledge about the answer. It must not mention given/provided tactics.
     No: If the reasoning appears to be based on an already known tactic sequence.
+
+Here is the reasoning:
+"{reasoning}"
 
 Be very careful, the reasoning must not mention any provided or given tactics.
 But it is okay if at the end of the reasoning there is a precise sequence of tactics to conclude it.
