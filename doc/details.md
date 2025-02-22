@@ -60,7 +60,7 @@ In this first scenario, we train a transformer from scratch.
 
 **Will probably not be implemented, [see here](scratch.md) for more details**.
 
-## Fine tuning of LLM
+## Fine-tuning of LLM
 
 In this second scenario, we finefine an already trained LLM.
 We use a backward approach to distill reasoning abilities of **DeepSeek R1**.
