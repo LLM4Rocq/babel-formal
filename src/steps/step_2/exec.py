@@ -62,8 +62,8 @@ def select_diverse_documents(documents, filepaths, k):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/step_1/', help='Output path previous step')
-    parser.add_argument('--output', default='export/step_2/', help='New output path')
+    parser.add_argument('--input', default='export/steps/step_1/', help='Output path previous step')
+    parser.add_argument('--output', default='export/steps/step_2/', help='New output path')
     parser.add_argument('--num-documents', default=1_000, help='Maximum number of final documents')
     parser.add_argument('--max-num-tokens', default=3_750, help='Maximum number of tokens in term')
     parser.add_argument('--min-number-instructions', default=3, help='Minimum number of steps in a proof')

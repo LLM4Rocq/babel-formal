@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from tqdm import tqdm
-from src.training.eval import eval_tactics
+from training.eval import eval_tactics
 
 """
 First step bis: Check extract steps and source code are compilable using Pytanque. Retrieve (sub)goals from pytanque.
@@ -15,8 +15,8 @@ First step bis: Check extract steps and source code are compilable using Pytanqu
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/step_0/', help='Output path from previous step')
-    parser.add_argument('--output', default='export/step_0_bis/', help='Output path')
+    parser.add_argument('--input', default='export/steps/step_0/', help='Output path from previous step')
+    parser.add_argument('--output', default='export/steps/step_0_bis/', help='Output path')
     args = parser.parse_args()
 
     if not os.path.exists(args.output):

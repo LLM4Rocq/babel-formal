@@ -59,7 +59,7 @@ def process_prompt(prompts, export_path, data, client, config, delay=0):
             data['reasoning'] = reasoning
             data['score'] = score
             with open(export_path, 'w') as file:
-                json.dump(data, file)
+                json.dump(data, file, indent=4)
             return ()
         else:
             print(f"Bad reasoning: {export_path}")
@@ -68,8 +68,8 @@ def process_prompt(prompts, export_path, data, client, config, delay=0):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/step_4/', help='Input dataset path')
-    parser.add_argument('--output', default='export/step_5/', help='Output dataset path')
+    parser.add_argument('--input', default='export/steps/step_4/', help='Input dataset path')
+    parser.add_argument('--output', default='export/steps/step_5/', help='Output dataset path')
     parser.add_argument('--max_workers', default=100, type=int, help='Max number of concurrent workers')
     parser.add_argument('--mean_delay', default=10, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     args = parser.parse_args()

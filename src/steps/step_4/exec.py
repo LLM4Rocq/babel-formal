@@ -109,8 +109,6 @@ def process_prompt(prompts, export_path, data, client, config, delay=0):
     time.sleep(delay)
     for k, prompt in enumerate(prompts):
         logprob = compute_logprobs(prompt, client, config)
-
-        data["lobsprobs"].append(logprob)
         data["scores"].append(compute_scores(logprob))
         with open(export_path, 'w') as file:
             json.dump(data, file, indent=4)
@@ -118,8 +116,8 @@ def process_prompt(prompts, export_path, data, client, config, delay=0):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/step_3/', help='Input dataset path')
-    parser.add_argument('--output', default='export/step_4/', help='Output dataset path')
+    parser.add_argument('--input', default='export/steps/step_3/', help='Input dataset path')
+    parser.add_argument('--output', default='export/steps/step_4/', help='Output dataset path')
     parser.add_argument('--max_workers', default=1, type=int, help='Max number of concurrent workers')
     parser.add_argument('--mean_delay', default=0, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     args = parser.parse_args()
@@ -157,12 +155,9 @@ if __name__ == '__main__':
                 
                 data = add_hidden_reasonings(data)
 
+                # in case of resuming, 'scores' and 'logprobs' keys already exist
                 if 'scores' not in data:
                     data['scores'] = []
-                if 'logprobs' not in data:
-                    data['logprobs'] = []
-                
-                assert len(data['scores']) == len(data['logprobs']), f"Issue with {filepath}, scores/logprobs length mismatch"
                 len_scores = len(data['scores'])
                 prompts = []
                 for hidden_reasoning in data['hidden_reasonings'][len_scores:]:

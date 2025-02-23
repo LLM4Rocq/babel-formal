@@ -18,8 +18,8 @@ Second step: Compute tokenized length of terms.
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/step_0_bis/', help='Output path previous step')
-    parser.add_argument('--output', default='export/step_1/', help='Output path')
+    parser.add_argument('--input', default='export/steps/step_0_bis/', help='Output path previous step')
+    parser.add_argument('--output', default='export/steps/step_1/', help='Output path')
     parser.add_argument('--tokenizer', default='deepseek-ai/DeepSeek-Prover-V1.5-Base', help='HF path tokenizer')
     args = parser.parse_args()
 
