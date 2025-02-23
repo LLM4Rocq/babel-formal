@@ -33,7 +33,7 @@ python -m src.steps.step_0.exec --input $MATHCOMP_PATH --output export/step_0
 ```
 
 You can start workers in parallel using idx-worker, and num-workers parameters: 
-```
+```console
 python -m src.steps.step_0.exec --input $MATHCOMP_PATH --idx-worker 0 --num-workers 3 &\
 python -m src.steps.step_0.exec --input $MATHCOMP_PATH --idx-worker 1 --num-workers 3 &\
 python -m src.steps.step_0.exec --input $MATHCOMP_PATH --idx-worker 2 --num-workers 3
@@ -95,6 +95,14 @@ python -m src.steps.step_4.exec --input export/step_3 --output export/step_4
 ### Sixth Step
 
 Filters the best reasonings by asking an LLM (O3-mini) to check additionnal constraints. Same recommendation as in the [fourth step](#fourth-step).
+
+```console
+python -m src.steps.step_3.exec --input export/step_4 --output export/step_5 --num_gen 20 --max_workers 100 --mean-delay 10
+```
+
+### Sixth Step
+
+Export previous step into one json.
 
 ```console
 python -m src.steps.step_3.exec --input export/step_4 --output export/step_5 --num_gen 20 --max_workers 100 --mean-delay 10

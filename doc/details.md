@@ -67,7 +67,7 @@ We use a backward approach to distill reasoning abilities of **DeepSeek R1**.
 
 The idea is to create reasoning trace from known solution (proof), to augment the dataset size and improve the imbalance between lambda term and sequences of tactics during training.
 
-Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [????](#WIP), **WIP**)
+Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [Fig.4.](#baseline), **WIP**)
 
 To improve the quality of the final reasoning, we propose a method of filtration based on the ability of a smaller model to predict the right sequence of tokens given an obfuscated version of the reasoning.
 
@@ -78,6 +78,13 @@ We describe the generation pipeline in the above [figure](#pipeline).
 |![image](img/pipeline.png)|
 |:--:|
 |**Fig. 3.** Pipeline for data augmentation|
+</center>
+
+<center id="baseline">
+
+|![image](img/baseline.png)|
+|:--:|
+|**Fig. 4.** Baseline results: Translation from $\lambda$-calculus to sequence of tactics on a diverse set of extracted lemmas from Mathcomp.|
 </center>
 
 ### Multi steps approach
@@ -115,21 +122,21 @@ For each reasoning, we compute a score based on its ability to help our target m
    * **Completion score**: mean probabiltiy associated only with tokens that are not prefixes of words.
    * **Normalized mean score**: sum of normalized decision score and normalized completion score.
 
-See [Fig. 4.a](#scores-explained) for an illustration of these different scoring strategies.
+See [Fig. 5.a](#scores-explained) for an illustration of these different scoring strategies.
 
-Since completion and decision are not always comparable (e.g., when premises are available in the context, completion can be way easier) a relatively small fluctuation of one score could completely overshadow an improvement in the other score (see [Fig. 4.b](#scores), where we consider two two baselines: *no reasoning*, where no reasoning is provided, and *mixed*, where an unrelated obfuscated reasoning is provided)).
+Since completion and decision are not always comparable (e.g., when premises are available in the context, completion can be way easier) a relatively small fluctuation of one score could completely overshadow an improvement in the other score (see [Fig. 5.b](#scores), where we consider two two baselines: *no reasoning*, where no reasoning is provided, and *mixed*, where an unrelated obfuscated reasoning is provided)).
 
 <a id="scores-explained"></a>
 
 |![image](img/scores_explained.png)|
 |:--:|
-|**Fig. 4.a** Illustration of scores|
+|**Fig. 5.a** Illustration of scores|
 
 <a id="scores"></a>
 
 |![image](img/scores.png)| 
 |:--:|
-|**Fig. 4.b** Scores example| 
+|**Fig. 5.b** Scores example| 
 
 
 #### Seventh step
@@ -162,13 +169,13 @@ However, as pointed out in [[21](#21)], these methods are difficult to leverage.
 Additionnaly, since we have the ability to check the validity of each solutions, we do not have to filter the final pool of candidate answers.
 
 In the second scenario (LLM finetuning), we explore the **budget forcing** approach describes in [[27](#27)].
-The idea is to augment the size of the CoT by **forcing** the LLM to continue its reasoning by rejecting the end-of-thinking token and appending new tokens to enforce a continuation (e.g., "Wait"), see [Fig 4.](#pipeline) extracted from [[27](#27)].
+The idea is to augment the size of the CoT by **forcing** the LLM to continue its reasoning by rejecting the end-of-thinking token and appending new tokens to enforce a continuation (e.g., "Wait"), see [Fig 6.](#pipeline) extracted from [[27](#27)].
 
 <center id="pipeline">
 
 |![image](img/budget_forcing.png)|
 |:--:|
-|**Fig. 4.** Budget forcing, *figure 3, from [[27](#27)]*|
+|**Fig. 6.** Budget forcing, *figure 3, from [[27](#27)]*|
 </center>
 
 
