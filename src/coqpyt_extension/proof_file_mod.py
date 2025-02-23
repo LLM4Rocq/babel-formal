@@ -81,7 +81,7 @@ def get_queries_dict(
     if uri not in aux_file.coq_lsp_client.lsp_endpoint.diagnostics:
         return []
 
-    result = defaultdict(lambda : {"proposition": [], "notations": [], "constants": [], "term": []})
+    result = defaultdict(lambda : {"notations": [], "constants": [], "term": []})
     lines = aux_file.read().split("\n")
     for diagnostic in aux_file.coq_lsp_client.lsp_endpoint.diagnostics[uri]:
         command = lines[diagnostic.range.start.line : diagnostic.range.end.line + 1]
