@@ -58,15 +58,15 @@ def chunks(lst, n):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', required=True, help='Mathcomp path')
-    parser.add_argument('--output', default='export/step_0/', help='Output dataset path')
+    parser.add_argument('--input', default='/home/theo/Documents/archive_babel/babel-formal/data/subdata/selection', help='Mathcomp path')
+    parser.add_argument('--output', default='export/steps/step_0/', help='Output dataset path')
     parser.add_argument('--timeout', default=1*60, type=int, help='Coqpyt timeout')
     parser.add_argument('--num-workers', default=1, type=int, help='Number of worker')
     parser.add_argument('--idx-worker', default=0, type=int, help='Index of current worker')
 
     args = parser.parse_args()
     
-    v_files, _, stats_tot = get_all_source_files('/home/theo/.opam/default/.opam-switch/sources/')
+    v_files, _, stats_tot = get_all_source_files(args.input)
     print(f"Lemma count: {stats_tot['count_lemma']}\nTheorem count: {stats_tot['count_theorem']}\nProof count: {stats_tot['count_proof']}")
     remains = set()
 
