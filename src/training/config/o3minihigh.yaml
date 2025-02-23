@@ -1,0 +1,6 @@
+base_url: "https://openrouter.ai/api/v1"
+prompt: "prompts/prompt_chat"
+request_config:
+    model: "openai/o3-mini-high"
+    extra_body: 
+        include_reasoning: true
