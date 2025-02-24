@@ -11,3 +11,4 @@ blobfile
 sentencepiece
 tensorboardX
 tensorboard
+importlib_metadata

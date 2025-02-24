@@ -11,7 +11,7 @@ And here are some notations that could be useful:
 {notations}
 
 Please carefully read the previous given elements, and deduce a sequence of tactics.
-When you generate your answer, please include your step-by-step reasoning enclosed between `<think>` and `</think>` tags, and then provide your final answer enclosed within `\boxed{ ... }`.<|im_end|>
+When you generate your answer, please include your step-by-step reasoning enclosed between `<think>` and `</think>` tags, and then provide your final answer enclosed within `\boxed{{ ... }}`.<|im_end|>
 <|im_start|>assistant
 <think> {reasoning} </think>
-\boxed{{ {answer} }}
+\boxed{{{proof}}}
