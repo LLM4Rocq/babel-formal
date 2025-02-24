@@ -118,8 +118,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/steps/step_3/', help='Input dataset path')
     parser.add_argument('--output', default='export/steps/step_4/', help='Output dataset path')
-    parser.add_argument('--max_workers', default=1, type=int, help='Max number of concurrent workers')
-    parser.add_argument('--mean_delay', default=0, type=int, help='Mean delay before a request is send: use this parameter to load balance')
+    parser.add_argument('--max-workers', default=1, type=int, help='Max number of concurrent workers')
+    parser.add_argument('--mean-delay', default=0, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     args = parser.parse_args()
 
     config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')

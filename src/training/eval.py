@@ -48,7 +48,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/eval_r1', help='Directory containing evaluations')
     parser.add_argument('--input-sources', default='export/sources', help='Directory containing sources files')
-    parser.add_argument('--export', default='export/eval_r1.json', help='Dataset')
+    parser.add_argument('--output', default='export/eval_r1.json', help='Dataset')
     args = parser.parse_args()
     to_do = []
     pattern = r'term_(\S*)_sample_([0-9]+).json'
@@ -82,5 +82,5 @@ if __name__ == '__main__':
         _, res = eval_tactics(thm, source_path, steps)
         result[thm].append({"evaluation": res, "input": data})
 
-    with open(args.export, 'w') as file:
+    with open(args.output, 'w') as file:
         json.dump(result, file, indent=4)

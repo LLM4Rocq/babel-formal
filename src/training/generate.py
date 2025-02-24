@@ -39,16 +39,16 @@ def process_prompt(prompt, entry, export_path, client, config, delay=0, num_gen=
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input-dataset', default='export/final.json', help='Dataset')
-    parser.add_argument('--input-sources', default='export/sources', help='Directory containing sources files')
-    parser.add_argument('--export-folder', default='export/eval', help='Directory containing sources files')
+    parser.add_argument('--input-dataset', default='export/steps/final.json', help='Dataset')
+    parser.add_argument('--input-sources', default='export/steps/sources', help='Directory containing sources files')
+    parser.add_argument('--output', default='export/eval', help='Output directory')
     parser.add_argument('--dataset-entry', default='test', help='Entry to use in the dataset')
-    parser.add_argument('--max_workers', default=100, type=int, help='Max number of concurrent workers')
-    parser.add_argument('--mean_delay', default=10, type=int, help='Mean delay before a request is send: use this parameter to load balance')
+    parser.add_argument('--max-workers', default=100, type=int, help='Max number of concurrent workers')
+    parser.add_argument('--mean-delay', default=10, type=int, help='Mean delay before a request is send: use this parameter to load balance')
     parser.add_argument('--k', default=4, help='Parameter k of pass@k')
     parser.add_argument('--config', default='src/training/config/o3minihigh.yaml', help='Config file to evaluate model')
     args = parser.parse_args()
-    os.makedirs(args.export_folder, exist_ok=True)
+    os.makedirs(args.output, exist_ok=True)
 
     with open(args.config, 'r') as file:
         config = yaml.safe_load(file)
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     for entry in dataset[args.dataset_entry]:
 
         prompt = prompt_template.format(term=entry['term'], constants='\n'.join(entry['constants']), notations='\n'.join(entry['notations']))
-        to_do.append((prompt, entry, os.path.join(args.export_folder, 'term_' + entry['name'].lower())))
+        to_do.append((prompt, entry, os.path.join(args.output, 'term_' + entry['name'].lower())))
 
     random.shuffle(to_do)
     to_do = to_do[:50]
