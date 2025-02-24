@@ -75,7 +75,7 @@ def get_queries_dict(
 
     Returns:
         A dictionary mapping term names to a dictionary of message lists for each category:
-        'proposition', 'notations', 'constants', and 'term'.
+        'notations', 'constants', and 'term'.
     """
     uri = f"file://{aux_file.path}"
     if uri not in aux_file.coq_lsp_client.lsp_endpoint.diagnostics:
@@ -111,9 +111,6 @@ def get_queries_dict(
                             messages = [messages[0]]
                 case "term":
                     if not "not a defined object" in message:
-                        messages = [message]
-                case "proposition":
-                    if not "was not found" in message:
                         messages = [message]
                 case "constants":
                     if not "was not found" in message:
@@ -299,6 +296,7 @@ class ProofFileMod(ProofFileLight):
             extract_term = self._extract_annotations(term)
             extract_term['steps'] = term["steps"]
             extract_term['name'] = term_name
+            extract_term['category'] = export_path.split('/')[-1]
             forbidden.discard(term_name)
             done.add(term_name)
 

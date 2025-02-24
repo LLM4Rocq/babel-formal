@@ -1,5 +1,7 @@
 # Dataset generation
 
+*Download [here](https://drive.proton.me/urls/PDCT0W32Z4#WMuD3pxBgJpi) a possible output of this pipeline.*
+
 A set of steps to generate the final datasets, see [Fine tuning of LLM section](/doc/details.md#fine-tuning-of-llm) for details, see [Fig.1.](#pipeline) for a summary.
 
 * step_0: Extracts all terms, premises, notations, and proofs.
@@ -24,7 +26,7 @@ To avoid issues with file collisions/corruption, aid debugging, and to have easi
 
 ### First step
 
-Download [here](https://drive.proton.me/urls/2BHPS9QM0R#OEzClePu0yJ6) the result of this first step (and step_0_bis) if you don't want to compute it from scratch.
+Download [here](https://drive.proton.me/urls/GB2JB6QTCM#U7UmCh9S0svm) the result of this first step (and step_0_bis) if you don't want to compute it from scratch.
 
 To generate terms, notations, constants etc. replace $MATHCOMP_PATH by a directory containing mathcomp (e.g., /home/username/.opam/default/.opam-switch/sources/ if you install it through Opam).
 
@@ -40,7 +42,7 @@ python -m src.steps.step_0.exec --input $MATHCOMP_PATH --idx-worker 2 --num-work
 ```
 
 ### First step bis
-*Reminder: [here](https://drive.proton.me/urls/2BHPS9QM0R#OEzClePu0yJ6) is the already compute dataset*.
+*Reminder: [here](https://drive.proton.me/urls/GB2JB6QTCM#U7UmCh9S0svm) is the already compute dataset*.
 
 Checks that previously parsed information is accurate by recompiling using Pytanque, extract goals and subgoals.
 
@@ -65,6 +67,7 @@ python -m src.steps.step_2.exec --input export/step_1 --output export/step_2 --n
 ```
 
 ### Fourth Step
+*Download [here](https://drive.proton.me/urls/6CHWEEK41R#zXJBg9UyKcJy) a possible output of this step.*
 
 Generate reasonings using DeepSeek R1.
 
