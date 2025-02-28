@@ -44,6 +44,11 @@ The final models would corresponds to [Fig.2.](#architecture)
 |**Fig. 2.** Architecture of the model|
 </center>
 
+### Translation
+
+For the translation task, we use the **$\lambda$-calculus** as a pivot language.
+
+Given a theorem in one language (e.g. Lean), we extract both types of its constants (through the **Constant elaboration** task) and a sequence of tactics (through the **Augmented tactics prediction** task) in another language by flipping the language token to the targeted language.
 
 
 ## Bibliography

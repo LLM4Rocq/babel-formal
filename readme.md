@@ -2,7 +2,7 @@
 
 This repository has two goals
 * Train a **transformer model** to translate lambda-terms (from Lean or Rocq) into a sequence of tactics in the same language.
-* Obtain a model capable of translating tactics from one language to another by leveraging lambda-terms from one language to generate a sequence of tactics in a different language.
+* Obtain a model capable of translating tactics from one language to another by leveraging lambda-terms from one language to generate a sequence of tactics in another (e.g. Lean to Rocq).
 
 Our project leverages $\lambda$-calculus as an intermediate representation to translate proofs between Rocq and Lean.
 To do so, we will fine-tune an LLM on this specific task.

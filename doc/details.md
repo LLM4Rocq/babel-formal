@@ -31,7 +31,7 @@ To evaluate this setup, we will use **miniF2F** [[7](#7)], and one of its transl
 
 We also introduce two new datasets
 * **Pile of Rocq**: a collection of Rocq codes and documentation to pre-trained LLMs.
-* **Rocq reasoning**: a subset of mathcomp and mathcomp analysis augmented with CoT synthetically generated.
+* **Rocq reasoning**: a subset of mathcomp and mathcomp analysis augmented with CoT synthetically generated with DeepSeek R1.
 
 ### Available pre trained models
 
@@ -62,12 +62,12 @@ In this first scenario, we train a transformer from scratch.
 
 ## Fine-tuning of LLM
 
-In this second scenario, we finefine an already trained LLM.
+In this second scenario, we finetune an already trained LLM.
 We use a backward approach to distill reasoning abilities of **DeepSeek R1**.
 
 The idea is to create reasoning trace from known solution (proof), to augment the dataset size and improve the imbalance between lambda term and sequences of tactics during training.
 
-Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [Fig.4.](#baseline), **WIP**)
+Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [Fig.4.](#baseline), **WIP**). *On a subset of the test set (50 elements), only DeepSeek R1 is able to translate one correct lambda term (hence 2% success rate) to a sequence of tactics. Unfortunately this is the exact proof original proof, which may be an indication of a pure memorized answer*.
 
 To improve the quality of the final reasoning, we propose a method of filtration based on the ability of a smaller model to predict the right sequence of tokens given an obfuscated version of the reasoning.
 
@@ -142,6 +142,7 @@ Since completion and decision are not always comparable (e.g., when premises are
 #### Seventh step
 
 In this last step, we ask a final model to check whether best reasonings do not rely on already knowing the sequence of tactics, and truly simulate a discovery process (see [prompt](#prompt-to-check-final-reasoning)).
+If not, then check the next best reasoning, up until it find one that meet previous criteria.
 
 
 ## Pre training
@@ -184,8 +185,6 @@ The idea is to augment the size of the CoT by **forcing** the LLM to continue it
 *WIP*
 
 For the translation task, we use the **$\lambda$-calculus** as a pivot language.
-
-Given a theorem in one language (e.g. Lean), we extract both types of its constants (through the **Constant elaboration** task) and a sequence of tactics (through the **Augmented tactics prediction** task) in another language by flipping the language token to the targeted language.
 
 Even though this situation was not encountered in the dataset, we hope the model can solve it.
 
