@@ -146,4 +146,10 @@ def train():
 
 
 if __name__ == "__main__":
+    torch.distributed.init_process_group(backend="nccl")
+    # torch.distributed.init_process_group(backend='nccl', 
+    #                             init_method='env://', 
+    #                             world_size=idr_torch.world_size, 
+    #                             rank=idr_torch.rank)
     train()
+    torch.distributed.destroy_process_group()

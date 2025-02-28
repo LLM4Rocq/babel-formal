@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset-entry', default='test', help='Entry to use in the dataset')
     parser.add_argument('--max-workers', default=100, type=int, help='Max number of concurrent workers')
     parser.add_argument('--mean-delay', default=10, type=int, help='Mean delay before a request is send: use this parameter to load balance')
-    parser.add_argument('--k', default=4, help='Parameter k of pass@k')
+    parser.add_argument('--k', default=4, help='Number of generation per entry')
     parser.add_argument('--config', default='src/training/config/o3minihigh.yaml', help='Config file to evaluate model')
     args = parser.parse_args()
     os.makedirs(args.output, exist_ok=True)
@@ -73,7 +73,6 @@ if __name__ == '__main__':
         to_do.append((prompt, entry, os.path.join(args.output, 'term_' + entry['name'].lower())))
 
     random.shuffle(to_do)
-    to_do = to_do[:50]
     delay_max = args.mean_delay*2
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.max_workers) as executor:  # Adjust the number of workers as needed
         futures = []
