@@ -47,6 +47,25 @@ if __name__ == '__main__':
             else:
                 scores[model_name]['fail'] += 1
 
+        distrib = []
+        for thm in data_eval:
+            score = 0
+            for entry in data_eval[thm]:
+                entry = entry['evaluation'][-1]
+                res = entry['status']
+                if res == 'finish':
+                    score += 1
+            distrib.append(score)
+        
+        plt.figure(figsize=(10, 6))
+        plt.hist(distrib, bins=40)
+        plt.title(f'Histogram of score of {model_name}')
+        export_path = os.path.join(args.export, f'hist_{model_name}.png')
+        plt.savefig(export_path, bbox_inches='tight')
+        plt.close()
+        
+
+
     # Compute success percentage
     model_names = list(scores.keys())
     success_percentages = [(scores[m]['success'] / scores[m]['total']) * 100 if scores[m]['total'] > 0 else 0 for m in model_names]
