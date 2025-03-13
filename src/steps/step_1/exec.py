@@ -39,7 +39,7 @@ if __name__ == '__main__':
         with open(filepath, 'r') as file:
             entry = json.load(file)
         term_str = entry['term']
-        tactics_str = "\n".join([tactic for tactic,_,_ in entry['steps']])
+        tactics_str = "\n".join(entry['steps'])
         tokens_tactics = tokenizer(tactics_str, return_tensors="pt", truncation=False)["input_ids"]
         tokens_term = tokenizer(term_str, return_tensors="pt", truncation=False)["input_ids"]
 
