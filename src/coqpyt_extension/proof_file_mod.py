@@ -110,7 +110,7 @@ def get_queries_dict(
                         if reduced_notation:
                             messages = [messages[0]]
                 case "term":
-                    if not "not a defined object" in message:
+                    if not "not a defined object" in message and 'Syntax error:' not in message:
                         messages = [message]
                 case "constants":
                     if not "was not found" in message:
@@ -254,7 +254,7 @@ class ProofFileMod(ProofFileLight):
         term.update(result)
         return term
      
-    def extract_one_by_one(self, export_path):
+    def extract_one_by_one(self, export_path, metadata={}):
         """
         Extracts terms one by one and exports their details to JSON files.
 
@@ -275,18 +275,18 @@ class ProofFileMod(ProofFileLight):
 
         forbidden_path = os.path.join(export_path, 'forbidden.json')
         done_path = os.path.join(export_path, "done.json")
+        # path are stored as absolute path in class attributes, it was easier to give them again as parameters
+
         if os.path.exists(forbidden_path):
             with open(forbidden_path, 'r') as file:
                 forbidden = set(json.load(file))
         if os.path.exists(done_path):
             with open(done_path, 'r') as file:
                 done = set(json.load(file))
+            
         
-        source_str = self._ProofFile__aux_file.read()
-        source_path = os.path.join(export_path, "source.v")
-        with open(source_path, 'w') as file:
-            file.write(source_str)
-        for term in tqdm(all_terms):
+    
+        for term in all_terms:
             term_name = term['name']
             if term_name in done or term_name in forbidden:
                 continue
@@ -294,9 +294,10 @@ class ProofFileMod(ProofFileLight):
             with open(forbidden_path, 'w') as file:
                 json.dump(list(forbidden), file, indent=4)
             extract_term = self._extract_annotations(term)
-            extract_term['steps'] = term["steps"]
+            extract_term['steps'] = [s for s,_,_ in term["steps"]]
             extract_term['name'] = term_name
             extract_term['category'] = export_path.split('/')[-1]
+            extract_term.update(metadata)
             forbidden.discard(term_name)
             done.add(term_name)
 
