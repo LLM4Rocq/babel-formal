@@ -27,7 +27,7 @@ class ProofFileLight(ProofFile):
             self.__handle_end_proof(step, undo=undo)
         # New obligations were introduced
         elif self._ProofFile__has_obligations(step):
-            self.__handle_obligations(step, undo=undo)
+            self._ProofFile__handle_obligations(step, undo=undo)
         # Check if proof step
         elif len(self.open_proofs) > 0 if undo else self.in_proof:
             self.__check_proof_step(step, undo=undo)
