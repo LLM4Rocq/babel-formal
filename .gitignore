@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 # Term extraction
+runs/
 test/
 debug.v
 export/

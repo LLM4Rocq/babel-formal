@@ -6,12 +6,24 @@ import argparse
 import random
 from math import log2, floor
 from copy import deepcopy
+from math import sqrt
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
+
+
+def wilson(p, n, z = 1.96):
+    p = p/100
+    denominator = 1 + z**2/n
+    centre_adjusted_probability = p + z*z / (2*n)
+    adjusted_standard_deviation = sqrt((p*(1 - p) + z*z / (4*n)) / n)
+
+    lower_bound = (centre_adjusted_probability - z*adjusted_standard_deviation) / denominator
+    upper_bound = (centre_adjusted_probability + z*adjusted_standard_deviation) / denominator
+    return (lower_bound*100, upper_bound*100)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -48,6 +60,9 @@ if __name__ == '__main__':
             lengths.append(max_len)
 
         y_result = []
+        y_low = []
+        y_high = []
+
         for length in lengths:
             num_thm = 0
             valid_thm = 0
@@ -63,13 +78,20 @@ if __name__ == '__main__':
                 
                 if success:
                     valid_thm += 1
-            y_result.append(valid_thm/num_thm)
-        all_result.append((model_name, lengths, y_result))
+            percentage = valid_thm/num_thm*100
+            low, high = wilson(percentage, num_thm)
+            y_result.append(percentage)
+            y_low.append(low)
+            y_high.append(high)
+
+        all_result.append((model_name, lengths, y_result, y_low, y_high))
 
     
     plt.figure(figsize=(10, 6))
-    for model_name, x, y in all_result:
+    for model_name, x, y, y_low, y_high in all_result:
         plt.plot(x, y, label=model_name)
+        plt.fill_between(x, y_low, y_high ,alpha=0.3)
+
     plt.title(f'Scaling law (test-time compute)')
     plt.ylabel('Mean accuracy')
     plt.xlabel('k parameter')

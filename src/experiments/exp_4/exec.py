@@ -3,12 +3,23 @@ import json
 from pathlib import Path
 import re
 import argparse
+from math import sqrt
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 def trunc(values, decs=0):
     return np.trunc(values*10**decs)/(10**decs)
+
+def wilson(p, n, z = 1.96):
+    p = p/100
+    denominator = 1 + z**2/n
+    centre_adjusted_probability = p + z*z / (2*n)
+    adjusted_standard_deviation = sqrt((p*(1 - p) + z*z / (4*n)) / n)
+
+    lower_bound = (centre_adjusted_probability - z*adjusted_standard_deviation) / denominator
+    upper_bound = (centre_adjusted_probability + z*adjusted_standard_deviation) / denominator
+    return ((p-lower_bound)*100, (upper_bound-p)*100)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -26,7 +37,7 @@ if __name__ == '__main__':
         match = re.match(pattern, file)
         if not match:
             continue
-        model_name = match.group(1)
+        model_name = match.group(2)
         scores[model_name] = {"fail": 0, "success": 0, "total": 0}
         filepath = os.path.join(args.input, file)
         with open(filepath, 'r') as file:
@@ -69,12 +80,17 @@ if __name__ == '__main__':
     # Compute success percentage
     model_names = list(scores.keys())
     success_percentages = [(scores[m]['success'] / scores[m]['total']) * 100 if scores[m]['total'] > 0 else 0 for m in model_names]
-    
+
+    bounds = []
+    for percentage in success_percentages:
+        lower_bound, upper_bound = wilson(percentage, len(data_eval.keys()))
+        bounds.append([lower_bound, upper_bound])
     x = np.arange(len(model_names))  # the label locations
     width = 0.2  # the width of the bars
     
     plt.figure(figsize=(10, 6))
-    bars = plt.bar(x, success_percentages, width, color='green')
+
+    bars = plt.bar(x, success_percentages, width, yerr=np.array(bounds).transpose(), color='green')
     
     plt.ylabel('Success Percentage')
     plt.xlabel('Models')
