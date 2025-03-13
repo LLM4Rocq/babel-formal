@@ -19,10 +19,10 @@ if __name__ == '__main__':
     os.makedirs(args.export, exist_ok=True)
 
 
-    pattern = r'eval_(.*)\.json'
+    pattern = r'(bench|eval)_(.*)\.json'
     k_parameter = 0
     scores = {}
-    for file in os.listdir(args.input):
+    for file in sorted(os.listdir(args.input)):
         match = re.match(pattern, file)
         if not match:
             continue
@@ -58,7 +58,7 @@ if __name__ == '__main__':
             distrib.append(score)
         
         plt.figure(figsize=(10, 6))
-        plt.hist(distrib, bins=40)
+        plt.hist(distrib, bins=np.arange(-0.5, k_parameter+1.5, 1))
         plt.title(f'Histogram of score of {model_name}')
         export_path = os.path.join(args.export, f'hist_{model_name}.png')
         plt.savefig(export_path, bbox_inches='tight')
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     plt.ylabel('Success Percentage')
     plt.xlabel('Models')
     plt.xticks(ticks=x, labels=model_names, rotation=45, ha='right')
-    plt.title(f'Success Rate for All Models (pass@{k_parameter})')
+    plt.title(f'Success Rate for All Models (pass@k)')
     plt.ylim(0, 100)
     # Add text labels above bars
     for bar in bars:
