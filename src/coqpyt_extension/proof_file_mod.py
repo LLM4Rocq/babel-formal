@@ -7,7 +7,6 @@ from typing import Any, List, Dict, Optional, Tuple
 import logging
 logger = logging.getLogger(__name__)
 
-from tqdm import tqdm
 
 from coqpyt.coq.proof_file import _AuxFile
 from src.coqpyt_extension.proof_file_light import ProofFileLight
@@ -244,7 +243,7 @@ class ProofFileMod(ProofFileLight):
         aux_file.write(aux_archive)
 
         one_prop_one_term = len(result['term'])==1
-        if not one_prop_one_term or True:
+        if not one_prop_one_term:
             with open('debug.v', 'w') as file_io:
                 file_io.write(aux_saved)
         assert one_prop_one_term, "Issue with dict obtains from get_queries_dict, check if debug.v contains one Print of 'term'"
@@ -294,7 +293,7 @@ class ProofFileMod(ProofFileLight):
             with open(forbidden_path, 'w') as file:
                 json.dump(list(forbidden), file, indent=4)
             extract_term = self._extract_annotations(term)
-            extract_term['steps'] = [s for s,_,_ in term["steps"]]
+            extract_term['steps'] = [s for s,_,_ in term["steps"] if 'Proof.' not in s and 'Qed.' not in s]
             extract_term['name'] = term_name
             extract_term['category'] = export_path.split('/')[-1]
             extract_term.update(metadata)

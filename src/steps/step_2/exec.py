@@ -43,7 +43,8 @@ def select_diverse_documents(documents, filepaths, k):
     similarity_matrix = np.zeros((len(documents), len(documents)))
     
     for i, doc in tqdm(enumerate(documents)):
-        scores = retriever.get_scores([doc])
+        tokenized_doc = bm25s.tokenize(doc)
+        scores = retriever.retrieve(tokenized_doc, k=len(documents)).scores
         similarity_matrix[i, :] = scores
 
     selected_indices = [0]  # Start with the first document
@@ -64,10 +65,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/steps/step_1/', help='Output path previous step')
     parser.add_argument('--output', default='export/steps/step_2/', help='New output path')
-    parser.add_argument('--num-documents', default=1_000, help='Maximum number of final documents')
+    parser.add_argument('--num-documents', default=500, help='Maximum number of final documents')
     parser.add_argument('--max-num-tokens', default=3_750, help='Maximum number of tokens in term')
-    parser.add_argument('--min-number-instructions', default=3, help='Minimum number of steps in a proof')
-    parser.add_argument('--max-number-instructions', default=7, help='Maximum number of steps in a proof')
+    parser.add_argument('--min-number-instructions', default=5, help='Minimum number of steps in a proof')
+    parser.add_argument('--max-number-instructions', default=10, help='Maximum number of steps in a proof')
 
     args = parser.parse_args()
     shutil.copytree(args.input, args.output, dirs_exist_ok=True)
@@ -84,14 +85,13 @@ if __name__ == '__main__':
                     entry = json.load(file)
                 
                 len_steps = len(entry['steps'])
-
-                if 7 < len_steps or len_steps < 3 or entry['term_len']  > args.max_num_tokens:
+                if args.max_number_instructions < len_steps or len_steps < args.min_number_instructions or args.max_num_tokens < entry['term_len']:
                     continue
 
                 document = entry['proposition'] + '\n' + "\n".join(entry['steps'])
                 documents.append(document)
                 filepaths.append(filepath)
-    
+
     filepaths_to_keep = select_diverse_documents(documents, filepaths, args.num_documents)
 
     for root, subdirs, files in os.walk(args.output):
