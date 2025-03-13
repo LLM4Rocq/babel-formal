@@ -1,7 +1,9 @@
 import os
 from functools import partial
 import json
+import argparse
 
+from transformers import AutoTokenizer
 import torch
 from datasets import load_dataset
 
@@ -81,6 +83,7 @@ def load_and_process(tokenizer, data_path, prompt_path):
     dataset = load_dataset("json", data_files={
         'train': os.path.join(data_path, 'train.json'),
         'validation': os.path.join(data_path, 'validation.json'),
+        'benchmark': os.path.join(data_path, 'benchmark.json'),
         'test': os.path.join(data_path, 'test.json')
     })
 
@@ -91,8 +94,8 @@ def load_and_process(tokenizer, data_path, prompt_path):
     })
     dataset['train'] = dataset['train'].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": prompt['text_after'].format(**x) + prompt['end']})
 
-    dataset['validation'] = dataset['validation'].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": "<think>"})
-    dataset['test'] = dataset['test'].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": "<think>"})
+    for entry in ['validation', 'benchmark', 'test']:
+        dataset[entry] = dataset[entry].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": ""})
 
     dataset = dataset.map(partial(preprocess_dataset, tokenizer), batched=True, batch_size=100)
     only_keep_columns(dataset, ['attention_mask', 'labels', 'input_ids', 'name', 'category'])
@@ -106,3 +109,20 @@ def collate_eval(tokenizer):
     collate_fn = partial(merge_and_pad_entries, tokenizer.pad_token_id, True)
     return collate_fn
 
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-path", type=str, default='export/')
+    parser.add_argument("--prompt-path", type=str, default='src/training/prompts/prompt.json')
+    parser.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-1.5B-Instruct")
+    args = parser.parse_args()
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_name
+    )
+    dataset = load_and_process(tokenizer, args.data_path, args.prompt_path)
+
+    
+    for entry in dataset['train']:
+        print(tokenizer.decode(entry["input_ids"]))
+        input()

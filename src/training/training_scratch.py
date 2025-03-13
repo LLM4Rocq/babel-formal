@@ -2,6 +2,7 @@ import os
 import json
 from functools import partial
 import gc
+import argparse
 
 import torch
 from accelerate import Accelerator
@@ -12,11 +13,13 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import SequentialLR, CosineAnnealingLR, LinearLR
 from transformers.optimization import get_cosine_schedule_with_warmup
 
-def parse_args():
-    import argparse
+#from torch.distributed.fsdp import FullyShardedDataParallel as FSDP, StateDictType, FullStateDictConfig
 
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-path", type=str, default='export/')
+    parser.add_argument("--export", type=str, default='ckpt/')
+    parser.add_argument("--prompt-path", type=str, default='src/training/prompts/prompt.json')
     # parser.add_argument(
     #     "--model-dir", type=str, default="arnir0/Tiny-LLM"
     # )
@@ -106,10 +109,16 @@ def train_loop(model, tokenizer, train_dataloader, eval_dataloader, optimizer, s
                     out = model(**inputs)
                     accelerator.backward(out.loss/accumulation_steps)
                     avg_loss += out.loss.detach()               
-        # eval_loop(model, tokenizer, eval_dataloader, f'eval_results_epoch_{epoch}.json')
+        folder_path = os.path.join(args.export, f"checkpoint-epoch-{epoch}")
+        model.save_pretrained(
+                        folder_path,
+                        is_main_process=accelerator.is_main_process,
+                        save_function=accelerator.save,
+                        state_dict=accelerator.get_state_dict(model),
+                    )
         if accelerator.is_main_process:
-            unwrapped_model = accelerator.unwrap_model(model)
-            accelerator.save(unwrapped_model.state_dict(), f"checkpoint-epoch-{epoch}.pt")
+            tokenizer.save_pretrained(folder_path)
+        
     return model
 
 def eval_loop(model, tokenizer, eval_dataloader, filename):
@@ -171,8 +180,7 @@ def check_alignement(tokenizer, token_ids, sep, labels):
     raise Exception('Issue')
 
 def main(args):
-    prompt_path = "src/training/prompts/prompt.json"
-    with open(prompt_path, 'r') as file:
+    with open(args.prompt_path, 'r') as file:
         prompt = json.load(file)
     # Initialize Datasets
 
