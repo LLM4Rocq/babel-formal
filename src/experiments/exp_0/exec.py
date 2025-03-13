@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', default='export/steps/step_1', help='Directory containing json evaluation files')
+    parser.add_argument('--input', default='export/steps/step_5_ablation', help='Directory containing json evaluation files')
     parser.add_argument('--export', default='export/experiment/exp_0', help='Directory to export plot')
     args = parser.parse_args()
 
@@ -17,6 +17,7 @@ if __name__ == '__main__':
     pattern = r'term_([0-9]+)\.json'
     term_lengths = []
     proof_lengths = []
+    steps_lengths = []
     for root, subdirs, files in os.walk(args.input):
         for filename in files:
             match = re.match(pattern, filename)
@@ -27,6 +28,7 @@ if __name__ == '__main__':
                 
                 term_lengths.append(data['term_len'])
                 proof_lengths.append(data['proof_len'])
+                steps_lengths.append(len([s for s in data['steps'] if 'Qed.' not in s and 'Proof.' not in s]))
     percentiles = [50, 60, 70, 80, 85, 90, 95]
 
     percentile_values = [np.percentile(term_lengths, p) for p in percentiles]
@@ -67,5 +69,23 @@ if __name__ == '__main__':
 
     # Save the combined plot
     export_path = os.path.join(args.export, 'tokens.png')
+    plt.savefig(export_path, bbox_inches='tight')
+    plt.close()
+
+    percentile_values = np.percentile(steps_lengths, 95)
+    steps_lengths = [length for length in steps_lengths if length < percentile_values]
+    # Create a scatter plot for the correlation
+    plt.figure(figsize=(12, 6))
+
+    plt.hist(steps_lengths, bins=percentile_values,
+            edgecolor='black', align='left', alpha=0.7)
+    plt.title("Histogram of Proof Lengths")
+    plt.xlabel("Number of steps")
+    # plt.xlim(0, 20)
+    plt.ylabel("Frequency")
+    plt.legend()
+
+    # Save the combined plot
+    export_path = os.path.join(args.export, 'steps.png')
     plt.savefig(export_path, bbox_inches='tight')
     plt.close()
