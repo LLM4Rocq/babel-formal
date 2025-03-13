@@ -149,9 +149,8 @@ if __name__ == '__main__':
                     data = json.load(file)
                 
                 data_template = deepcopy(data)
-                for entry in data_template:
-                    if isinstance(data[entry], list):
-                        data_template[entry] = "\n".join(data_template[entry])
+                for entry in ['notations', 'constants']:
+                    data_template[entry] = "\n".join(data_template[entry])
                 
                 data = add_hidden_reasonings(data)
 

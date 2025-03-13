@@ -101,13 +101,11 @@ if __name__ == '__main__':
                     data = json.load(file)
                 
                 data_template = deepcopy(data)
-                for entry in data_template:
-                    if isinstance(data[entry], list):
-                        data_template[entry] = "\n".join(data_template[entry])
+                for entry in ['notations', 'constants']:
+                    data_template[entry] = "\n".join(data_template[entry])
 
                 if 'reasoning' not in data:
                     prompts = []
-
                     score_reasonings = [(s['score_decision'], r) for s,r in zip(data['scores'], data['reasonings'])]
                     score_reasonings = sorted(score_reasonings, reverse=True)
                     for _, reasoning in score_reasonings:
