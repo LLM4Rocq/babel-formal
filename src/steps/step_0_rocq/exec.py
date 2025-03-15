@@ -32,8 +32,11 @@ def get_all_source_files(folderpath:str):
             # few checks: not already done, not an auxiliary file, and is a source file
             if file in set_filename or 'coqpyt' in file or not file.endswith('.v'):
                 continue
-            with open(filepath, 'r') as file_io:
-                content = file_io.read()
+            try:
+                with open(filepath, 'r', errors='ignore') as file_io:
+                    content = file_io.read()
+            except FileNotFoundError:
+                continue
             count_lemma = content.count('\nLemma')
             count_theorem = content.count('\nTheorem')
             count_proof = content.count('\nProof.')
@@ -69,12 +72,14 @@ def execute_file(filepath, export_path, repository, workspace, timeout, num_retr
             print(e)
         except NotationNotFoundException as e:
             print(e)
-            break
+        except Exception as e:
+            print(filepath)
+            print(e)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--repositories', default='export/repositories/', help='Repositories')
-    parser.add_argument('--output', default='export/steps/step_0/', help='Output dataset path')
+    parser.add_argument('--repositories', default='export/repositories_github_rocq/', help='Repositories')
+    parser.add_argument('--output', default='export/steps/step_0_github/', help='Output dataset path')
     parser.add_argument('--timeout', default=1*60, type=int, help='Coqpyt timeout')
     parser.add_argument('--max-workers', default=8, type=int, help='Number of workers')
     args = parser.parse_args()
