@@ -7,7 +7,7 @@ from typing import Any, List, Dict, Optional, Tuple
 import logging
 logger = logging.getLogger(__name__)
 
-
+from coqpyt.coq.structs import TermType
 from coqpyt.coq.proof_file import _AuxFile
 from src.coqpyt_extension.proof_file_light import ProofFileLight
 
@@ -132,12 +132,28 @@ class ProofFileMod(ProofFileLight):
         """
         Extracts the term kind (lemma|theorem) and name from the given term string.
         """
-        pattern = r'(Lemma|Theorem) (\S+?)[:\ \n]'
+        pattern = r'(Lemma|Theorem|Fact|Corollary|Proposition|Property) (\S+?)[:\ \n]'
         # Extract matches
         match = re.search(pattern, term)
         if match:
             return match.group(1), match.group(2)
         return "", ""
+
+    def get_all_notations(self):
+        notations_templates = {}
+        pattern = r'Notation "?([^"]+)"? *:='
+        submatch = r"'(\S*)'"
+        for key in self.context.terms:
+            term = self.context.terms[key]
+            # HACK: for the moment, we ignore inductive notation, and replace re.fullmatch by re.match
+            if term.type == TermType.NOTATION and 'Notation' in term.text:
+                
+                match = re.search(pattern, term.text)
+                assert match, f'Notation is not parsable, look at {term.text}'
+                notation_content = match.group(1)
+                notation_content = re.sub(submatch, r'\1', notation_content)
+                notations_templates[notation_content] = term.text
+        return notations_templates
 
     def get_all_terms(self) -> List[Dict[str, Any]]:
         """
@@ -168,7 +184,7 @@ class ProofFileMod(ProofFileLight):
             
             if 'Admitted' in steps[-1][0] or 'Abort' in steps[-1][0]:
                 continue
-            if term_extract:
+            if term_extract[0]:
                 _, term_name = term_extract
                 notations = extract_all_notation(term.ast.span)
                 constants = extract_all_types(term.ast.span)

@@ -4,6 +4,8 @@ openai
 torch
 transformers
 datasets
+lean-dojo
+chardet
 trl
 tiktoken
 protobuf

@@ -42,7 +42,7 @@ class ProofFileLight(ProofFile):
         step = lambda: self.prev_step if sign == 1 else self.curr_step
 
         for _ in range(nsteps):
-            # HACK: We ignore steps inside a Module Type since they can't
+            # ###overide!!!! HACK: We ignore steps inside a Module Type since they can't
             # be used outside and should be overriden.
             in_module_type = self.context.in_module_type
             self._step(sign)
