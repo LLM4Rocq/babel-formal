@@ -1,9 +1,11 @@
 ## Introduction
 
-Even though sequence of tactics can vary significantly between languages, our hope is that we can translate lambda-terms from one language (e.g., a proof from Mathlib in Lean) into a sequence of tactics in another language (e.g., in Rocq). In this sense, we use **$\lambda$-calculus** as a pivot language.
+Even though tactics can vary significantly between languages, our hope is that we can translate lambda-terms from one language (e.g., a proof from Mathlib in Lean) into a sequence of tactics in another language (e.g., in Rocq). In this sense, we use **$\lambda$-calculus** as a pivot language.
 
 This approach avoid the issue of **parallel data scarcity** in translation tasks between proof assistants.
-Moreover, Lean and Rocq rely on the same type of $\lambda$-calculus (namely Calculus of Inductive Constructions), making them natural candidates for this specific experimentation.
+Moreover, Lean and Rocq both rely on the same type of $\lambda$-calculus (namely Calculus of Inductive Constructions), making them natural candidates for this specific experimentation.
+
+Initially, we trained a model specifically to decompile Rocq proof terms into sequences of tactics (given premises and notations), trained only on MathComp. This allowed us to validate the concept of using $\lambda$-calculus as a pivot language and achieve unified Rocq datasets (SSReflect).
 
 ### Related works
 
@@ -31,13 +33,13 @@ To evaluate this setup, we will use **miniF2F** [[7](#7)], and one of its transl
 
 We also introduce two new datasets
 * **Pile of Rocq**: a collection of Rocq codes and documentation to pre-trained LLMs.
-* **Rocq reasoning**: a subset of mathcomp and mathcomp analysis augmented with CoT synthetically generated with DeepSeek R1.
+* **Rocq reasoning**: a subset of mathcomp and mathcomp analysis augmented with CoT synthetically generated with DeepSeek R1 on the "decompilation" tasks.
 
 ### Available pre trained models
 
-* Models pre trained on a **math corpus** seem to gain some advantages over generic ones [[4](#4)].
+* Models pre trained on a **math corpus** or at least on reasoning tasks seem to gain some advantages over generic ones [[4](#4)].
 * **Deepseek Prover** [[9](#9), [10](#10)] and **DeepSeek Coder** [[11](#11)] are strong candidates for our needs.
-* Even more recently, **DeepSeek R1** seems to be the way to go if **test-time compute** is to be explored.
+* Even more recently, **DeepSeek R1**, **Qwen 32b** seems to be the way to go if **test-time compute** is to be explored.
 
 ### Data Extraction
 
@@ -60,34 +62,36 @@ In this first scenario, we train a transformer from scratch.
 
 **Will probably not be implemented, [see here](scratch.md) for more details**.
 
-## Fine-tuning of LLM
+## Methodology
 
 In this second scenario, we finetune an already trained LLM.
 We use a backward approach to distill reasoning abilities of **DeepSeek R1**.
 
 The idea is to create reasoning trace from known solution (proof), to augment the dataset size and improve the imbalance between lambda term and sequences of tactics during training.
 
-Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [Fig.4.](#baseline), **WIP**). *On a subset of the test set (50 elements), only DeepSeek R1 is able to translate one correct lambda term (hence 2% success rate) to a sequence of tactics. Unfortunately this is the exact proof original proof, which may be an indication of a pure memorized answer*.
+Backward approach is motivated by the very poor performance of the best model on the task of translation from $\lambda$-calculus to sequence of tactics (see [Fig.3.](#baseline), **WIP**). *On a subset of the test set (50 elements), only DeepSeek R1 is able to translate one correct lambda term (hence 2% success rate) to a sequence of tactics. Unfortunately this is the exact original proof, which may be an indication of a purely memorized answer*.
 
-To improve the quality of the final reasoning, we propose a method of filtration based on the ability of a smaller model to predict the right sequence of tokens given an obfuscated version of the reasoning.
+|![image](img/baseline.png)|
+|:--:|
+|**Fig. 3.** Baseline results: Translation from $\lambda$-calculus to sequence of tactics on a diverse set of extracted lemmas from Mathcomp.|
+</center>
 
-We describe the generation pipeline in the above [figure](#pipeline).
+### Model Training
+
+We trained a model exclusively on MathComp to decompile proof terms into sequences of tactics (SSReflect).
+
+Then we evaluate the trained model to proof terms from other libraries, successfully translating them into SSReflect proofs.
+
+Evaluation used Coquelicot and Corn libraries.
+
+### Data Augmentation Pipeline
 
 <center id="pipeline">
 
 |![image](img/pipeline.png)|
 |:--:|
-|**Fig. 3.** Pipeline for data augmentation|
+|**Fig. 4.** Pipeline for data augmentation|
 </center>
-
-<center id="baseline">
-
-|![image](img/baseline.png)|
-|:--:|
-|**Fig. 4.** Baseline results: Translation from $\lambda$-calculus to sequence of tactics on a diverse set of extracted lemmas from Mathcomp.|
-</center>
-
-### Multi steps approach
 
 #### First step
 
@@ -144,6 +148,21 @@ Since completion and decision are not always comparable (e.g., when premises are
 In this last step, we ask a final model to check whether best reasonings do not rely on already knowing the sequence of tactics, and truly simulate a discovery process (see [prompt](#prompt-to-check-final-reasoning)).
 If not, then check the next best reasoning, up until it find one that meet previous criteria.
 
+## Decompilation and Cross-Library Translation
+
+So our first goal is to obtain a unify Rocq dataset.
+
+To achieve the goal of converting proof terms into SSReflect style proofs, we trained a model that decompiles Rocq proof terms into sequences of tactics only for SSReflect style proofs.
+Our source of such proofs is MathComp.
+
+We are interest in differents kind of result: what is the validation performance of our model? What is its generalization ability? And what scaling law is satified?
+
+* Validation Performance: On a held-out split from MathComp, the model demonstrated robust performance see [?].
+
+* Benchmark Performance: Beyond MathComp, the model was applied to proof terms from other libraries.
+
+* Scaling Law (Test-Time Compute): Since we verify proof correctness through an algorithmic type-checking process, our evaluation centers on pass@k. Results show that increasing test-time compute leads to improved pass@k rates.
+
 
 ## Pre training
 
@@ -192,6 +211,83 @@ Even though this situation was not encountered in the dataset, we hope the model
 ## Results
 
 *WIP*
+Detailed numerical results, scores and scaling law for MathComp, Coquelicot, and Corn, are presented in the subsections below.
+
+### Rocq to Rocq
+
+#### Mathcomp
+
+<center id="score_mathcomp">
+
+|![image](res/result_mathcomp.png)|
+|:--:|
+|**Fig. 7.a** Mathcomp score|
+</center>
+
+<center id="scaling_law_mathcomp">
+
+|![image](res/scaling_mathcomp.png)|
+|:--:|
+|**Fig. 7.b** Mathcomp scaling law|
+</center>
+
+<center id="accuracy_mathcomp">
+
+|![image](res/accuracy_by_length_mathcomp.png)|
+|:--:|
+|**Fig. 7.c** Accuracy vs proof length|
+</center>
+
+#### Coquelicot Easy
+
+<center id="score_coquelicot_easy">
+
+|![image](res/result_coquelicot_easy.png)|
+|:--:|
+|**Fig. 8.a** Coquelicot Easy score|
+</center>
+
+<center id="scaling_law_coquelicot_easy">
+
+|![image](res/scaling_coquelicot_easy.png)|
+|:--:|
+|**Fig. 8.b** Coquelicot Easy scaling law|
+</center>
+
+<center id="accuracy_coquelicot_easy">
+
+|![image](res/accuracy_by_length_coquelicot_easy.png)|
+|:--:|
+|**Fig. 8.c** Accuracy vs proof length|
+</center>
+
+#### Hard Corn
+
+<center id="score_hard_corn">
+
+|![image](res/result_hard_corn.png)|
+|:--:|
+|**Fig. 9.a** Hard corn score|
+</center>
+
+<center id="scaling_law_hard_corn">
+
+|![image](res/scaling_hard_corn.png)|
+|:--:|
+|**Fig. 9.b** Hard Corn scaling law|
+</center>
+
+<center id="accuracy_hard_corn">
+
+|![image](res/accuracy_by_length_hard_corn.png)|
+|:--:|
+|**Fig. 9.c** Accuracy vs proof length|
+</center>
+
+### Lean to Rocq translation
+
+*WIP*
+
 
 ## Bibliography
 
