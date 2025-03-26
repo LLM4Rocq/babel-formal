@@ -15,7 +15,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/evaluation/result', help='Directory containing json evaluation files')
     parser.add_argument('--export', default='export/experiment/exp_7', help='Directory to export plot')
-    parser.add_argument('--source', default='export/benchmark_corn_hard.json')
     args = parser.parse_args()
 
     os.makedirs(args.export, exist_ok=True)
@@ -23,14 +22,9 @@ if __name__ == '__main__':
     pattern = r'(bench|eval)_(.*)\.json'
     # Dictionary to hold, for each model, a mapping of proof length to counts of successes and totals.
     model_accuracy_by_length = {}
-
-    with open(args.source, 'r') as file:
-        benchmark = json.load(file)
     
-    name_to_proof_len = {}
     steps_lengths = []
-    for entry in benchmark:
-        name_to_proof_len[entry['name']] = len([s for s in entry['steps'] if 'Proof.' not in s and 'Qed.' not in s])
+
     for file in sorted(os.listdir(args.input)):
         match = re.match(pattern, file)
         if not match:
@@ -69,13 +63,16 @@ if __name__ == '__main__':
         plt.xlabel('Generated proof Length (number of steps)')
         plt.ylabel('Accuracy (%)')
         plt.title('Accuracy vs Generated Proof Length')
-        plt.legend()
-        plt.grid(True)
+    plt.legend()
+    plt.grid(True)
         
-        export_path = os.path.join(args.export, f'{model}_accuracy_by_length.png')
-        plt.savefig(export_path, bbox_inches='tight')
-        plt.close()
+    export_path = os.path.join(args.export, f'all_models_accuracy_by_length.png')
+    plt.savefig(export_path, bbox_inches='tight')
+    plt.close()
 
+    # Plot accuracy vs. proof length for each model.
+    plt.figure(figsize=(10, 6))
+    for model, length_data in model_accuracy_by_length.items():
         # Create a scatter plot for the correlation
         plt.figure(figsize=(12, 6))
 
@@ -85,9 +82,8 @@ if __name__ == '__main__':
         plt.xlabel("Number of steps")
         # plt.xlim(0, 20)
         plt.ylabel("Frequency")
-        plt.legend()
-
-        # Save the combined plot
-        export_path = os.path.join(args.export, f'{model}_steps.png')
-        plt.savefig(export_path, bbox_inches='tight')
-        plt.close()
+    plt.legend()
+    # Save the combined plot
+    export_path = os.path.join(args.export, f'all_models_steps.png')
+    plt.savefig(export_path, bbox_inches='tight')
+    plt.close()

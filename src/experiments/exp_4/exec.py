@@ -19,7 +19,7 @@ def wilson(p, n, z = 1.96):
 
     lower_bound = (centre_adjusted_probability - z*adjusted_standard_deviation) / denominator
     upper_bound = (centre_adjusted_probability + z*adjusted_standard_deviation) / denominator
-    return ((p-lower_bound)*100, (upper_bound-p)*100)
+    return (max((p-lower_bound)*100,0), (upper_bound-p)*100)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -89,7 +89,6 @@ if __name__ == '__main__':
     width = 0.2  # the width of the bars
     
     plt.figure(figsize=(10, 6))
-
     bars = plt.bar(x, success_percentages, width, yerr=np.array(bounds).transpose(), color='green')
     
     plt.ylabel('Success Percentage')

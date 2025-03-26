@@ -14,7 +14,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='export/evaluation/result', help='Directory containing json evaluation files')
     parser.add_argument('--export', default='export/experiment/exp_6', help='Directory to export plot')
-    parser.add_argument('--source', default='export/benchmark_corn_hard.json')
+    parser.add_argument('--source', default='export/benchmark.json')
     args = parser.parse_args()
 
     os.makedirs(args.export, exist_ok=True)

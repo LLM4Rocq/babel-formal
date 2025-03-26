@@ -34,7 +34,7 @@ if __name__ == '__main__':
     os.makedirs(args.export, exist_ok=True)
 
 
-    pattern = r'bench_(.*)\.json'
+    pattern = r'(bench|eval)_(.*)\.json'
     k_parameter = 0
     scores = {}
     all_result = []
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         match = re.match(pattern, file)
         if not match:
             continue
-        model_name = match.group(1)
+        model_name = match.group(2)
 
 
         filepath = os.path.join(args.input, file)
