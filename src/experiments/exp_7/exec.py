@@ -1,9 +1,7 @@
 import os
 import json
-from pathlib import Path
 import re
 import argparse
-import random
 
 import numpy as np
 import matplotlib.pyplot as plt
