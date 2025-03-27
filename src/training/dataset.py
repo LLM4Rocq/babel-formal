@@ -92,10 +92,10 @@ def load_and_process(tokenizer, data_path, prompt_path):
         "notations": "\n".join(x['notations']),
         "proof": "\n".join(x['steps'])
     })
-    dataset['train'] = dataset['train'].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": prompt['text_after'].format(**x) + prompt['end']})
+    dataset['train'] = dataset['train'].map(lambda x: {"sep": prompt["sep"], "before": prompt['text_before'].format(**x), "after": prompt['text_after'].format(**x) + prompt['end']})
 
     for entry in ['validation', 'benchmark', 'test']:
-        dataset[entry] = dataset[entry].map(lambda x: {"sep": prompt["sep"], "before": prompt['beg'] + prompt['text_before'].format(**x), "after": ""})
+        dataset[entry] = dataset[entry].map(lambda x: {"sep": prompt["sep"], "before": prompt['text_before'].format(**x), "after": ""})
 
     dataset = dataset.map(partial(preprocess_dataset, tokenizer), batched=True, batch_size=100)
     only_keep_columns(dataset, ['attention_mask', 'labels', 'input_ids', 'name', 'category'])
