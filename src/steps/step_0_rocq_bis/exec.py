@@ -58,6 +58,7 @@ def check_list(data_list, port=8765):
             stop_pet_server(server_process)
             server_process = start_pet_server(mean_wait=1, port=port)
             first_tactic = True
+    stop_pet_server(server_process)
 
 def copy_if_not_exists(src, dst):
     if os.path.exists(dst):
