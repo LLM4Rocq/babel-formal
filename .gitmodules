@@ -1,0 +1,6 @@
+[submodule "coqpyt"]
+	path = coqpyt
+	url = git@github.com:sr-lab/coqpyt.git
+[submodule "pytanque"]
+	path = pytanque
+	url = git@github.com:LLM4Coq/pytanque.git

@@ -6,7 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+# Term extraction
+runs/
+test/
+debug.v
+export/
+*.zip
+*.cache
+
 # Distribution / packaging
+.vscode/
 .Python
 build/
 develop-eggs/

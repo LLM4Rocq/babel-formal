@@ -1,0 +1,16 @@
+pyyaml
+bm25s
+openai
+torch
+transformers
+datasets
+lean-dojo
+chardet
+trl
+tiktoken
+protobuf
+blobfile
+sentencepiece
+tensorboardX
+tensorboard
+importlib_metadata
