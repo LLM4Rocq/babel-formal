@@ -52,7 +52,7 @@ Install [Pytanque](https://github.com/LLM4Rocq/pytanque) for Rocq evaluation and
 5. Launch model sampling with `src/lean_rocq_translation/step_7/exec.py` or `src/lean_rocq_translation/step_7_rocq/exec.py`.
 6. Evaluate candidates with `src/evaluation/lean_evaluate.py` and `src/evaluation/rocq_evaluate.py`.
 
-Full step-by-step notes, command flags, and expected outputs are in `doc/details.md`.
+Full step-by-step notes, command flags, and expected outputs are [here](doc/details.md).
 
 ## Data, models, and figures
 Aligned Lean/Rocq pairs: `dataset/repo/rocq/*.v` and matching Lean files under `dataset/`.
