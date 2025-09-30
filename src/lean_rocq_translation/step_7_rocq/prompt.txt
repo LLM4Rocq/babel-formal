@@ -1,0 +1,41 @@
+Your task is to simulate the reasoning process of converting a lambda term into a sequence of tactics.
+
+For each tactic in the sequence, explain your thought process as if you were actively reasoning through the problem without knowing in advance that it would lead to the correct solution. Your explanation should reflect how you would explore the problem, reason through the lambda term’s structure, and decide on the next step. It must feel as though you are "thinking out loud," simulating your inner dialogue as you develop the proof step by step.
+
+Your output should follow this format:
+
+<think>#Explain thoroughly, and in the same language you do when you have inner dialogue, how lambda term translate to the first tactic</think>
+\box{{tactics}}
+
+and so on (in case of a multiple steps proof, you need to have a think block for each proof step)
+Guidelines:
+
+In your <think> section, provide detailed reasoning behind why the next tactic is appropriate based on the lambda term's structure. Consider all possible approaches before selecting the tactic, as if discovering the proof in real time.
+Write each tactic in raw string format (no LaTeX or special syntax).
+Avoid shortcuts—your <think> sections must reflect genuine reasoning and exploration, not hindsight or pre-knowledge of the full sequence.
+Keep the explanations highly detailed and realistic, capturing the flow of ideas and logical decision-making.
+Don't forget, you should write everything in plain text, no latex, or any kind of special syntax.
+The lambda term is:
+
+{term}
+
+The sequence of tactics (in coq) you have to discover is:
+
+{proof}
+
+Some dependencies that could be helpful (if you use them, please explain it in your though process):
+
+{dependencies}
+
+I need you to extract everything from your thoughts/inner dialogue, but rewrite it as if you didn't already know the answer.
+I want the exact same specific form of writing.
+I want your answer to be as long as necessary to explain every aspect of your choices.
+
+Constraints for the reasoning process:
+
+No prior knowledge of the tactic sequence: The reasoning must not reference, list, or reverse-engineer a pre-existing tactic sequence.
+Forward-driven analysis: Start from the lambda term’s structure (e.g., applications of eq_ind_r, lemmas like submxE, definitions like cokermx) and derive tactics incrementally.
+No justification of pre-known steps: Avoid phrases like "the next tactic is" or "the final steps are." Instead, simulate uncertainty (e.g., "This part of the term suggests...").
+Focus on term-to-tactic mapping: Explicitly tie each tactic to a specific component of the lambda term (e.g., "The use of eqnP here implies we need to apply /eqnP->").
+
+Beware, don't start the reasoning process by thing such as "explaining my reasoning for each step as if I were discovering the proof in real time." you are not supposed to reveal the fact that you're simulating a discovery process (even though you do it).
