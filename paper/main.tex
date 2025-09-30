@@ -128,7 +128,7 @@ We describe how we build the training data, the inference pipeline, and benchmar
 \paragraph*{Proof Subset Selection.}
 
 Following S1~\cite{s12025}, we create in each case a training set of 1000 entries. For translation between Lean and Rocq, we select a subset of 500 diverse proofs in C-CoRN~\cite{corn} and 500 diverse proofs in Mathlib. For translation from vanilla Rocq to SSReflect, we select a subset of 1000 entries in MathComp.
-In both cases, we filter by length, then choose a diverse subset (statements and proofs) using \texttt{BM25}.
+In both cases, we filter by length, then choose a diverse subset (statements and proofs) using \texttt{BM25}\cite{bma}.
 \label{proofextract}
 
 \paragraph*{Proof Term Extraction.}
@@ -139,14 +139,16 @@ For Lean~4, we use \texttt{leanclient}~\cite{leanclient2025} to extract the proo
 
 \begin{figure}[htp]
 \centering
-\includegraphics[width=10cm]{diagram.png}
+\includegraphics[width=12cm]{diagram.pdf}
 \caption{Training and Inference pipeline}
 \label{fig:pipeline}
 \end{figure}
 
 \paragraph*{Backward Reasoning Trace Generation.}
 
-Given each proof term and the corresponding target script, we generate backward reasoning traces with Gemini~2.5~Pro~\cite{gemini2024}. The model is prompted to outline a backward path from the term to tactic steps and to include the final script in its output, so each example is self-contained. The resulting training dataset follows the structure described in~\cref{fig:diagram}.
+Given each proof term and the corresponding target script, we generate backward reasoning traces with Gemini~2.5~Pro~\cite{gemini2024}.
+Backward reasoning trace generation refers here to prompting the LLM with the proof term and the target proof script, and asking it to generate a reasoning process that works backwards from the script.
+The resulting training dataset follows the structure described in~\cref{fig:diagram}.
 
 \label{benchmarks}
 \paragraph*{Benchmarks.}
@@ -154,17 +156,17 @@ Given each proof term and the corresponding target script, we generate backward 
 We evaluate on two benchmarks:
 
 \emph{Cross-assistant (Lean \texorpdfstring{$\leftrightarrow$}{<->} Rocq).}
-We created 14 files with the same statements and proofs in Rocq and Lean, for a total of 117 aligned lemmas. From these files we extracted comparable proof terms in both systems. An example of such a source file is in~\cref{app:benchmark}.
+We created 14 files with the same statements in Rocq and Lean, for a total of 117 aligned lemmas. Each lemma is proved natively in both systems, so the proof scripts differ but are type-correct in aligned contexts. From these, we extracted comparable proof terms in both systems. An example of such a source file is in~\cref{app:benchmark}.
 
 \emph{Cross-tactic (vanilla Rocq \texorpdfstring{$\to$}{->} SSReflect).}
-We collect 500 Rocq proofs from the C-CoRN library and use them to assess translation from vanilla Rocq tactics to SSReflect. To ensure diversity, we pick subsets maximizing document distance (via BM25). An example of entry is in~\cref{app:ssreflect}.
+We collect 500 Rocq proofs from the C-CoRN library~\cite{corn}, which is a large mathematical library developed in vanilla Rocq (in contrast to MathComp, which is built on SSReflect). We use these proofs to assess translation from vanilla Rocq tactics to SSReflect. To ensure diversity, we pick subsets maximizing document distance (via BM25). An example of entry is in ~\cref{app:ssreflect}.
 
 \begin{figure}[htp]
     \centering
     % First subfigure
     \begin{subfigure}[t]{0.25\textwidth}
         \centering
-        \includegraphics[width=1.7cm]{diagram_block.png}
+        \includegraphics[width=3.5cm]{diagram_block.pdf}
         \caption{Input/Output structure}
         \label{fig:diagram}
     \end{subfigure}%
@@ -172,7 +174,7 @@ We collect 500 Rocq proofs from the C-CoRN library and use them to assess transl
     % Second subfigure
     \begin{subfigure}[t]{0.75\textwidth}
         \centering
-        \includegraphics[width=10.5cm]{hardcoded.png}
+        \includegraphics[width=9.5cm]{hardcoded.pdf}
         \caption{Translation strategy}
         \label{fig:diagram_block}
     \end{subfigure}
@@ -183,7 +185,7 @@ We collect 500 Rocq proofs from the C-CoRN library and use them to assess transl
 
 \paragraph*{Inference Pipeline.}
 
-At inference, we leverage the source proof term and use the appropriate strategy to obtain a script in the target assistant or tactic set (\cref{fig:strategy}). The first block in~\cref{fig:strategy} is initialized with the goal state and fixed instructions; the full prompt appears in~\cref{app:promptbabel}.
+At inference, we leverage the source proof term and use the appropriate strategy to obtain a script in the target assistant or tactic set (\cref{fig:strategy}). The first block in ~\cref{fig:strategy} is initialized with the goal state and fixed instructions; the full prompt appears in~\cref{app:promptbabel}.
 
 \section{Experimental Setup}
 
@@ -195,7 +197,7 @@ term $\to$ Rocq script.
 %
 (ii) \textbf{Babel-ssreflect:} Rocq term $\to$ SSReflect script.
 %
-These models are used at inference to produce target scripts from source terms (\cref{fig:pipeline}). As a baseline, we use direct tactic translation by prompting GPT-5~\cite{gpt52025} to translate a proof script from one language (or set of tactics) to another.
+These models are used at inference to produce target scripts from source terms (~\cref{fig:pipeline}).
 
 \paragraph*{Evaluation.}
 
@@ -205,10 +207,15 @@ We run verification through Rocq tooling (coq-lsp and Pétanque)~\cite{coqlsp, n
 For \textit{Babel-translate} and \textit{Babel-ssreflect}, we sample $k$ candidates per input and report pass@$k$ (success if any candidate verifies). No error feedback is provided.
 
 \emph{Interactive repair (GPT-5 and Qwen2.5-32b-Coder-Instruct).}
-For direct tactic translation baselines, the model receives the proof assistant error on failure and may attempt to repair/continue the proof for up to $4$ rounds. We report pass@1 with feedback, denoted ``@1x(4 feedback rounds)'' for GPT-5. For Qwen2.5-32b-Coder-Instruct we additionally sample a small pool per round (\eg 16 candidates), denoted ``@16x(4 feedback rounds)'', and count success if any candidate in any round verifies (see~\cref{app:promptgpt} for the prompt template)
+For direct tactic translation baselines, the model receives the proof assistant error on failure and may attempt to repair/continue the proof for up to $4$ rounds. We report pass@1 with feedback, denoted ``@1x(4 feedback rounds)'' for GPT-5. For Qwen2.5-32b-Coder-Instruct we additionally sample a small pool per round (\eg, 16 candidates), denoted ``@16x(4 feedback rounds)'', and count success if any candidate in any round verifies (see~\cref{app:promptgpt} for the prompt template)
 
 \paragraph{Tasks.}
-We evaluate three directions: Lean $\to$ Rocq and Rocq $\to$ Lean (cross-assistant), and vanilla Rocq $\to$ SSReflect (cross-tactic) using the benchmarks introduced in~\cref{benchmarks}.
+We evaluate three directions:
+(i) Lean $\to$ Rocq,
+(ii) Rocq $\to$ Lean (cross-assistant), and
+(iii) vanilla Rocq $\to$ SSReflect (cross-tactic), using the benchmarks introduced in ~\cref{benchmarks}.
+For (i) and (ii) we apply \textit{Babel-translate} (proof term $\to$ native script) and compare with direct GPT-5 translation.
+For (iii) we apply \textit{Babel-ssreflect} (proof term $\to$ SSReflect script), again comparing with direct GPT-5 translation.
 
 \section{Results and Analysis}
 \begin{table}[h]
