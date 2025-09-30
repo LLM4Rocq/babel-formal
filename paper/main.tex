@@ -28,6 +28,7 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
+\usepackage[capitalise]{cleveref}
 
 \title{Babel-formal: Translation of Proofs between Lean and Rocq}
 
@@ -52,19 +53,80 @@ In this work, we investigate using proof terms (the low-level representation of 
 
 \section{Introduction}
 
-Formal mathematics is developed in proof assistants such as Rocq and Lean. Over time, these systems accumulate large libraries (for example, MathComp~\cite{mathcomp} for Rocq and Mathlib~\cite{mathlib} for Lean), yet proofs are not reusable across systems, even in a strictly aligned context. We study two translation settings. The first is \emph{cross-assistant} translation between Lean and Rocq. The second is \emph{cross-tactic} translation inside Rocq, from the standard Rocq tactic language (called here \textit{vanilla Rocq}) to \textit{SSReflect}~\cite{ssreflect}, which is a compact, structured tactic language widely used with MathComp (see Appendix~\ref{app:ssreflect} for an example).
+Formal mathematics is developed in proof assistants such as Rocq and
+Lean. Over time, these systems accumulate large libraries (for
+example, MathComp~\cite{mathcomp} for Rocq and Mathlib~\cite{mathlib}
+for Lean), yet proofs are not reusable across systems, even in a
+strictly aligned context. We study two translation settings. The first
+is \emph{cross-assistant} translation between Lean and Rocq. The
+second is \emph{cross-tactic} translation inside Rocq, from the
+standard Rocq tactic language (called here \textit{vanilla Rocq}) to
+\textit{SSReflect}~\cite{ssreflect}, which is a compact, structured
+tactic language widely used with MathComp (see
+Appendix~\ref{app:ssreflect} for an example). 
 
-We explore using pretty-printed \emph{proof terms}, that is, the proof terms given by the proof assistant (e.g. using \texttt{\#print} in Lean), as a pivot language. This removes the need for an aligned training corpus of tactic scripts. At inference time, we only require strictly aligned statements (same theorem and premises) so that both systems elaborate comparable terms. The approach is related to decompilation in programming languages, where models map assembly to higher-level C programs~\cite{llm4decompile2024}.
+We explore using pretty-printed \emph{proof terms}\footnote{The notion
+  of tactic script and proof term is exaplined in \cref{fig:basicprovers}.}, that is, the proof
+terms given by the proof assistant (e.g. using \texttt{\#print} in
+Lean), as a pivot language.
+This removes the need for an aligned training corpus of tactic scripts. At inference time, we only require strictly aligned statements (same theorem and premises) so that both systems elaborate comparable terms. The approach is related to decompilation in programming languages, where models map assembly to higher-level C programs~\cite{llm4decompile2024}.
 
 We compare two strategies:
-\begin{enumerate}
- \item \textbf{Direct script translation.} An LLM is prompted to convert a proof script directly from source tactics to target tactics. We apply this in both settings (Lean~$\leftrightarrow$~Rocq and vanilla Rocq~$\to$~SSReflect), using GPT-5~\cite{gpt52025} as the baseline.
-  \item \textbf{Proof term translation.} We first extract the proof term, then train models to predict scripts from proof terms (Lean term to Lean script, Rocq term to Rocq script). At inference, we extract the term for the source proof and use the model to produce a script in the target assistant or tactic set (see Figure~\ref{fig:pipeline}). For an example of Lean~$\to$~Rocq inference see Appendix~\ref{app:leanrocq}, and Appendix~\ref{app:ssreflect} for vanilla Rocq~$\to$~SSReflect.
-\end{enumerate}
+
+ \textbf{1. Direct script translation.} An LLM is prompted to convert
+ a proof script directly from source tactics to target tactics. We
+ apply this in both settings (Lean~$\leftrightarrow$~Rocq and vanilla
+ Rocq~$\to$~SSReflect), using GPT-5~\cite{gpt52025} as the baseline.
+ 
+\textbf{2. Proof term translation.} We first extract the proof term, then train models to predict scripts from proof terms (Lean term to Lean script, Rocq term to Rocq script). At inference, we extract the term for the source proof and use the model to produce a script in the target assistant or tactic set (see Figure~\ref{fig:pipeline}). For an example of Lean~$\to$~Rocq inference see Appendix~\ref{app:leanrocq}, and Appendix~\ref{app:ssreflect} for vanilla Rocq~$\to$~SSReflect.
 
 To support this comparison, we build a benchmark of 14 files with 117 lemmas that are strictly aligned between Lean and Rocq. We also mention, but do not pursue, direct low-level term translation between Lean and Rocq~\cite{leantypechecker}. The main drawback of that direction is that the output is not tied to a maintainable proof script.
 
 In brief, proof term translation can be leveraged for translation between proof assistants (e.g., Lean and Rocq) or between different sets of tactics (for example, vanilla Rocq and SSReflect). It is also easy to scale in terms of data, since no aligned training data are needed. Direct tactic translation and proof term translation are complementary, and combining them works best. Code, data, and models: \href{https://github.com/LLM4Rocq/babel-formal}{github.com/LLM4Rocq/babel-formal}.
+
+
+\begin{figure}[t]
+  \centering
+  \begin{tabular}{cl}
+    \begin{minipage}{0.45\textwidth}
+      
+        \includegraphics[scale=0.21]{basic_provers}
+              \end{minipage}
+    &
+      \begin{minipage}{0.5\textwidth}
+        \small
+      Given a formal statement of a theorem, proving it amounts to
+      constructing a proof term—a precise object that the prover can
+      type-check for correctness. However, these proof terms are
+      typically extremely verbose, capturing every low-level detail,
+      and are impractical to write directly by hand.
+
+      To address this, users interact with interactive theorem provers
+      through proof scripts—which are essentially meta-programs
+      designed to generate these proof terms. Over time, this
+      meta-programming layer has evolved in various ways, leading to a
+      diverse ecosystem of proof script languages; often refered to as
+      tactic languages.
+      \end{minipage}
+      \end{tabular}
+\caption{How interactive theorem provers operate}\label{fig:basicprovers}
+\end{figure}
+%
+
+\section{Methodology}
+We describe how we build the training data, the inference pipeline, and benchmarks. To build the training data we follow four steps~\cite{s12025}: (1) select a diverse subset of proofs, (2) extract proof terms in Rocq and Lean, (3) generate synthetic backward reasoning traces inferring proof script from proof term , and (4) train models that predict a tactic script from a proof term. Full prompt templates and training details are in Appendix~\ref{app:promptbabel} and Appendix~\ref{app:training}.
+
+\paragraph*{Proof Subset Selection.}
+
+Following S1~\cite{s12025}, we create in each case a training set of 1000 entries. For translation between Lean and Rocq, we select a subset of 500 diverse proofs in C-CoRN~\cite{corn} and 500 diverse proofs in Mathlib. For translation from vanilla Rocq to SSReflect, we select a subset of 1000 entries in MathComp.
+In both cases, we filter by length, then choose a diverse subset (statements and proofs) using \texttt{BM25}.
+\label{proofextract}
+
+\paragraph*{Proof Term Extraction.}
+
+For Rocq, we use \texttt{coqpyt}~\cite{coqpyt2024} to extract, for each proof, its proof term together with the premises and notation declarations.
+For Lean~4, we use \texttt{leanclient}~\cite{leanclient2025} to extract the proof term and the context.
+
 
 \begin{figure}[htp]
 \centering
@@ -72,31 +134,20 @@ In brief, proof term translation can be leveraged for translation between proof 
 \caption{Training and Inference pipeline}
 \label{fig:pipeline}
 \end{figure}
-\section{Methodology}
-We describe how we build the training data, the inference pipeline, and benchmarks. To build the training data we follow four steps~\cite{s12025}: (1) select a diverse subset of proofs, (2) extract proof terms in Rocq and Lean, (3) generate synthetic backward reasoning traces inferring proof script from proof term , and (4) train models that predict a tactic script from a proof term. Full prompt templates and training details are in Appendix~\ref{app:promptbabel} and Appendix~\ref{app:training}.
 
-\subsection{Proof Subset Selection}
-
-Following S1~\cite{s12025}, we create in each case a training set of 1000 entries. For translation between Lean and Rocq, we select a subset of 500 diverse proofs in C-CoRN~\cite{corn} and 500 diverse proofs in Mathlib. For translation from vanilla Rocq to SSReflect, we select a subset of 1000 entries in MathComp.
-In both cases, we filter by length, then choose a diverse subset (statements and proofs) using \texttt{BM25}.
-\label{proofextract}
-\subsection{Proof Term Extraction}
-
-For Rocq, we use \texttt{coqpyt}~\cite{coqpyt2024} to extract, for each proof, its proof term together with the premises and notation declarations.
-For Lean~4, we use \texttt{leanclient}~\cite{leanclient2025} to extract the proof term and the context.
-
-\subsection{Backward Reasoning Trace Generation}
+\paragraph*{Backward Reasoning Trace Generation.}
 
 Given each proof term and the corresponding target script, we generate backward reasoning traces with Gemini~2.5~Pro~\cite{gemini2024}. The model is prompted to outline a backward path from the term to tactic steps and to include the final script in its output, so each example is self-contained. The resulting training dataset follows the structure described in Figure~\ref{fig:diagram}.
 
 \label{benchmarks}
-\subsection{Benchmarks}
+\paragraph*{Benchmarks.}
 
 We evaluate on two benchmarks:
-\paragraph{Cross-assistant (Lean \texorpdfstring{$\leftrightarrow$}{<->} Rocq).}
+
+\emph{Cross-assistant (Lean \texorpdfstring{$\leftrightarrow$}{<->} Rocq).}
 We created 14 files with the same statements and proofs in Rocq and Lean, for a total of 117 aligned lemmas. From these files we extracted comparable proof terms in both systems. An example of such a source file is in Appendix~\ref{app:benchmark}.
 
-\paragraph{Cross-tactic (vanilla Rocq \texorpdfstring{$\to$}{->} SSReflect).}
+\emph{Cross-tactic (vanilla Rocq \texorpdfstring{$\to$}{->} SSReflect).}
 We collect 500 Rocq proofs from the C-CoRN library and use them to assess translation from vanilla Rocq tactics to SSReflect. To ensure diversity, we pick subsets maximizing document distance (via BM25). An example of entry is in Appendix~\ref{app:ssreflect}.
 
 \begin{figure}[htp]
@@ -121,29 +172,30 @@ We collect 500 Rocq proofs from the C-CoRN library and use them to assess transl
     \label{fig:strategy}
 \end{figure}
 
-\subsection{Inference Pipeline}
+\paragraph*{Inference Pipeline.}
 
 At inference, we leverage the source proof term and use the appropriate strategy to obtain a script in the target assistant or tactic set (Figure~\ref{fig:strategy}). The first block in Figure~\ref{fig:strategy} is initialized with the goal state and fixed instructions; the full prompt appears in Appendix~\ref{app:promptbabel}.
 
 \section{Experimental Setup}
 
-\subsection{Models and Training}
+\paragraph*{Models and Training.}
 
 We fine-tune \texttt{Qwen2.5-Coder-32b-Instruct}~\cite{deepseek2024} to translate a proof term into a tactic script. We train two models in two different scenarios:
-\begin{enumerate}
-  \item \textbf{Babel-translate:} Lean term $\to$ Lean script and Rocq term $\to$ Rocq script.
-  \item \textbf{Babel-ssreflect:} Rocq term $\to$ SSReflect script.
-\end{enumerate}
+(i)  \textbf{Babel-translate:} Lean term $\to$ Lean script and Rocq
+term $\to$ Rocq script.
+%
+(ii) \textbf{Babel-ssreflect:} Rocq term $\to$ SSReflect script.
+%
 These models are used at inference to produce target scripts from source terms (Figure~\ref{fig:pipeline}). As a baseline, we use direct tactic translation by prompting GPT-5~\cite{gpt52025} to translate a proof script from one language (or set of tactics) to another.
 
-\subsection{Evaluation}
+\paragraph*{Evaluation.}
 
 We run verification through Rocq tooling (coq-lsp and Pétanque)~\cite{coqlsp, nlir-mathai24} and Lean tooling (leanclient)~\cite{leanclient2025}. We use two generation strategies:
 
-\paragraph{Non-interactive (Babel).}
+\emph{Non-interactive (Babel).}
 For \textit{Babel-translate} and \textit{Babel-ssreflect}, we sample $k$ candidates per input and report pass@$k$ (success if any candidate verifies). No error feedback is provided.
 
-\paragraph{Interactive repair (GPT-5 and Qwen2.5-32b-Coder-Instruct).}
+\emph{Interactive repair (GPT-5 and Qwen2.5-32b-Coder-Instruct).}
 For direct tactic translation baselines, the model receives the proof assistant error on failure and may attempt to repair/continue the proof for up to $4$ rounds. We report pass@1 with feedback, denoted ``@1x(4 feedback rounds)'' for GPT-5. For Qwen2.5-32b-Coder-Instruct we additionally sample a small pool per round (e.g., 16 candidates), denoted ``@16x(4 feedback rounds)'', and count success if any candidate in any round verifies (see Appendix~\ref{app:promptgpt} for the prompt template)
 
 \paragraph{Tasks.}
@@ -159,29 +211,28 @@ We evaluate three directions: Lean $\to$ Rocq and Rocq $\to$ Lean (cross-assista
 GPT-5 (@1x(4 feedbacks)) & \textbf{82.9}\% & \textbf{67.5}\% & 16.6\% \\
 Babel-translate (@128)            & 68.3\% & 40.2\% &  \\
 Babel-ssreflect (@128)            &  &  & \textbf{33.2}\% \\
-Babel-ssreflect             &  &  & 21.8\% \\
-\ w/o reasoning (@128) & & & \\
+Babel-ssreflect \ w/o reas. (@128)            &  &  & 21.8\% \\
 \midrule
 Babel + GPT-5 combined               & 89.7\% & 83.7\% & 34\% \\
 \midrule
 Qwen-2.5-Coder-32b-Instruct  & 6.8\% & 19.7\% & 0\% \\
 (@16x(4 feedbacks)) & & & \\
 \hline
-\end{tabular}
+\end{tabular} \vspace{1ex}
 \caption{Benchmark results for different translation setups across three tasks.}
 \label{tab:translation_results}
 \end{table}
 
 
 In the proof script translation baseline, GPT-5 achieves 82.9\% success in the direction Lean $\to$ Rocq, and 67.5\% in Rocq $\to$ Lean. However, on the cross-tactic task vanilla Rocq $\to$ SSReflect, it manages only 16.6\% success.
-
+%
 In contrast, the cross-tactic translation model attains 33.2\% success on Rocq $\to$ SSReflect, demonstrating a clear gap in style transfer. In cross-assistant tasks, term translation model reaches 68.3\% on Lean $\to$ Rocq and 40.2\% on Rocq $\to$ Lean.
 
-\subsection{Ablation study}
+\paragraph*{Ablation study.}
 
 Removing the reasoning component in \textit{Babel-ssreflect} reduces Rocq $\to$ SSReflect from 33.2\% to 21.8\%. For Lean $\leftrightarrow$ Rocq, the model trained without reasoning produced mixed scripts that were not usable, so we do not report scores.
 
-\subsection{Limitation}
+\paragraph*{Limitation.}
 
 Babel models do not receive interactive feedback during proof generation. They see the initial goal, the context, and the proof term only, then must produce a complete script. Interactive repair, as used by GPT-5, may helps in some cases.
 
@@ -190,16 +241,25 @@ Babel models do not receive interactive feedback during proof generation. They s
 We introduced proof term translation as a way to translate proofs across assistants and tactic styles. Unlike direct tactic translation, this approach does not need parallel scripts for training. On our benchmarks it brings clear gains for style transfer and remains competitive for cross-assistant translation. It is complementary to direct translation, and combining the two gives the best results.
 
 \paragraph{Future work.}
-We see three directions.
-\begin{itemize}
-  \item \textbf{Scale.} Train on larger corpora and more domains, since the approach does not require aligned scripts.
-  \item \textbf{Feedback.} Add type checker feedback during generation. A simple loop that feeds proof assistant errors into the reasoning blocks could guide local repairs and improve robustness.
-  \item \textbf{Source-to-source translation (Lean~$\leftrightarrow$ Rocq).} Use off-the-shelf LLMs for source-to-source translation, and bootstrap proof script translation to check whether the source translation is correct.
-\end{itemize}
+We see three directions:
+%
+(i) \textbf{Scale.} Train on larger corpora and more domains, since
+the approach does not require aligned scripts.
+%
+(ii) \textbf{Feedback.} Add type checker feedback during generation. A
+simple loop that feeds proof assistant errors into the reasoning
+blocks could guide local repairs and improve robustness.
+%
+(iii) \textbf{Source-to-source translation (Lean~$\leftrightarrow$
+  Rocq).} Use off-the-shelf LLMs for source-to-source translation, and
+bootstrap proof script translation to check whether the source
+translation is correct.
 
 % \section{Acknowledgments}
 
 % This work was granted access to the HPC resources of IDRIS under the allocation 2025-AD011016066 made by GENCI.
+
+\newpage
 
 \bibliographystyle{plain}
 \bibliography{babel}
