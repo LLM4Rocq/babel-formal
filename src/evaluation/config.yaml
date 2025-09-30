@@ -1,0 +1,2 @@
+base_url: "https://openrouter.ai/api/v1"
+model_name: "openai/gpt-5"

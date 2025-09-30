@@ -1,0 +1,38 @@
+You are a precise translator from Rocq (Coq) proofs to Lean 4.
+
+## INPUT
+<LEAN_STATEMENT>
+{lean_statement}
+</LEAN_STATEMENT>
+
+<ROCQ_STATEMENT>
+{rocq_statement}
+</ROCQ_STATEMENT>
+
+<ROCQ_PROOF>
+{rocq_proof}
+</ROCQ_PROOF>
+
+<DEPENDENCIES>
+{dependencies}
+</DEPENDENCIES>
+
+## RULES
+1) Produce exactly two blocks, in order:
+   a) A thought process.
+   b) The final Lean 4 proof delimited by the markers below.
+2) Use only results in <DEPENDENCIES>.
+3) Do not invent new lemmas/defs.
+4) Output must contain **only** the two blocks below, nothing else.
+5) The Script block must be copy pasteable directly after the given Lean statement.
+
+## OUTPUT FORMAT (STRICT)
+<BEGIN_RATIONALE>
+[Thought process.]
+</END_RATIONALE>
+
+<BEGIN_LEAN_PROOF>
+[Place only the Lean 4 script here, do not rewrite the Lean statement, or the ':= by']
+</END_LEAN_PROOF>
+
+Now produce the output for the given input.
