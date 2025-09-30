@@ -1,0 +1,7 @@
+name = "dataset"
+defaultTargets = ["Dataset"]
+
+[[lean_lib]]
+name = "Dataset"
+srcDir = "Dataset"      # look under ./Dataset
+roots = ["Dataset"]     # root module name = "Dataset"

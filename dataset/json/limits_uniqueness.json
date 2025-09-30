@@ -1,0 +1,314 @@
+{
+    "source": "limits_uniqueness",
+    "lean": {
+      "AbsField": {
+        "kind": "class",
+        "lines": [0, 39],
+        "content": "class AbsField (R : Type) where\n  zero  : R\n  one   : R\n  add   : R → R → R\n  mul   : R → R → R\n  opp   : R → R\n  abs   : R → R\n  le    : R → R → Prop\n  lt    : R → R → Prop\n\n  -- Self-contained indexing for sequences (avoid built-in Nat)\n  NatAlt     : Type\n  NatAltle   : NatAlt → NatAlt → Prop\n  NatAltMax  : NatAlt → NatAlt → NatAlt\n  le_max_left  : ∀ x y, NatAltle x (NatAltMax x y)\n  le_max_right : ∀ x y, NatAltle y (NatAltMax x y)\n\n  add_comm  : ∀ x y, add x y = add y x\n  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)\n  add_zero  : ∀ x, add x zero = x\n  add_opp   : ∀ x, add x (opp x) = zero\n  opp_add   : ∀ x y, opp (add x y) = add (opp x) (opp y)\n  mul_comm  : ∀ x y, mul x y = mul y x\n  mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)\n  mul_one   : ∀ x, mul x one = x\n\n  le_refl   : ∀ x, le x x\n  le_trans  : ∀ x y z, le x y → le y z → le x z\n  add_le_add : ∀ a b c d, le a b → le c d → le (add a c) (add b d)\n\n  abs_nonneg : ∀ x, le zero (abs x)\n  abs_triangle : ∀ x y, le (abs (add x y)) (add (abs x) (abs y))\n  abs_opp : ∀ x, abs (opp x) = abs x\n  abs_sub_symm : ∀ x y, abs (add x (opp y)) = abs (add y (opp x))\n\n  -- Additional helpers, mirroring the Coq version\n  sub_decomp : ∀ x y z, add x (opp z) = add (add x (opp y)) (add y (opp z))\n  sub_eq_zero : ∀ x y, add x (opp y) = zero → x = y\n\n  eq_of_forall_eps2 : ∀ x, (∀ eps, lt zero eps → le (abs x) (add eps eps)) → x = zero"
+      },
+      "namespace Limits": {
+        "kind": "namespace",
+        "lines": [41, 41],
+        "content": "namespace Limits"
+      },
+      "R": {
+        "kind": "variable",
+        "lines": [43, 43],
+        "content": "variable {R : Type} [AR : AbsField R]"
+      },
+      "AR": {
+        "kind": "variable",
+        "lines": [43, 43],
+        "content": "variable {R : Type} [AR : AbsField R]"
+      },
+      "sub": {
+        "kind": "def",
+        "lines": [48, 48],
+        "content": "def sub (x y : R) : R := AbsField.add x (AbsField.opp y)"
+      },
+      "limit": {
+        "kind": "def",
+        "lines": [50, 55],
+        "content": "def limit (u : (AbsField.NatAlt (R := R)) → R) (l : R) : Prop :=\n  ∀ eps : R, AbsField.lt AbsField.zero eps →\n    ∃ N : AbsField.NatAlt (R := R),\n      ∀ n : AbsField.NatAlt (R := R),\n        AbsField.NatAltle (R := R) N n →\n          AbsField.le (AbsField.abs (sub (u n) l)) eps"
+      },
+      "sub_self_zero": {
+        "kind": "theorem",
+        "lines": [57, 60],
+        "content": "theorem sub_self_zero (x : R) : sub x x = AbsField.zero := by\n  unfold sub\n  -- x + (-x) = 0\n  simpa using AbsField.add_opp x"
+      },
+      "sub_decomp": {
+        "kind": "theorem",
+        "lines": [62, 65],
+        "content": "theorem sub_decomp (x y z : R) : sub x z = AR.add (sub x y) (sub y z) := by\n  -- Provided by the structure's helper\n  unfold sub\n  simpa using (AbsField.sub_decomp (R := R) x y z)"
+      },
+      "abs_sub_triangle": {
+        "kind": "theorem",
+        "lines": [67, 71],
+        "content": "theorem abs_sub_triangle (x y z : R) :\n  AbsField.le (AbsField.abs (sub x z)) (AbsField.add (AbsField.abs (sub x y)) (AbsField.abs (sub y z))) := by\n  -- |x - z| = |(x - y) + (y - z)| ≤ |x - y| + |y - z|\n  have : sub x z = AbsField.add (sub x y) (sub y z) := sub_decomp x y z\n  simpa [this] using AbsField.abs_triangle (sub x y) (sub y z)"
+      },
+      "abs_sub_nonneg": {
+        "kind": "theorem",
+        "lines": [73, 75],
+        "content": "theorem abs_sub_nonneg (x y : R) : AR.le AR.zero (AR.abs (sub x y)) := by\n  unfold sub\n  exact AbsField.abs_nonneg _"
+      },
+      "limit_unique": {
+        "kind": "theorem",
+        "lines": [78, 106],
+        "content": "theorem limit_unique (u : (AbsField.NatAlt (R := R)) → R) (l m : R) :\n  limit u l → limit u m → l = m :=\nby\n  intro Hl Hm\n  -- proper bound for eps > 0\n  have Hbound' : ∀ eps, AR.lt AR.zero eps → AR.le (AR.abs (sub l m)) (AR.add eps eps) := by\n    intro eps Heps\n    rcases Hl eps Heps with ⟨N1, HN1⟩\n    rcases Hm eps Heps with ⟨N2, HN2⟩\n    let N := AbsField.NatAltMax (R := R) N1 N2\n    have H1 : AbsField.le (AbsField.abs (sub (u N) l)) eps := by\n      apply HN1\n      exact AbsField.le_max_left (R := R) _ _\n    have H2 : AbsField.le (AbsField.abs (sub (u N) m)) eps := by\n      apply HN2\n      exact AbsField.le_max_right (R := R) _ _\n    -- |l - m| ≤ |l - uN| + |uN - m|\n    have Htri : AbsField.le (AbsField.abs (sub l m)) (AbsField.add (AbsField.abs (sub l (u N))) (AbsField.abs (sub (u N) m))) := by\n      simpa using abs_sub_triangle l (u N) m\n    -- ≤ eps + eps\n    -- Use symmetry to rewrite |uN - l| to |l - uN|\n    have H1' : AbsField.le (AbsField.abs (sub l (u N))) eps := by\n      -- symmetry of absolute difference on abs\n      simpa [sub, AbsField.abs_sub_symm (u N) l] using H1\n    exact AbsField.le_trans _ _ _ Htri (AbsField.add_le_add _ _ _ _ H1' H2)\n  -- Apply equality criterion to x = l - m\n  have Hz : sub l m = AbsField.zero := AbsField.eq_of_forall_eps2 (sub l m) Hbound'\n  -- conclude l = m via sub_eq_zero\n  exact AbsField.sub_eq_zero l m (by simpa [sub] using Hz)"
+      },
+      "end Limits": {
+        "kind": "end",
+        "lines": [108, 108],
+        "content": "end Limits"
+      },
+  
+      "zero": { "kind": "class_field", "lines": [1, 1], "content": "zero  : R" },
+      "one":  { "kind": "class_field", "lines": [2, 2], "content": "one   : R" },
+      "add":  { "kind": "class_field", "lines": [3, 3], "content": "add   : R → R → R" },
+      "mul":  { "kind": "class_field", "lines": [4, 4], "content": "mul   : R → R → R" },
+      "opp":  { "kind": "class_field", "lines": [5, 5], "content": "opp   : R → R" },
+      "abs":  { "kind": "class_field", "lines": [6, 6], "content": "abs   : R → R" },
+      "le":   { "kind": "class_field", "lines": [7, 7], "content": "le    : R → R → Prop" },
+      "lt":   { "kind": "class_field", "lines": [8, 8], "content": "lt    : R → R → Prop" },
+  
+      "NatAlt":     { "kind": "class_field", "lines": [11, 11], "content": "NatAlt     : Type" },
+      "NatAltle":   { "kind": "class_field", "lines": [12, 12], "content": "NatAltle   : NatAlt → NatAlt → Prop" },
+      "NatAltMax":  { "kind": "class_field", "lines": [13, 13], "content": "NatAltMax  : NatAlt → NatAlt → NatAlt" },
+      "le_max_left":  { "kind": "class_field", "lines": [14, 14], "content": "le_max_left  : ∀ x y, NatAltle x (NatAltMax x y)" },
+      "le_max_right": { "kind": "class_field", "lines": [15, 15], "content": "le_max_right : ∀ x y, NatAltle y (NatAltMax x y)" },
+  
+      "add_comm":   { "kind": "class_field", "lines": [17, 17], "content": "add_comm  : ∀ x y, add x y = add y x" },
+      "add_assoc":  { "kind": "class_field", "lines": [18, 18], "content": "add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+      "add_zero":   { "kind": "class_field", "lines": [19, 19], "content": "add_zero  : ∀ x, add x zero = x" },
+      "add_opp":    { "kind": "class_field", "lines": [20, 20], "content": "add_opp   : ∀ x, add x (opp x) = zero" },
+      "opp_add":    { "kind": "class_field", "lines": [21, 21], "content": "opp_add   : ∀ x y, opp (add x y) = add (opp x) (opp y)" },
+      "mul_comm":   { "kind": "class_field", "lines": [22, 22], "content": "mul_comm  : ∀ x y, mul x y = mul y x" },
+      "mul_assoc":  { "kind": "class_field", "lines": [23, 23], "content": "mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)" },
+      "mul_one":    { "kind": "class_field", "lines": [24, 24], "content": "mul_one   : ∀ x, mul x one = x" },
+  
+      "le_refl":    { "kind": "class_field", "lines": [26, 26], "content": "le_refl   : ∀ x, le x x" },
+      "le_trans":   { "kind": "class_field", "lines": [27, 27], "content": "le_trans  : ∀ x y z, le x y → le y z → le x z" },
+      "add_le_add": { "kind": "class_field", "lines": [28, 28], "content": "add_le_add : ∀ a b c d, le a b → le c d → le (add a c) (add b d)" },
+  
+      "abs_nonneg":    { "kind": "class_field", "lines": [30, 30], "content": "abs_nonneg : ∀ x, le zero (abs x)" },
+      "abs_triangle":  { "kind": "class_field", "lines": [31, 31], "content": "abs_triangle : ∀ x y, le (abs (add x y)) (add (abs x) (abs y))" },
+      "abs_opp":       { "kind": "class_field", "lines": [32, 32], "content": "abs_opp : ∀ x, abs (opp x) = abs x" },
+      "abs_sub_symm":  { "kind": "class_field", "lines": [33, 33], "content": "abs_sub_symm : ∀ x y, abs (add x (opp y)) = abs (add y (opp x))" },
+  
+      "sub_decomp_field": { "kind": "class_field", "lines": [36, 36], "content": "sub_decomp : ∀ x y z, add x (opp z) = add (add x (opp y)) (add y (opp z))" },
+      "sub_eq_zero":     { "kind": "class_field", "lines": [37, 37], "content": "sub_eq_zero : ∀ x y, add x (opp y) = zero → x = y" },
+      "eq_of_forall_eps2": { "kind": "class_field", "lines": [39, 39], "content": "eq_of_forall_eps2 : ∀ x, (∀ eps, lt zero eps → le (abs x) (add eps eps)) → x = zero" }
+    },
+  
+    "coq": {
+      "AbsField": {
+        "kind": "Class",
+        "lines": [0, 39],
+        "content": "Class AbsField := {\n  R0   : Type;\n  zero : R0;\n  one  : R0;\n  add  : R0 -> R0 -> R0;\n  mul  : R0 -> R0 -> R0;\n  opp  : R0 -> R0;\n  abs  : R0 -> R0;\n  leR  : R0 -> R0 -> Prop;\n  ltR  : R0 -> R0 -> Prop;\n\n  (* A self-contained indexing type for sequences, avoiding Coq's nat *)\n  N0       : Type;\n  Nle      : N0 -> N0 -> Prop;\n  Nmax     : N0 -> N0 -> N0;\n  Nle_max_l : forall x y, Nle x (Nmax x y);\n  Nle_max_r : forall x y, Nle y (Nmax x y);\n\n  add_comm  : forall x y, add x y = add y x;\n  add_assoc : forall x y z, add (add x y) z = add x (add y z);\n  add_zero  : forall x, add x zero = x;\n  add_opp   : forall x, add x (opp x) = zero;\n  mul_comm  : forall x y, mul x y = mul y x;\n  mul_assoc : forall x y z, mul (mul x y) z = mul x (mul y z);\n  mul_one   : forall x, mul x one = x;\n\n  le_refl   : forall x, leR x x;\n  le_trans  : forall x y z, leR x y -> leR y z -> leR x z;\n  add_le_add : forall a b c d, leR a b -> leR c d -> leR (add a c) (add b d);\n\n  abs_nonneg : forall x, leR zero (abs x);\n  abs_triangle : forall x y, leR (abs (add x y)) (add (abs x) (abs y));\n  abs_opp : forall x, abs (opp x) = abs x;\n  abs_sub_symm : forall x y, abs (add x (opp y)) = abs (add y (opp x));\n  sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) (add y (opp z));\n  sub_eq_zero : forall x y, add x (opp y) = zero -> x = y;\n\n  (* If |x| <= 2*eps for all eps>0, then x=0 *)\n  eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps -> leR (abs x) (add eps eps)) -> x = zero\n}."
+      },
+      "Limits": {
+        "kind": "Section",
+        "lines": [41, 41],
+        "content": "Section Limits."
+      },
+      "A": {
+        "kind": "Context",
+        "lines": [42, 42],
+        "content": "  Context {A : AbsField}."
+      },
+      "+R": {
+        "kind": "Notation",
+        "lines": [44, 44],
+        "content": "  Infix \"+R\" := add (at level 65)."
+      },
+      "-R": {
+        "kind": "Notation",
+        "lines": [45, 45],
+        "content": "  Notation \"-R x\" := (opp x) (at level 100)."
+      },
+      "sub": {
+        "kind": "Definition",
+        "lines": [47, 47],
+        "content": "  Definition sub (x y : R0) : R0 := add x (opp y)."
+      },
+      "limit": {
+        "kind": "Definition",
+        "lines": [49, 50],
+        "content": "  Definition limit (u : N0 -> R0) (l : R0) : Prop :=\n    forall eps, ltR zero eps -> exists N, forall n, Nle N n -> leR (abs (sub (u n) l)) eps."
+      },
+      "triangle_sub": {
+        "kind": "Lemma",
+        "lines": [52, 58],
+        "content": "  Lemma triangle_sub (x y z : R0) :\n    leR (abs (sub x z)) (add (abs (sub x y)) (abs (sub y z))).\n  Proof.\n    unfold sub.\n    rewrite (sub_decomp x y z).\n    apply abs_triangle.\n  Qed."
+      },
+      "limit_unique": {
+        "kind": "Theorem",
+        "lines": [60, 88],
+        "content": "  Theorem limit_unique (u : N0 -> R0) (l m : R0) :\n    limit u l -> limit u m -> l = m.\n  Proof.\n    intros Hl Hm.\n    (* Show |l-m| <= 2*eps for all eps>0. *)\n    assert (Hbound: forall eps, ltR zero eps -> leR (abs (sub l m)) (add eps eps)).\n    { intros eps Heps.\n      destruct (Hl eps Heps) as [N1 HN1].\n      destruct (Hm eps Heps) as [N2 HN2].\n      set (N := Nmax N1 N2).\n      assert (H1u: leR (abs (sub (u N) l)) eps).\n      { apply HN1. apply Nle_max_l. }\n      assert (H1: leR (abs (sub l (u N))) eps).\n      { unfold sub in H1u. rewrite abs_sub_symm in H1u. fold sub in H1u. exact H1u. }\n      assert (H2: leR (abs (sub (u N) m)) eps).\n      { apply HN2. apply Nle_max_r. }\n      (* |l - m| <= |l - uN| + |uN - m| *)\n      assert (Htri: leR (abs (sub l m)) (add (abs (sub l (u N))) (abs (sub (u N) m)))) by apply triangle_sub.\n      (* <= eps + eps *)\n      eapply le_trans; [exact Htri|].\n      apply add_le_add; [exact H1|exact H2].\n    }\n    (* conclude with the epsilon-criterion *)\n    assert (Hz: sub l m = zero).\n    { apply eq_of_forall_eps2. exact Hbound. }\n    (* l - m = 0 -> l = m via sub_eq_zero *)\n    unfold sub in Hz.\n    now apply sub_eq_zero in Hz.\n  Qed."
+      },
+      "End Limits.": {
+        "kind": "End",
+        "lines": [90, 90],
+        "content": "End Limits."
+      },
+  
+      "R0": { "kind": "class_field", "lines": [1, 1], "content": "R0   : Type;" },
+      "zero": { "kind": "class_field", "lines": [2, 2], "content": "zero : R0;" },
+      "one":  { "kind": "class_field", "lines": [3, 3], "content": "one  : R0;" },
+      "add":  { "kind": "class_field", "lines": [4, 4], "content": "add  : R0 -> R0 -> R0;" },
+      "mul":  { "kind": "class_field", "lines": [5, 5], "content": "mul  : R0 -> R0 -> R0;" },
+      "opp":  { "kind": "class_field", "lines": [6, 6], "content": "opp  : R0 -> R0;" },
+      "abs":  { "kind": "class_field", "lines": [7, 7], "content": "abs  : R0 -> R0;" },
+      "leR":  { "kind": "class_field", "lines": [8, 8], "content": "leR  : R0 -> R0 -> Prop;" },
+      "ltR":  { "kind": "class_field", "lines": [9, 9], "content": "ltR  : R0 -> R0 -> Prop;" },
+  
+      "N0":   { "kind": "class_field", "lines": [12, 12], "content": "N0       : Type;" },
+      "Nle":  { "kind": "class_field", "lines": [13, 13], "content": "Nle      : N0 -> N0 -> Prop;" },
+      "Nmax": { "kind": "class_field", "lines": [14, 14], "content": "Nmax     : N0 -> N0 -> N0;" },
+      "Nle_max_l": { "kind": "class_field", "lines": [15, 15], "content": "Nle_max_l : forall x y, Nle x (Nmax x y);" },
+      "Nle_max_r": { "kind": "class_field", "lines": [16, 16], "content": "Nle_max_r : forall x y, Nle y (Nmax x y);" },
+  
+      "add_comm":   { "kind": "class_field", "lines": [18, 18], "content": "add_comm  : forall x y, add x y = add y x;" },
+      "add_assoc":  { "kind": "class_field", "lines": [19, 19], "content": "add_assoc : forall x y z, add (add x y) z = add x (add y z);" },
+      "add_zero":   { "kind": "class_field", "lines": [20, 20], "content": "add_zero  : forall x, add x zero = x;" },
+      "add_opp":    { "kind": "class_field", "lines": [21, 21], "content": "add_opp   : forall x, add x (opp x) = zero;" },
+      "mul_comm":   { "kind": "class_field", "lines": [22, 22], "content": "mul_comm  : forall x y, mul x y = mul y x;" },
+      "mul_assoc":  { "kind": "class_field", "lines": [23, 23], "content": "mul_assoc : forall x y z, mul (mul x y) z = mul x (mul y z);" },
+      "mul_one":    { "kind": "class_field", "lines": [24, 24], "content": "mul_one   : forall x, mul x one = x;" },
+  
+      "le_refl":    { "kind": "class_field", "lines": [26, 26], "content": "le_refl   : forall x, leR x x;" },
+      "le_trans":   { "kind": "class_field", "lines": [27, 27], "content": "le_trans  : forall x y z, leR x y -> leR y z -> leR x z;" },
+      "add_le_add": { "kind": "class_field", "lines": [28, 28], "content": "add_le_add : forall a b c d, leR a b -> leR c d -> leR (add a c) (add b d);" },
+  
+      "abs_nonneg":    { "kind": "class_field", "lines": [30, 30], "content": "abs_nonneg : forall x, leR zero (abs x);" },
+      "abs_triangle":  { "kind": "class_field", "lines": [31, 31], "content": "abs_triangle : forall x y, leR (abs (add x y)) (add (abs x) (abs y));" },
+      "abs_opp":       { "kind": "class_field", "lines": [32, 32], "content": "abs_opp : forall x, abs (opp x) = abs x;" },
+      "abs_sub_symm":  { "kind": "class_field", "lines": [33, 33], "content": "abs_sub_symm : forall x y, abs (add x (opp y)) = abs (add y (opp x));" },
+      "sub_decomp":    { "kind": "class_field", "lines": [34, 34], "content": "sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) (add y (opp z));" },
+      "sub_eq_zero":   { "kind": "class_field", "lines": [35, 35], "content": "sub_eq_zero : forall x y, add x (opp y) = zero -> x = y;" },
+      "eq_of_forall_eps2": { "kind": "class_field", "lines": [38, 38], "content": "eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps -> leR (abs x) (add eps eps)) -> x = zero" }
+    },
+  
+    "items": [
+      {
+        "name": "abs_sub_triangle",
+        "lean": {
+          "kind": "theorem",
+          "lines": [69, 72],
+          "statement": "theorem abs_sub_triangle (x y z : R) :\n  AbsField.le (AbsField.abs (sub x z)) (AbsField.add (AbsField.abs (sub x y)) (AbsField.abs (sub y z))) := by",
+          "proof": "  -- |x - z| = |(x - y) + (y - z)| ≤ |x - y| + |y - z|\n  have : sub x z = AbsField.add (sub x y) (sub y z) := sub_decomp x y z\n  simpa [this] using AbsField.abs_triangle (sub x y) (sub y z)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "AbsField", "category": "class" },
+              { "symbol": "sub", "category": "definition" },
+              { "symbol": "le", "category": "class_field" },
+              { "symbol": "abs", "category": "class_field" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "AbsField", "category": "class" },
+              { "symbol": "sub", "category": "definition" },
+              { "symbol": "abs_triangle", "category": "class_field" },
+              { "symbol": "add", "category": "class_field" },
+              { "symbol": "abs", "category": "class_field" },
+              { "symbol": "sub_decomp", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [54, 59],
+          "statement": "  Lemma abs_sub_triangle (x y z : R0) :\n    leR (abs (sub x z)) (add (abs (sub x y)) (abs (sub y z))).",
+          "proof": "Proof.\n    unfold sub.\n    rewrite (sub_decomp x y z).\n    apply abs_triangle.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "AbsField", "category": "Class" },
+              { "symbol": "sub", "category": "Definition" },
+              { "symbol": "leR", "category": "class_field" },
+              { "symbol": "abs", "category": "class_field" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "sub", "category": "Definition" },
+              { "symbol": "sub_decomp", "category": "class_field" },
+              { "symbol": "abs_triangle", "category": "class_field" }
+            ]
+          }
+        }
+      },
+  
+      {
+        "name": "limit_unique",
+        "lean": {
+          "kind": "theorem",
+          "lines": [81, 107],
+          "statement": "theorem limit_unique (u : (AbsField.NatAlt (R := R)) → R) (l m : R) :\n  limit u l → limit u m → l = m := by",
+          "proof": "  intro Hl Hm\n  -- proper bound for eps > 0\n  have Hbound' : ∀ eps, AR.lt AR.zero eps → AR.le (AR.abs (sub l m)) (AR.add eps eps) := by\n    intro eps Heps\n    rcases Hl eps Heps with ⟨N1, HN1⟩\n    rcases Hm eps Heps with ⟨N2, HN2⟩\n    let N := AbsField.NatAltMax (R := R) N1 N2\n    have H1 : AbsField.le (AbsField.abs (sub (u N) l)) eps := by\n      apply HN1\n      exact AbsField.le_max_left (R := R) _ _\n    have H2 : AbsField.le (AbsField.abs (sub (u N) m)) eps := by\n      apply HN2\n      exact AbsField.le_max_right (R := R) _ _\n    -- |l - m| ≤ |l - uN| + |uN - m|\n    have Htri : AbsField.le (AbsField.abs (sub l m)) (AbsField.add (AbsField.abs (sub l (u N))) (AbsField.abs (sub (u N) m))) := by\n      simpa using abs_sub_triangle l (u N) m\n    -- ≤ eps + eps\n    -- Use symmetry to rewrite |uN - l| to |l - uN|\n    have H1' : AbsField.le (AbsField.abs (sub l (u N))) eps := by\n      -- symmetry of absolute difference on abs\n      simpa [sub, AbsField.abs_sub_symm (u N) l] using H1\n    exact AbsField.le_trans _ _ _ Htri (AbsField.add_le_add _ _ _ _ H1' H2)\n  -- Apply equality criterion to x = l - m\n  have Hz : sub l m = AbsField.zero := AbsField.eq_of_forall_eps2 (sub l m) Hbound'\n  -- conclude l = m via sub_eq_zero\n  exact AbsField.sub_eq_zero l m (by simpa [sub] using Hz)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "AbsField", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AR", "category": "variable" },
+              { "symbol": "limit", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "AbsField", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AR", "category": "variable" },
+              { "symbol": "limit", "category": "definition" },
+              { "symbol": "sub", "category": "definition" },
+              { "symbol": "NatAlt", "category": "class_field" },
+              { "symbol": "NatAltMax", "category": "class_field" },
+              { "symbol": "NatAltle", "category": "class_field" },
+              { "symbol": "le_max_left", "category": "class_field" },
+              { "symbol": "le_max_right", "category": "class_field" },
+              { "symbol": "abs_sub_triangle", "category": "theorem" },
+              { "symbol": "add_le_add", "category": "class_field" },
+              { "symbol": "le_trans", "category": "class_field" },
+              { "symbol": "abs_sub_symm", "category": "class_field" },
+              { "symbol": "eq_of_forall_eps2", "category": "class_field" },
+              { "symbol": "sub_eq_zero", "category": "class_field" },
+              { "symbol": "le", "category": "class_field" },
+              { "symbol": "lt", "category": "class_field" },
+              { "symbol": "abs", "category": "class_field" },
+              { "symbol": "add", "category": "class_field" },
+              { "symbol": "zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [62, 89],
+          "statement": "  Theorem limit_unique (u : N0 -> R0) (l m : R0) :\n    limit u l -> limit u m -> l = m.",
+          "proof": "Proof.\n    intros Hl Hm.\n    assert (Hbound: forall eps, ltR zero eps -> leR (abs (sub l m)) (add eps eps)).\n    { intros eps Heps.\n      destruct (Hl eps Heps) as [N1 HN1].\n      destruct (Hm eps Heps) as [N2 HN2].\n      set (N := Nmax N1 N2).\n      assert (H1u: leR (abs (sub (u N) l)) eps).\n      { apply HN1. apply Nle_max_l. }\n      assert (H1: leR (abs (sub l (u N))) eps).\n      { unfold sub in H1u. rewrite abs_sub_symm in H1u. fold sub in H1u. exact H1u. }\n      assert (H2: leR (abs (sub (u N) m)) eps).\n      { apply HN2. apply Nle_max_r. }\n      assert (Htri: leR (abs (sub l m)) (add (abs (sub l (u N))) (abs (sub (u N) m)))) by apply abs_sub_triangle.\n      eapply le_trans; [exact Htri|].\n      apply add_le_add; [exact H1|exact H2].\n    }\n    assert (Hz: sub l m = zero).\n    { apply eq_of_forall_eps2. exact Hbound. }\n    unfold sub in Hz.\n    now apply sub_eq_zero in Hz.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "AbsField", "category": "Class" },
+              { "symbol": "A", "category": "Context" },
+              { "symbol": "limit", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "sub", "category": "Definition" },
+              { "symbol": "triangle_sub", "category": "Lemma" },
+              { "symbol": "Nmax", "category": "class_field" },
+              { "symbol": "Nle_max_l", "category": "class_field" },
+              { "symbol": "Nle_max_r", "category": "class_field" },
+              { "symbol": "eq_of_forall_eps2", "category": "class_field" },
+              { "symbol": "sub_eq_zero", "category": "class_field" },
+              { "symbol": "abs_sub_symm", "category": "class_field" },
+              { "symbol": "add_le_add", "category": "class_field" },
+              { "symbol": "le_trans", "category": "class_field" },
+              { "symbol": "leR", "category": "class_field" },
+              { "symbol": "ltR", "category": "class_field" },
+              { "symbol": "abs", "category": "class_field" },
+              { "symbol": "add", "category": "class_field" },
+              { "symbol": "zero", "category": "class_field" },
+              { "symbol": "Nle", "category": "class_field" },
+              { "symbol": "N0", "category": "class_field" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

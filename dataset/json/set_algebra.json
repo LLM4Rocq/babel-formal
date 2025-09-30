@@ -1,0 +1,310 @@
+{
+    "source": "set_algebra",
+    "lean": {
+      "universe": {
+        "kind": "universe",
+        "lines": [7, 7],
+        "content": "universe u"
+      },
+      "SetAlgebra": {
+        "kind": "namespace",
+        "lines": [9, 9],
+        "content": "namespace SetAlgebra"
+      },
+      "variable": {
+        "kind": "variable",
+        "lines": [11, 11],
+        "content": "variable {X : Type u}"
+      },
+      "classic": {
+        "kind": "axiom",
+        "lines": [13, 13],
+        "content": "axiom classic : ∀ P : Prop, P ∨ ¬ P"
+      },
+      "sUnion": {
+        "kind": "def",
+        "lines": [15, 15],
+        "content": "def sUnion (A B : X → Prop) : X → Prop := fun x => A x ∨ B x"
+      },
+      "sInter": {
+        "kind": "def",
+        "lines": [16, 16],
+        "content": "def sInter (A B : X → Prop) : X → Prop := fun x => A x ∧ B x"
+      },
+      "sCompl": {
+        "kind": "def",
+        "lines": [17, 17],
+        "content": "def sCompl (A : X → Prop) : X → Prop := fun x => ¬ A x"
+      },
+      "∪s": {
+        "kind": "notation",
+        "lines": [19, 19],
+        "content": "infixl:65  \" ∪s \" => sUnion"
+      },
+      "∩s": {
+        "kind": "notation",
+        "lines": [20, 20],
+        "content": "infixl:70  \" ∩s \" => sInter"
+      },
+      "ᶜs": {
+        "kind": "notation",
+        "lines": [21, 21],
+        "content": "prefix:100 \"ᶜs\" => sCompl"
+      },
+      "inter_distrib_left": {
+        "kind": "theorem",
+        "lines": [23, 32],
+        "content": "theorem inter_distrib_left (A B C : X → Prop) :\n  ∀ x, (A ∩s (B ∪s C)) x ↔ ((A ∩s B) ∪s (A ∩s C)) x :=\nby\n  intro x; constructor\n  · intro h; rcases h with ⟨hA, hBC⟩; cases hBC with\n    | inl hB => exact Or.inl ⟨hA, hB⟩\n    | inr hC => exact Or.inr ⟨hA, hC⟩\n  · intro h; cases h with\n    | inl hAB => exact ⟨hAB.1, Or.inl hAB.2⟩\n    | inr hAC => exact ⟨hAC.1, Or.inr hAC.2⟩"
+      },
+      "inter_distrib_right": {
+        "kind": "theorem",
+        "lines": [34, 43],
+        "content": "theorem inter_distrib_right (A B C : X → Prop) :\n  ∀ x, ((A ∪s B) ∩s C) x ↔ ((A ∩s C) ∪s (B ∩s C)) x :=\nby\n  intro x; constructor\n  · intro h; rcases h with ⟨hAB, hC⟩; cases hAB with\n    | inl hA => exact Or.inl ⟨hA, hC⟩\n    | inr hB => exact Or.inr ⟨hB, hC⟩\n  · intro h; cases h with\n    | inl hAC => exact ⟨Or.inl hAC.1, hAC.2⟩\n    | inr hBC => exact ⟨Or.inr hBC.1, hBC.2⟩"
+      },
+      "de_morgan_union": {
+        "kind": "theorem",
+        "lines": [45, 53],
+        "content": "theorem de_morgan_union (A B : X → Prop) :\n  ∀ x, (ᶜs (A ∪s B)) x ↔ (ᶜs A ∩s ᶜs B) x :=\nby\n  intro x; constructor\n  · intro h; exact ⟨fun hA => h (Or.inl hA), fun hB => h (Or.inr hB)⟩\n  · intro h; intro hAB; cases h with\n    | intro hA hB => cases hAB with\n      | inl hA' => exact (hA hA')\n      | inr hB' => exact (hB hB')"
+      },
+      "de_morgan_inter": {
+        "kind": "theorem",
+        "lines": [55, 68],
+        "content": "theorem de_morgan_inter (A B : X → Prop) :\n  ∀ x, (ᶜs (A ∩s B)) x ↔ (ᶜs A ∪s ᶜs B) x :=\nby\n  intro x; constructor\n  · intro h\n    cases classic (A x) with\n    | inl hA =>\n        right; intro hB; exact h ⟨hA, hB⟩\n    | inr hA =>\n        left; exact hA\n  · intro h; intro hAB; cases hAB with\n    | intro hA hB => cases h with\n      | inl hA' => exact hA' hA\n      | inr hB' => exact hB' hB"
+      },
+      "end SetAlgebra": {
+        "kind": "end",
+        "lines": [70, 70],
+        "content": "end SetAlgebra"
+      }
+    },
+    "coq": {
+      "Section SetAlgebra.": {
+        "kind": "Section",
+        "lines": [0, 0],
+        "content": "Section SetAlgebra."
+      },
+      "Variable": {
+        "kind": "Variable",
+        "lines": [1, 1],
+        "content": "  Variable X : Type."
+      },
+      "classic": {
+        "kind": "Axiom",
+        "lines": [2, 2],
+        "content": "  Axiom classic : forall P:Prop, P \\/ ~P."
+      },
+      "sUnion": {
+        "kind": "Definition",
+        "lines": [4, 4],
+        "content": "  Definition sUnion (A B : X -> Prop) : X -> Prop := fun x => A x \\/ B x."
+      },
+      "sInter": {
+        "kind": "Definition",
+        "lines": [5, 5],
+        "content": "  Definition sInter (A B : X -> Prop) : X -> Prop := fun x => A x /\\ B x."
+      },
+      "sCompl": {
+        "kind": "Definition",
+        "lines": [6, 6],
+        "content": "  Definition sCompl (A : X -> Prop) : X -> Prop := fun x => ~ A x."
+      },
+      "inter_distrib_left": {
+        "kind": "Lemma",
+        "lines": [8, 14],
+        "content": "  Lemma inter_distrib_left (A B C : X -> Prop) :\n    forall x, (sInter A (sUnion B C)) x <-> (sUnion (sInter A B) (sInter A C)) x.\n  Proof.\n    intro x; split; intros H.\n    - destruct H as [HA [HB|HC]]; [left|right]; split; assumption.\n    - destruct H as [[HA HB]|[HA HC]]; split; try assumption; [left|right]; assumption.\n  Qed."
+      },
+      "inter_distrib_right": {
+        "kind": "Lemma",
+        "lines": [16, 22],
+        "content": "  Lemma inter_distrib_right (A B C : X -> Prop) :\n    forall x, (sInter (sUnion A B) C) x <-> (sUnion (sInter A C) (sInter B C)) x.\n  Proof.\n    intro x; split; intros H.\n    - destruct H as [[HA|HB] HC]; [left|right]; split; assumption.\n    - destruct H as [[HA HC]|[HB HC]]; split; try assumption; [left|right]; assumption.\n  Qed."
+      },
+      "de_morgan_union": {
+        "kind": "Lemma",
+        "lines": [24, 30],
+        "content": "  Lemma de_morgan_union (A B : X -> Prop) :\n    forall x, (sCompl (sUnion A B)) x <-> (sInter (sCompl A) (sCompl B)) x.\n  Proof.\n    intro x; split; intros H.\n    - split; intro H'; apply H; [left|right]; assumption.\n    - intros [HA|HB]; destruct H as [H1 H2]; [apply H1|apply H2]; assumption.\n  Qed."
+      },
+      "de_morgan_inter": {
+        "kind": "Lemma",
+        "lines": [32, 40],
+        "content": "  Lemma de_morgan_inter (A B : X -> Prop) :\n    forall x, (sCompl (sInter A B)) x <-> (sUnion (sCompl A) (sCompl B)) x.\n  Proof.\n    intro x; split; intros H.\n    - destruct (classic (A x)) as [HA|HnA].\n      + right; intro HB; apply H; split; assumption.\n      + left; exact HnA.\n    - intros [HA HB]; destruct H as [HnA|HnB]; [apply HnA in HA|apply HnB in HB]; contradiction.\n  Qed."
+      },
+      "End SetAlgebra.": {
+        "kind": "End",
+        "lines": [42, 42],
+        "content": "End SetAlgebra."
+      }
+    },
+    "items": [
+      {
+        "name": "inter_distrib_left",
+        "lean": {
+          "kind": "theorem",
+          "lines": [26, 33],
+          "statement": "theorem inter_distrib_left (A B C : X → Prop) :\n  ∀ x, (A ∩s (B ∪s C)) x ↔ ((A ∩s B) ∪s (A ∩s C)) x := by",
+          "proof": "  intro x; constructor\n  · intro h; rcases h with ⟨hA, hBC⟩; cases hBC with\n    | inl hB => exact Or.inl ⟨hA, hB⟩\n    | inr hC => exact Or.inr ⟨hA, hC⟩\n  · intro h; cases h with\n    | inl hAB => exact ⟨hAB.1, Or.inl hAB.2⟩\n    | inr hAC => exact ⟨hAC.1, Or.inr hAC.2⟩",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [10, 15],
+          "statement": "  Lemma inter_distrib_left (A B C : X -> Prop) :\n    forall x, (sInter A (sUnion B C)) x <-> (sUnion (sInter A B) (sInter A C)) x.",
+          "proof": "Proof.\n    intro x; split; intros H.\n    - destruct H as [HA [HB|HC]]; [left|right]; split; assumption.\n    - destruct H as [[HA HB]|[HA HC]]; split; try assumption; [left|right]; assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inter_distrib_right",
+        "lean": {
+          "kind": "theorem",
+          "lines": [37, 44],
+          "statement": "theorem inter_distrib_right (A B C : X → Prop) :\n  ∀ x, ((A ∪s B) ∩s C) x ↔ ((A ∩s C) ∪s (B ∩s C)) x := by",
+          "proof": "  intro x; constructor\n  · intro h; rcases h with ⟨hAB, hC⟩; cases hAB with\n    | inl hA => exact Or.inl ⟨hA, hC⟩\n    | inr hB => exact Or.inr ⟨hB, hC⟩\n  · intro h; cases h with\n    | inl hAC => exact ⟨Or.inl hAC.1, hAC.2⟩\n    | inr hBC => exact ⟨Or.inr hBC.1, hBC.2⟩",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [18, 23],
+          "statement": "  Lemma inter_distrib_right (A B C : X -> Prop) :\n    forall x, (sInter (sUnion A B) C) x <-> (sUnion (sInter A C) (sInter B C)) x.",
+          "proof": "Proof.\n    intro x; split; intros H.\n    - destruct H as [[HA|HB] HC]; [left|right]; split; assumption.\n    - destruct H as [[HA HC]|[HB HC]]; split; try assumption; [left|right]; assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "de_morgan_union",
+        "lean": {
+          "kind": "theorem",
+          "lines": [48, 54],
+          "statement": "theorem de_morgan_union (A B : X → Prop) :\n  ∀ x, (ᶜs (A ∪s B)) x ↔ (ᶜs A ∩s ᶜs B) x := by",
+          "proof": "  intro x; constructor\n  · intro h; exact ⟨fun hA => h (Or.inl hA), fun hB => h (Or.inr hB)⟩\n  · intro h; intro hAB; cases h with\n    | intro hA hB => cases hAB with\n      | inl hA' => exact (hA hA')\n      | inr hB' => exact (hB hB')",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "ᶜs", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" },
+              { "symbol": "∩s", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "ᶜs", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" },
+              { "symbol": "∩s", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [26, 31],
+          "statement": "  Lemma de_morgan_union (A B : X -> Prop) :\n    forall x, (sCompl (sUnion A B)) x <-> (sInter (sCompl A) (sCompl B)) x.",
+          "proof": "Proof.\n    intro x; split; intros H.\n    - split; intro H'; apply H; [left|right]; assumption.\n    - intros [HA|HB]; destruct H as [H1 H2]; [apply H1|apply H2]; assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "de_morgan_inter",
+        "lean": {
+          "kind": "theorem",
+          "lines": [58, 69],
+          "statement": "theorem de_morgan_inter (A B : X → Prop) :\n  ∀ x, (ᶜs (A ∩s B)) x ↔ (ᶜs A ∪s ᶜs B) x := by",
+          "proof": "  intro x; constructor\n  · intro h\n    cases classic (A x) with\n    | inl hA =>\n        right; intro hB; exact h ⟨hA, hB⟩\n    | inr hA =>\n        left; exact hA\n  · intro h; intro hAB; cases hAB with\n    | intro hA hB => cases h with\n      | inl hA' => exact hA' hA\n      | inr hB' => exact hB' hB",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "ᶜs", "category": "notation" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "ᶜs", "category": "notation" },
+              { "symbol": "∩s", "category": "notation" },
+              { "symbol": "∪s", "category": "notation" },
+              { "symbol": "classic", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [34, 41],
+          "statement": "  Lemma de_morgan_inter (A B : X -> Prop) :\n    forall x, (sCompl (sInter A B)) x <-> (sUnion (sCompl A) (sCompl B)) x.",
+          "proof": "Proof.\n    intro x; split; intros H.\n    - destruct (classic (A x)) as [HA|HnA].\n      + right; intro HB; apply H; split; assumption.\n      + left; exact HnA.\n    - intros [HA HB]; destruct H as [HnA|HnB]; [apply HnA in HA|apply HnB in HB]; contradiction.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "sCompl", "category": "definition" },
+              { "symbol": "sInter", "category": "definition" },
+              { "symbol": "sUnion", "category": "definition" },
+              { "symbol": "classic", "category": "axiom" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

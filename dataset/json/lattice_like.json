@@ -1,0 +1,488 @@
+{
+    "source": "lattice_like",
+    "lean": {
+      "universe": {
+        "kind": "universe",
+        "lines": [0, 0],
+        "content": "universe u"
+      },
+      "LatticeLike": {
+        "kind": "class",
+        "lines": [2, 18],
+        "content": "class LatticeLike (A : Type u) where\n  le   : A → A → Prop\n  inf  : A → A → A\n  sup  : A → A → A\n\n  le_refl  : ∀ x, le x x\n  le_trans : ∀ {x y z}, le x y → le y z → le x z\n  le_antisym : ∀ {x y}, le x y → le y x → x = y\n\n  le_inf_left  : ∀ a b, le (inf a b) a\n  le_inf_right : ∀ a b, le (inf a b) b\n  le_inf_intro : ∀ {c a b}, le c a → le c b → le c (inf a b)\n\n  le_sup_left  : ∀ a b, le a (sup a b)\n  le_sup_right : ∀ a b, le b (sup a b)\n  sup_le_intro : ∀ {a b c}, le a c → le b c → le (sup a b) c"
+      },
+      "A": {
+        "kind": "variable",
+        "lines": [21, 21],
+        "content": "variable {A : Type u} [L : LatticeLike A]"
+      },
+      "L": {
+        "kind": "variable",
+        "lines": [21, 21],
+        "content": "variable {A : Type u} [L : LatticeLike A]"
+      },
+      "≤": {
+        "kind": "notation",
+        "lines": [23, 23],
+        "content": "infix:50 \" ≤ \" => LatticeLike.le"
+      },
+      "⊓": {
+        "kind": "notation",
+        "lines": [24, 24],
+        "content": "infixl:65 \" ⊓ \" => LatticeLike.inf"
+      },
+      "⊔": {
+        "kind": "notation",
+        "lines": [25, 25],
+        "content": "infixl:70 \" ⊔ \" => LatticeLike.sup"
+      },
+      "inf_comm": {
+        "kind": "theorem",
+        "lines": [27, 37],
+        "content": "theorem inf_comm (a b : A) : a ⊓ b = b ⊓ a :=\nby\n  apply LatticeLike.le_antisym\n  · have h1 : a ⊓ b ≤ b := LatticeLike.le_inf_right a b\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left a b\n    have : a ⊓ b ≤ b ⊓ a := LatticeLike.le_inf_intro h1 h2\n    exact this\n  · have h1 : b ⊓ a ≤ a := LatticeLike.le_inf_right b a\n    have h2 : b ⊓ a ≤ b := LatticeLike.le_inf_left b a\n    have : b ⊓ a ≤ a ⊓ b := LatticeLike.le_inf_intro h1 h2\n    exact this"
+      },
+      "sup_comm": {
+        "kind": "theorem",
+        "lines": [39, 49],
+        "content": "theorem sup_comm (a b : A) : a ⊔ b = b ⊔ a :=\nby\n  apply LatticeLike.le_antisym\n  · have Ha : a ≤ b ⊔ a := LatticeLike.le_sup_right b a\n    have Hb : b ≤ b ⊔ a := LatticeLike.le_sup_left b a\n    have : a ⊔ b ≤ b ⊔ a := LatticeLike.sup_le_intro Ha Hb\n    exact this\n  · have Hb : b ≤ a ⊔ b := LatticeLike.le_sup_right a b\n    have Ha : a ≤ a ⊔ b := LatticeLike.le_sup_left a b\n    have : b ⊔ a ≤ a ⊔ b := LatticeLike.sup_le_intro Hb Ha\n    exact this"
+      },
+      "inf_assoc": {
+        "kind": "theorem",
+        "lines": [51, 71],
+        "content": "theorem inf_assoc (a b c : A) : (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c) :=\nby\n  apply LatticeLike.le_antisym\n  · have h1 : (a ⊓ b) ⊓ c ≤ a ⊓ b := LatticeLike.le_inf_left _ _\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left _ _\n    have h3 : (a ⊓ b) ⊓ c ≤ a := LatticeLike.le_trans h1 h2\n    have h4 : (a ⊓ b) ⊓ c ≤ c := LatticeLike.le_inf_right _ _\n    have h5 : (a ⊓ b) ⊓ c ≤ b ⊓ c := LatticeLike.le_inf_intro\n      (show (a ⊓ b) ⊓ c ≤ b from LatticeLike.le_trans (LatticeLike.le_inf_left _ _) (LatticeLike.le_inf_right _ _))\n      h4\n    have : (a ⊓ b) ⊓ c ≤ a ⊓ (b ⊓ c) :=\n      LatticeLike.le_inf_intro h3 h5\n    exact this\n  · have h1 : a ⊓ (b ⊓ c) ≤ a := LatticeLike.le_inf_left _ _\n    have h2 : a ⊓ (b ⊓ c) ≤ b ⊓ c := LatticeLike.le_inf_right _ _\n    have h3 : b ⊓ c ≤ b := LatticeLike.le_inf_left _ _\n    have h4 : a ⊓ (b ⊓ c) ≤ b := LatticeLike.le_trans h2 h3\n    have h5 : a ⊓ (b ⊓ c) ≤ c := LatticeLike.le_trans h2 (LatticeLike.le_inf_right _ _)\n    have : a ⊓ (b ⊓ c) ≤ (a ⊓ b) ⊓ c :=\n      LatticeLike.le_inf_intro (LatticeLike.le_inf_intro h1 h4) h5\n    exact this"
+      },
+      "sup_assoc": {
+        "kind": "theorem",
+        "lines": [73, 92],
+        "content": "theorem sup_assoc (a b c : A) : (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c) :=\nby\n  apply LatticeLike.le_antisym\n  · have Ha_to : a ≤ a ⊔ (b ⊔ c) := LatticeLike.le_sup_left _ _\n    have Hb_bc : b ≤ b ⊔ c := LatticeLike.le_sup_left _ _\n    have Hb_to : b ≤ a ⊔ (b ⊔ c) := LatticeLike.le_trans Hb_bc (LatticeLike.le_sup_right _ _)\n    have Hab_to : a ⊔ b ≤ a ⊔ (b ⊔ c) := LatticeLike.sup_le_intro Ha_to Hb_to\n    have Hc_bc : c ≤ b ⊔ c := LatticeLike.le_sup_right _ _\n    have Hc_to : c ≤ a ⊔ (b ⊔ c) := LatticeLike.le_trans Hc_bc (LatticeLike.le_sup_right _ _)\n    have : (a ⊔ b) ⊔ c ≤ a ⊔ (b ⊔ c) := LatticeLike.sup_le_intro Hab_to Hc_to\n    exact this\n  · have Ha_ab : a ≤ a ⊔ b := LatticeLike.le_sup_left _ _\n    have Hab_to : a ⊔ b ≤ (a ⊔ b) ⊔ c := LatticeLike.le_sup_left _ _\n    have Ha_to : a ≤ (a ⊔ b) ⊔ c := LatticeLike.le_trans Ha_ab Hab_to\n    have Hb_ab : b ≤ a ⊔ b := LatticeLike.le_sup_right _ _\n    have Hb_to : b ≤ (a ⊔ b) ⊔ c := LatticeLike.le_trans Hb_ab Hab_to\n    have Hc_to : c ≤ (a ⊔ b) ⊔ c := LatticeLike.le_sup_right _ _\n    have Hbc_to : b ⊔ c ≤ (a ⊔ b) ⊔ c := LatticeLike.sup_le_intro Hb_to Hc_to\n    have : a ⊔ (b ⊔ c) ≤ (a ⊔ b) ⊔ c := LatticeLike.sup_le_intro Ha_to Hbc_to\n    exact this"
+      },
+      "inf_absorption": {
+        "kind": "theorem",
+        "lines": [94, 102],
+        "content": "theorem inf_absorption (a b : A) : a ⊓ (a ⊔ b) = a :=\nby\n  apply LatticeLike.le_antisym\n  · have h1 : a ⊓ (a ⊔ b) ≤ a := LatticeLike.le_inf_left _ _\n    exact h1\n  · have h1 : a ≤ a := LatticeLike.le_refl _\n    have h2 : a ≤ a ⊔ b := LatticeLike.le_sup_left _ _\n    have : a ≤ a ⊓ (a ⊔ b) := LatticeLike.le_inf_intro h1 h2\n    exact this"
+      },
+      "sup_absorption": {
+        "kind": "theorem",
+        "lines": [104, 112],
+        "content": "theorem sup_absorption (a b : A) : a ⊔ (a ⊓ b) = a :=\nby\n  apply LatticeLike.le_antisym\n  · have h1 : a ≤ a := LatticeLike.le_refl _\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left _ _\n    have : a ⊔ (a ⊓ b) ≤ a := LatticeLike.sup_le_intro h1 h2\n    exact this\n  · have h1 : a ≤ a ⊔ (a ⊓ b) := LatticeLike.le_sup_left _ _\n    exact h1"
+      },
+      "end LatticeLike": {
+        "kind": "end",
+        "lines": [114, 114],
+        "content": "end LatticeLike"
+      }
+    },
+    "coq": {
+      "LatticeLike": {
+        "kind": "Class",
+        "lines": [0, 16],
+        "content": "Class LatticeLike (A : Type) := {\n  le   : A -> A -> Prop;\n  inf  : A -> A -> A;\n  sup  : A -> A -> A;\n\n  le_refl  : forall x, le x x;\n  le_trans : forall x y z, le x y -> le y z -> le x z;\n  le_antisym : forall x y, le x y -> le y x -> x = y;\n\n  le_inf_left  : forall a b, le (inf a b) a;\n  le_inf_right : forall a b, le (inf a b) b;\n  le_inf_intro : forall c a b, le c a -> le c b -> le c (inf a b);\n\n  le_sup_left  : forall a b, le a (sup a b);\n  le_sup_right : forall a b, le b (sup a b);\n  sup_le_intro : forall a b c, le a c -> le b c -> le (sup a b) c\n}."
+      },
+      "le": {
+        "kind": "class_field",
+        "lines": [1, 1],
+        "content": "  le   : A -> A -> Prop;"
+      },
+      "inf": {
+        "kind": "class_field",
+        "lines": [2, 2],
+        "content": "  inf  : A -> A -> A;"
+      },
+      "sup": {
+        "kind": "class_field",
+        "lines": [3, 3],
+        "content": "  sup  : A -> A -> A;"
+      },
+      "le_refl": {
+        "kind": "class_field",
+        "lines": [5, 5],
+        "content": "  le_refl  : forall x, le x x;"
+      },
+      "le_trans": {
+        "kind": "class_field",
+        "lines": [6, 6],
+        "content": "  le_trans : forall x y z, le x y -> le y z -> le x z;"
+      },
+      "le_antisym": {
+        "kind": "class_field",
+        "lines": [7, 7],
+        "content": "  le_antisym : forall x y, le x y -> le y x -> x = y;"
+      },
+      "le_inf_left": {
+        "kind": "class_field",
+        "lines": [9, 9],
+        "content": "  le_inf_left  : forall a b, le (inf a b) a;"
+      },
+      "le_inf_right": {
+        "kind": "class_field",
+        "lines": [10, 10],
+        "content": "  le_inf_right : forall a b, le (inf a b) b;"
+      },
+      "le_inf_intro": {
+        "kind": "class_field",
+        "lines": [11, 11],
+        "content": "  le_inf_intro : forall c a b, le c a -> le c b -> le c (inf a b);"
+      },
+      "le_sup_left": {
+        "kind": "class_field",
+        "lines": [13, 13],
+        "content": "  le_sup_left  : forall a b, le a (sup a b);"
+      },
+      "le_sup_right": {
+        "kind": "class_field",
+        "lines": [14, 14],
+        "content": "  le_sup_right : forall a b, le b (sup a b);"
+      },
+      "sup_le_intro": {
+        "kind": "class_field",
+        "lines": [15, 15],
+        "content": "  sup_le_intro : forall a b c, le a c -> le b c -> le (sup a b) c"
+      },
+      "Section LatticeFacts.": {
+        "kind": "Section",
+        "lines": [18, 18],
+        "content": "Section LatticeFacts."
+      },
+      "A": {
+        "kind": "Context",
+        "lines": [19, 19],
+        "content": "  Context {A : Type} {L : LatticeLike A}."
+      },
+      "L": {
+        "kind": "Context",
+        "lines": [19, 19],
+        "content": "  Context {A : Type} {L : LatticeLike A}."
+      },
+      "≤": {
+        "kind": "Infix",
+        "lines": [21, 21],
+        "content": "  Infix \"≤\" := le (at level 70, no associativity)."
+      },
+      "⊓": {
+        "kind": "Notation",
+        "lines": [23, 23],
+        "content": "  Notation \"x ⊓ y\" := (inf x y) (at level 40)."
+      },
+      "⊔": {
+        "kind": "Notation",
+        "lines": [24, 24],
+        "content": "  Notation \"x ⊔ y\" := (sup x y) (at level 50)."
+      },
+      "inf_comm": {
+        "kind": "Lemma",
+        "lines": [26, 37],
+        "content": "  Lemma inf_comm (a b : A) : a ⊓ b = b ⊓ a.\n  Proof.\n    apply le_antisym.\n    - pose proof (le_inf_right a b) as H1.\n      pose proof (le_inf_left a b)  as H2.\n      pose proof (le_inf_intro (a ⊓ b) b a H1 H2) as H3.\n      exact H3.\n    - pose proof (le_inf_right b a) as H1.\n      pose proof (le_inf_left b a)  as H2.\n      pose proof (le_inf_intro (b ⊓ a) a b H1 H2) as H3.\n      exact H3.\n  Qed."
+      },
+      "sup_comm": {
+        "kind": "Lemma",
+        "lines": [39, 50],
+        "content": "  Lemma sup_comm (a b : A) : a ⊔ b = b ⊔ a.\n  Proof.\n    apply le_antisym.\n    - pose proof (le_sup_right b a) as Ha.\n      pose proof (le_sup_left  b a) as Hb.\n      pose proof (sup_le_intro a b (b ⊔ a) Ha Hb) as H3.\n      exact H3.\n    - pose proof (le_sup_right a b) as Hb.\n      pose proof (le_sup_left  a b) as Ha.\n      pose proof (sup_le_intro b a (a ⊔ b) Hb Ha) as H3.\n      exact H3.\n  Qed."
+      },
+      "inf_assoc": {
+        "kind": "Lemma",
+        "lines": [52, 72],
+        "content": "  Lemma inf_assoc (a b c : A) : (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c).\n  Proof.\n    apply le_antisym.\n    - pose proof (le_inf_left (a ⊓ b) c) as Hab_le.\n      pose proof (le_inf_left a b) as Ha_le.\n      pose proof (le_trans _ _ _ Hab_le Ha_le) as H_to_a.\n      pose proof (le_inf_right (a ⊓ b) c) as H_to_c.\n      pose proof (le_inf_right a b) as Hab_to_b.\n      pose proof (le_trans _ _ _ Hab_le Hab_to_b) as H_to_b.\n      pose proof (le_inf_intro ((a ⊓ b) ⊓ c) a (b ⊓ c) H_to_a (le_inf_intro _ _ _ H_to_b H_to_c)) as H.\n      exact H.\n    - pose proof (le_inf_left a (b ⊓ c)) as H_to_a.\n      pose proof (le_inf_right a (b ⊓ c)) as Habc.\n      pose proof (le_inf_left b c) as H_to_b.\n      pose proof (le_trans _ _ _ Habc H_to_b) as H_b.\n      pose proof (le_inf_right b c) as H_to_c.\n      pose proof (le_trans _ _ _ Habc H_to_c) as H_c.\n      pose proof (le_inf_left (a ⊓ b) c) as Habc_left.\n      pose proof (le_inf_intro (a ⊓ (b ⊓ c)) (a ⊓ b) c (le_inf_intro _ _ _ H_to_a H_b) H_c) as H.\n      exact H.\n  Qed."
+      },
+      "sup_assoc": {
+        "kind": "Lemma",
+        "lines": [74, 94],
+        "content": "  Lemma sup_assoc (a b c : A) : (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c).\n  Proof.\n    apply le_antisym.\n    - pose proof (le_sup_left a (b ⊔ c)) as Ha_to.\n      pose proof (le_sup_left b c) as Hb_to_bc.\n      pose proof (le_trans _ _ _ Hb_to_bc (le_sup_right a (b ⊔ c))) as Hb_to.\n      pose proof (sup_le_intro a b (a ⊔ (b ⊔ c)) Ha_to Hb_to) as Hab_to.\n      pose proof (le_sup_right b c) as Hc_to_bc.\n      pose proof (le_trans _ _ _ Hc_to_bc (le_sup_right a (b ⊔ c))) as Hc_to.\n      pose proof (sup_le_intro (a ⊔ b) c (a ⊔ (b ⊔ c)) Hab_to Hc_to) as H.\n      exact H.\n    - pose proof (le_sup_left a b) as Ha_ab.\n      pose proof (le_sup_left (a ⊔ b) c) as Hab_to.\n      pose proof (le_trans _ _ _ Ha_ab Hab_to) as Ha_to.\n      pose proof (le_sup_right a b) as Hb_to_ab.\n      pose proof (le_sup_right (a ⊔ b) c) as Hc_to.\n      pose proof (le_trans _ _ _ Hb_to_ab Hab_to) as Hb_to.\n      pose proof (sup_le_intro b c ((a ⊔ b) ⊔ c) Hb_to Hc_to) as Hbc_to.\n      pose proof (sup_le_intro a (b ⊔ c) ((a ⊔ b) ⊔ c) Ha_to Hbc_to) as H.\n      exact H.\n  Qed."
+      },
+      "inf_absorption": {
+        "kind": "Lemma",
+        "lines": [96, 104],
+        "content": "  Lemma inf_absorption (a b : A) : a ⊓ (a ⊔ b) = a.\n  Proof.\n    apply le_antisym.\n    - apply le_inf_left.\n    - pose proof (le_refl a) as Ha.\n      pose proof (le_sup_left a b) as Hab.\n      pose proof (le_inf_intro a a (a ⊔ b) Ha Hab) as H.\n      exact H.\n  Qed."
+      },
+      "sup_absorption": {
+        "kind": "Lemma",
+        "lines": [106, 114],
+        "content": "  Lemma sup_absorption (a b : A) : a ⊔ (a ⊓ b) = a.\n  Proof.\n    apply le_antisym.\n    - pose proof (le_refl a) as Ha.\n      pose proof (le_inf_left a b) as Hab.\n      pose proof (sup_le_intro a (a ⊓ b) a Ha Hab) as H.\n      exact H.\n    - apply le_sup_left.\n  Qed."
+      },
+      "End LatticeFacts.": {
+        "kind": "End",
+        "lines": [116, 116],
+        "content": "End LatticeFacts."
+      }
+    },
+    "items": [
+      {
+        "name": "inf_comm",
+        "lean": {
+          "kind": "theorem",
+          "lines": [29, 38],
+          "statement": "theorem inf_comm (a b : A) : a ⊓ b = b ⊓ a := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have h1 : a ⊓ b ≤ b := LatticeLike.le_inf_right a b\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left a b\n    have : a ⊓ b ≤ b ⊓ a := LatticeLike.le_inf_intro h1 h2\n    exact this\n  · have h1 : b ⊓ a ≤ a := LatticeLike.le_inf_right b a\n    have h2 : b ⊓ a ≤ b := LatticeLike.le_inf_left b a\n    have : b ⊓ a ≤ a ⊓ b := LatticeLike.le_inf_intro h1 h2\n    exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [27, 38],
+          "statement": "  Lemma inf_comm (a b : A) : a ⊓ b = b ⊓ a.",
+          "proof": "Proof.\n    apply le_antisym.\n    - pose proof (le_inf_right a b) as H1.\n      pose proof (le_inf_left a b)  as H2.\n      pose proof (le_inf_intro (a ⊓ b) b a H1 H2) as H3.\n      exact H3.\n    - pose proof (le_inf_right b a) as H1.\n      pose proof (le_inf_left b a)  as H2.\n      pose proof (le_inf_intro (b ⊓ a) a b H1 H2) as H3.\n      exact H3.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "sup_comm",
+        "lean": {
+          "kind": "theorem",
+          "lines": [41, 50],
+          "statement": "theorem sup_comm (a b : A) : a ⊔ b = b ⊔ a := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have Ha : a ≤ b ⊔ a := LatticeLike.le_sup_right b a\n    have Hb : b ≤ b ⊔ a := LatticeLike.le_sup_left b a\n    have : a ⊔ b ≤ b ⊔ a := LatticeLike.sup_le_intro Ha Hb\n    exact this\n  · have Hb : b ≤ a ⊔ b := LatticeLike.le_sup_right a b\n    have Ha : a ≤ a ⊔ b := LatticeLike.le_sup_left a b\n    have : b ⊔ a ≤ a ⊔ b := LatticeLike.sup_le_intro Hb Ha\n    exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [40, 51],
+          "statement": "  Lemma sup_comm (a b : A) : a ⊔ b = b ⊔ a.",
+          "proof": "Proof.\n    apply le_antisym.\n    - pose proof (le_sup_right b a) as Ha.\n      pose proof (le_sup_left  b a) as Hb.\n      pose proof (sup_le_intro a b (b ⊔ a) Ha Hb) as H3.\n      exact H3.\n    - pose proof (le_sup_right a b) as Hb.\n      pose proof (le_sup_left  a b) as Ha.\n      pose proof (sup_le_intro b a (a ⊔ b) Hb Ha) as H3.\n      exact H3.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inf_assoc",
+        "lean": {
+          "kind": "theorem",
+          "lines": [53, 72],
+          "statement": "theorem inf_assoc (a b c : A) : (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c) := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have h1 : (a ⊓ b) ⊓ c ≤ a ⊓ b := LatticeLike.le_inf_left _ _\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left _ _\n    have h3 : (a ⊓ b) ⊓ c ≤ a := LatticeLike.le_trans h1 h2\n    have h4 : (a ⊓ b) ⊓ c ≤ c := LatticeLike.le_inf_right _ _\n    have h5 : (a ⊓ b) ⊓ c ≤ b ⊓ c := LatticeLike.le_inf_intro\n      (show (a ⊓ b) ⊓ c ≤ b from LatticeLike.le_trans (LatticeLike.le_inf_left _ _) (LatticeLike.le_inf_right _ _))\n      h4\n    have : (a ⊓ b) ⊓ c ≤ a ⊓ (b ⊓ c) :=\n      LatticeLike.le_inf_intro h3 h5\n    exact this\n  · have h1 : a ⊓ (b ⊓ c) ≤ a := LatticeLike.le_inf_left _ _\n    have h2 : a ⊓ (b ⊓ c) ≤ b ⊓ c := LatticeLike.le_inf_right _ _\n    have h3 : b ⊓ c ≤ b := LatticeLike.le_inf_left _ _\n    have h4 : a ⊓ (b ⊓ c) ≤ b := LatticeLike.le_trans h2 h3\n    have h5 : a ⊓ (b ⊓ c) ≤ c := LatticeLike.le_trans h2 (LatticeLike.le_inf_right _ _)\n    have : a ⊓ (b ⊓ c) ≤ (a ⊓ b) ⊓ c :=\n      LatticeLike.le_inf_intro (LatticeLike.le_inf_intro h1 h4) h5\n    exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [53, 73],
+          "statement": "  Lemma inf_assoc (a b c : A) : (a ⊓ b) ⊓ c = a ⊓ (b ⊓ c).",
+          "proof": "Proof.\n    apply le_antisym.\n    - pose proof (le_inf_left (a ⊓ b) c) as Hab_le.\n      pose proof (le_inf_left a b) as Ha_le.\n      pose proof (le_trans _ _ _ Hab_le Ha_le) as H_to_a.\n      pose proof (le_inf_right (a ⊓ b) c) as H_to_c.\n      pose proof (le_inf_right a b) as Hab_to_b.\n      pose proof (le_trans _ _ _ Hab_le Hab_to_b) as H_to_b.\n      pose proof (le_inf_intro ((a ⊓ b) ⊓ c) a (b ⊓ c) H_to_a (le_inf_intro _ _ _ H_to_b H_to_c)) as H.\n      exact H.\n    - pose proof (le_inf_left a (b ⊓ c)) as H_to_a.\n      pose proof (le_inf_right a (b ⊓ c)) as Habc.\n      pose proof (le_inf_left b c) as H_to_b.\n      pose proof (le_trans _ _ _ Habc H_to_b) as H_b.\n      pose proof (le_inf_right b c) as H_to_c.\n      pose proof (le_trans _ _ _ Habc H_to_c) as H_c.\n      pose proof (le_inf_left (a ⊓ b) c) as Habc_left.\n      pose proof (le_inf_intro (a ⊓ (b ⊓ c)) (a ⊓ b) c (le_inf_intro _ _ _ H_to_a H_b) H_c) as H.\n      exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "sup_assoc",
+        "lean": {
+          "kind": "theorem",
+          "lines": [75, 93],
+          "statement": "theorem sup_assoc (a b c : A) : (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c) := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have Ha_to : a ≤ a ⊔ (b ⊔ c) := LatticeLike.le_sup_left _ _\n    have Hb_bc : b ≤ b ⊔ c := LatticeLike.le_sup_left _ _\n    have Hb_to : b ≤ a ⊔ (b ⊔ c) := LatticeLike.le_trans Hb_bc (LatticeLike.le_sup_right _ _)\n    have Hab_to : a ⊔ b ≤ a ⊔ (b ⊔ c) := LatticeLike.sup_le_intro Ha_to Hb_to\n    have Hc_bc : c ≤ b ⊔ c := LatticeLike.le_sup_right _ _\n    have Hc_to : c ≤ a ⊔ (b ⊔ c) := LatticeLike.le_trans Hc_bc (LatticeLike.le_sup_right _ _)\n    have : (a ⊔ b) ⊔ c ≤ a ⊔ (b ⊔ c) := LatticeLike.sup_le_intro Hab_to Hc_to\n    exact this\n  · have Ha_ab : a ≤ a ⊔ b := LatticeLike.le_sup_left _ _\n    have Hab_to : a ⊔ b ≤ (a ⊔ b) ⊔ c := LatticeLike.le_sup_left _ _\n    have Ha_to : a ≤ (a ⊔ b) ⊔ c := LatticeLike.le_trans Ha_ab Hab_to\n    have Hb_ab : b ≤ a ⊔ b := LatticeLike.le_sup_right _ _\n    have Hb_to : b ≤ (a ⊔ b) ⊔ c := LatticeLike.le_trans Hb_ab Hab_to\n    have Hc_to : c ≤ (a ⊔ b) ⊔ c := LatticeLike.le_sup_right _ _\n    have Hbc_to : b ⊔ c ≤ (a ⊔ b) ⊔ c := LatticeLike.sup_le_intro Hb_to Hc_to\n    have : a ⊔ (b ⊔ c) ≤ (a ⊔ b) ⊔ c := LatticeLike.sup_le_intro Ha_to Hbc_to\n    exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [75, 95],
+          "statement": "  Lemma sup_assoc (a b c : A) : (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c).",
+          "proof": "Proof.\n    apply le_antisym.\n    - pose proof (le_sup_left a (b ⊔ c)) as Ha_to.\n      pose proof (le_sup_left b c) as Hb_to_bc.\n      pose proof (le_trans _ _ _ Hb_to_bc (le_sup_right a (b ⊔ c))) as Hb_to.\n      pose proof (sup_le_intro a b (a ⊔ (b ⊔ c)) Ha_to Hb_to) as Hab_to.\n      pose proof (le_sup_right b c) as Hc_to_bc.\n      pose proof (le_trans _ _ _ Hc_to_bc (le_sup_right a (b ⊔ c))) as Hc_to.\n      pose proof (sup_le_intro (a ⊔ b) c (a ⊔ (b ⊔ c)) Hab_to Hc_to) as H.\n      exact H.\n    - pose proof (le_sup_left a b) as Ha_ab.\n      pose proof (le_sup_left (a ⊔ b) c) as Hab_to.\n      pose proof (le_trans _ _ _ Ha_ab Hab_to) as Ha_to.\n      pose proof (le_sup_right a b) as Hb_to_ab.\n      pose proof (le_sup_right (a ⊔ b) c) as Hc_to.\n      pose proof (le_trans _ _ _ Hb_to_ab Hab_to) as Hb_to.\n      pose proof (sup_le_intro b c ((a ⊔ b) ⊔ c) Hb_to Hc_to) as Hbc_to.\n      pose proof (sup_le_intro a (b ⊔ c) ((a ⊔ b) ⊔ c) Ha_to Hbc_to) as H.\n      exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inf_absorption",
+        "lean": {
+          "kind": "theorem",
+          "lines": [96, 103],
+          "statement": "theorem inf_absorption (a b : A) : a ⊓ (a ⊔ b) = a := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have h1 : a ⊓ (a ⊔ b) ≤ a := LatticeLike.le_inf_left _ _\n    exact h1\n  · have h1 : a ≤ a := LatticeLike.le_refl _\n    have h2 : a ≤ a ⊔ b := LatticeLike.le_sup_left _ _\n    have : a ≤ a ⊓ (a ⊔ b) := LatticeLike.le_inf_intro h1 h2\n    exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [97, 105],
+          "statement": "  Lemma inf_absorption (a b : A) : a ⊓ (a ⊔ b) = a.",
+          "proof": "Proof.\n    apply le_antisym.\n    - apply le_inf_left.\n    - pose proof (le_refl a) as Ha.\n      pose proof (le_sup_left a b) as Hab.\n      pose proof (le_inf_intro a a (a ⊔ b) Ha Hab) as H.\n      exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊓", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "sup_absorption",
+        "lean": {
+          "kind": "theorem",
+          "lines": [106, 113],
+          "statement": "theorem sup_absorption (a b : A) : a ⊔ (a ⊓ b) = a := by",
+          "proof": "  apply LatticeLike.le_antisym\n  · have h1 : a ≤ a := LatticeLike.le_refl _\n    have h2 : a ⊓ b ≤ a := LatticeLike.le_inf_left _ _\n    have : a ⊔ (a ⊓ b) ≤ a := LatticeLike.sup_le_intro h1 h2\n    exact this\n  · have h1 : a ≤ a ⊔ (a ⊓ b) := LatticeLike.le_sup_left _ _\n    exact h1",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [107, 115],
+          "statement": "  Lemma sup_absorption (a b : A) : a ⊔ (a ⊓ b) = a.",
+          "proof": "Proof.\n    apply le_antisym.\n    - pose proof (le_refl a) as Ha.\n      pose proof (le_inf_left a b) as Hab.\n      pose proof (sup_le_intro a (a ⊓ b) a Ha Hab) as H.\n      exact H.\n    - apply le_sup_left.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "⊔", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "LatticeLike", "category": "class" },
+              { "symbol": "A", "category": "variable" },
+              { "symbol": "L", "category": "variable" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "⊔", "category": "notation" },
+              { "symbol": "⊓", "category": "notation" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

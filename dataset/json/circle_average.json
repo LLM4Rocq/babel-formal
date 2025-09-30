@@ -1,0 +1,1143 @@
+{
+    "source": "circle_average",
+    "lean": {
+      "AddMonoid": {
+        "kind": "class",
+        "lines": [0, 5],
+        "content": "class AddMonoid (R : Type) where\n  zero      : R\n  add       : R → R → R\n  add_zero  : ∀ x, add x zero = x\n  add_comm  : ∀ x y, add x y = add y x\n  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)"
+      },
+      "AddMonoid.zero": { "kind": "class_field", "lines": [1, 1], "content": "  zero      : R" },
+      "AddMonoid.add": { "kind": "class_field", "lines": [2, 2], "content": "  add       : R → R → R" },
+      "AddMonoid.add_zero": { "kind": "class_field", "lines": [3, 3], "content": "  add_zero  : ∀ x, add x zero = x" },
+      "AddMonoid.add_comm": { "kind": "class_field", "lines": [4, 4], "content": "  add_comm  : ∀ x y, add x y = add y x" },
+      "AddMonoid.add_assoc": { "kind": "class_field", "lines": [5, 5], "content": "  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+      "CircleAverage": {
+        "kind": "namespace",
+        "lines": [7, 7],
+        "content": "namespace CircleAverage"
+      },
+      "R": {
+        "kind": "variable",
+        "lines": [8, 8],
+        "content": "variable {R : Type} [AddMonoid R]"
+      },
+      "integral": {
+        "kind": "axiom",
+        "lines": [10, 10],
+        "content": "axiom integral       : (R → R) → R"
+      },
+      "integral_ext": {
+        "kind": "axiom",
+        "lines": [11, 11],
+        "content": "axiom integral_ext   : ∀ (g h : R → R), (∀ θ, g θ = h θ) → integral g = integral h"
+      },
+      "integral_const": {
+        "kind": "axiom",
+        "lines": [12, 12],
+        "content": "axiom integral_const : ∀ (c : R), integral (fun _ => c) = c"
+      },
+      "integral_add": {
+        "kind": "axiom",
+        "lines": [13, 15],
+        "content": "axiom integral_add   : ∀ (f g : R → R),\n  integral (fun θ => AddMonoid.add (f θ) (g θ)) =\n  AddMonoid.add (integral f) (integral g)"
+      },
+      "integral_shift": {
+        "kind": "axiom",
+        "lines": [16, 17],
+        "content": "axiom integral_shift : ∀ (f : R → R) (c : R),\n  integral (fun θ => f (AddMonoid.add θ c)) = integral f"
+      },
+      "circleMap": {
+        "kind": "def",
+        "lines": [19, 19],
+        "content": "def circleMap (c θ : R) : R := AddMonoid.add θ c"
+      },
+      "circleAverage": {
+        "kind": "def",
+        "lines": [20, 21],
+        "content": "noncomputable def circleAverage (f : R → R) (c : R) : R :=\n  integral (fun θ => f (circleMap c θ))"
+      },
+      "end CircleAverage": {
+        "kind": "end",
+        "lines": [141, 141],
+        "content": "end CircleAverage"
+      },
+      "circleMap_zero": {
+    "kind": "theorem",
+    "lines": [23, 27],
+    "content": "theorem circleMap_zero (θ : R) :\n  circleMap AddMonoid.zero θ = θ"
+    },
+    "circleAverage_zero": {
+      "kind": "theorem",
+      "lines": [29, 34],
+      "content": "theorem circleAverage_zero (f : R → R) :\n  circleAverage f AddMonoid.zero = integral f"
+    },
+    "circleAverage_add": {
+      "kind": "theorem",
+      "lines": [36, 40],
+      "content": "theorem circleAverage_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c)"
+    },
+    "circleAverage_fun_add": {
+      "kind": "theorem",
+      "lines": [42, 52],
+      "content": "theorem circleAverage_fun_add (f : R → R) (c : R) :\n  circleAverage (fun z => f (AddMonoid.add z c)) AddMonoid.zero =\n  circleAverage f c"
+    },
+    "circleMap_add": {
+      "kind": "theorem",
+      "lines": [54, 61],
+      "content": "theorem circleMap_add (c d θ : R) :\n  circleMap (AddMonoid.add c d) θ =\n  circleMap c (circleMap d θ)"
+    },
+    "circleAverage_shift": {
+      "kind": "theorem",
+      "lines": [63, 69],
+      "content": "theorem circleAverage_shift (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage (fun z => f (AddMonoid.add z d)) c"
+    },
+    "circleAverage_const": {
+      "kind": "theorem",
+      "lines": [71, 74],
+      "content": "theorem circleAverage_const (k c : R) :\n  circleAverage (fun _ => k) c = k"
+    },
+    "circleAverage_add_const": {
+      "kind": "theorem",
+      "lines": [76, 80],
+      "content": "theorem circleAverage_add_const (f : R → R) (k c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) k) c =\n  AddMonoid.add (circleAverage f c) k"
+    },
+    "circleAverage_comm_add": {
+      "kind": "theorem",
+      "lines": [82, 87],
+      "content": "theorem circleAverage_comm_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  circleAverage (fun z => AddMonoid.add (g z) (f z)) c"
+    },
+    "circleAverage_add_assoc": {
+      "kind": "theorem",
+      "lines": [89, 94],
+      "content": "theorem circleAverage_add_assoc (f g h : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (AddMonoid.add (f z) (g z)) (h z)) c =\n  AddMonoid.add (circleAverage f c)\n              (AddMonoid.add (circleAverage g c) (circleAverage h c))"
+    },
+    "circleAverage_center_comm": {
+      "kind": "theorem",
+      "lines": [96, 101],
+      "content": "theorem circleAverage_center_comm (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage f (AddMonoid.add d c)"
+    },
+    "circleAverage_center_independent": {
+      "kind": "theorem",
+      "lines": [103, 106],
+      "content": "theorem circleAverage_center_independent (f : R → R) (c : R) :\n  circleAverage f c = integral f"
+    },
+    "circleAverage_center_eq": {
+      "kind": "theorem",
+      "lines": [108, 112],
+      "content": "theorem circleAverage_center_eq (f : R → R) (c d : R) :\n  circleAverage f c = circleAverage f d"
+    },
+    "circleAverage_idempotent": {
+      "kind": "theorem",
+      "lines": [114, 123],
+      "content": "theorem circleAverage_idempotent (f : R → R) (c : R) :\n  circleAverage (fun z => circleAverage f z) c = circleAverage f c"
+    },
+    "circleAverage_of_zero_integral": {
+      "kind": "theorem",
+      "lines": [125, 128],
+      "content": "theorem circleAverage_of_zero_integral (f : R → R) (c : R) (H : integral f = AddMonoid.zero) :\n  circleAverage f c = AddMonoid.zero"
+    },
+    "circleAverage_linear": {
+      "kind": "theorem",
+      "lines": [130, 133],
+      "content": "theorem circleAverage_linear (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c)"
+    },
+    "circleAverage_shift_commute": {
+      "kind": "theorem",
+      "lines": [135, 139],
+      "content": "theorem circleAverage_shift_commute (f : R → R) (c d : R) :\n  circleAverage (fun z => f (circleMap d z)) c =\n  circleAverage f (AddMonoid.add c d)"
+    }
+    },
+    "coq": {
+      "AddMonoid": {
+        "kind": "Class",
+        "lines": [0, 6],
+        "content": "Class AddMonoid (R : Type) := {\n  zero      : R;\n  add       : R -> R -> R;\n  add_zero  : forall x, add x zero = x;\n  add_comm  : forall x y, add x y = add y x;\n  add_assoc : forall x y z, add (add x y) z = add x (add y z)\n}."
+      },
+      "zero": { "kind": "class_field", "lines": [1, 1], "content": "  zero      : R;" },
+      "add": { "kind": "class_field", "lines": [2, 2], "content": "  add       : R -> R -> R;" },
+      "add_zero": { "kind": "class_field", "lines": [3, 3], "content": "  add_zero  : forall x, add x zero = x;" },
+      "add_comm": { "kind": "class_field", "lines": [4, 4], "content": "  add_comm  : forall x y, add x y = add y x;" },
+      "add_assoc": { "kind": "class_field", "lines": [5, 5], "content": "  add_assoc : forall x y z, add (add x y) z = add x (add y z)" },
+      "Section CircleAverage.": {
+        "kind": "Section",
+        "lines": [8, 8],
+        "content": "Section CircleAverage."
+      },
+      "R": {
+        "kind": "Context",
+        "lines": [9, 9],
+        "content": "  Context {R : Type} {M : AddMonoid R}."
+      },
+      "integral": {
+        "kind": "Axiom",
+        "lines": [11, 11],
+        "content": "  Axiom integral       : (R -> R) -> R."
+      },
+      "integral_ext": {
+        "kind": "Axiom",
+        "lines": [12, 14],
+        "content": "  Axiom integral_ext   : forall g h,\n      (forall θ, g θ = h θ) ->\n      integral g = integral h."
+      },
+      "integral_const": {
+        "kind": "Axiom",
+        "lines": [15, 16],
+        "content": "  Axiom integral_const : forall c,\n      integral (fun _ => c) = c."
+      },
+      "integral_add": {
+        "kind": "Axiom",
+        "lines": [17, 19],
+        "content": "  Axiom integral_add   : forall f g,\n      integral (fun θ => add (f θ) (g θ)) =\n      add (integral f) (integral g)."
+      },
+      "integral_shift": {
+        "kind": "Axiom",
+        "lines": [21, 22],
+        "content": "  Axiom integral_shift : forall f c,\n    integral (fun θ => f (add θ c)) = integral f."
+      },
+      "circleMap": {
+        "kind": "Definition",
+        "lines": [25, 25],
+        "content": "  Definition circleMap (c θ : R) : R := add θ c."
+      },
+      "circleAverage": {
+        "kind": "Definition",
+        "lines": [27, 28],
+        "content": "  Definition circleAverage (f : R -> R) (c : R) : R :=\n    integral (fun θ => f (circleMap c θ))."
+      },
+      "End CircleAverage.": {
+        "kind": "End",
+        "lines": [223, 223],
+        "content": "End CircleAverage."
+      },
+      "circleMap_zero": {
+        "kind": "lemma",
+        "lines": [30, 36],
+        "content": "Lemma circleMap_zero :\n  forall θ, circleMap zero θ = θ."
+      },
+      "circleAverage_zero": {
+        "kind": "lemma",
+        "lines": [38, 44],
+        "content": "Lemma circleAverage_zero :\n  forall f, circleAverage f zero = integral f."
+      },
+      "circleAverage_add": {
+        "kind": "lemma",
+        "lines": [46, 53],
+        "content": "Lemma circleAverage_add :\n  forall f g c,\n    circleAverage (fun z => add (f z) (g z)) c =\n    add (circleAverage f c) (circleAverage g c)."
+      },
+      "circleAverage_fun_add": {
+        "kind": "theorem",
+        "lines": [55, 66],
+        "content": "Theorem circleAverage_fun_add :\n  forall f c,\n    circleAverage (fun z => f (add z c)) zero =\n    circleAverage f c."
+      },
+      "circleMap_add": {
+        "kind": "lemma",
+        "lines": [68, 79],
+        "content": "Lemma circleMap_add :\n  forall c d θ,\n    circleMap (add c d) θ =\n    circleMap c (circleMap d θ)."
+      },
+      "circleAverage_shift": {
+        "kind": "lemma",
+        "lines": [81, 93],
+        "content": "Lemma circleAverage_shift :\n  forall f c d,\n    circleAverage f (add c d) =\n    circleAverage (fun z => f (add z d)) c."
+      },
+      "circleAverage_const": {
+        "kind": "lemma",
+        "lines": [95, 103],
+        "content": "Lemma circleAverage_const :\n  forall k c, circleAverage (fun _ => k) c = k."
+      },
+      "circleAverage_add_const": {
+        "kind": "lemma",
+        "lines": [105, 116],
+        "content": "Lemma circleAverage_add_const :\n  forall f k c,\n    circleAverage (fun z => add (f z) k) c =\n    add (circleAverage f c) k."
+      },
+      "circleAverage_comm_add": {
+        "kind": "lemma",
+        "lines": [118, 124],
+        "content": "Lemma circleAverage_comm_add :\n  forall f g c,\n    circleAverage (fun z => add (f z) (g z)) c =\n    circleAverage (fun z => add (g z) (f z)) c."
+      },
+      "circleAverage_add_assoc": {
+        "kind": "lemma",
+        "lines": [126, 150],
+        "content": "Lemma circleAverage_add_assoc :\n  forall f g h c,\n    circleAverage (fun z => add (add (f z) (g z)) (h z)) c =\n    add (circleAverage f c)\n        (add (circleAverage g c) (circleAverage h c))."
+      },
+      "circleAverage_center_comm": {
+        "kind": "lemma",
+        "lines": [152, 160],
+        "content": "Lemma circleAverage_center_comm :\n  forall f c d,\n    circleAverage f (add c d) =\n    circleAverage f (add d c)."
+      },
+      "circleAverage_center_independent": {
+        "kind": "lemma",
+        "lines": [161, 165],
+        "content": "Lemma circleAverage_center_independent :\n  forall f c,\n    circleAverage f c = integral f."
+      },
+      "circleAverage_center_eq": {
+        "kind": "lemma",
+        "lines": [167, 173],
+        "content": "Lemma circleAverage_center_eq :\n  forall f c d,\n    circleAverage f c = circleAverage f d."
+      },
+      "circleAverage_idempotent": {
+        "kind": "lemma",
+        "lines": [175, 186],
+        "content": "Lemma circleAverage_idempotent :\n  forall f c,\n    circleAverage (fun z => circleAverage f z) c = circleAverage f c."
+      },
+      "circleAverage_of_zero_integral": {
+        "kind": "lemma",
+        "lines": [188, 195],
+        "content": "Lemma circleAverage_of_zero_integral :\n  forall f c,\n    integral f = zero -> circleAverage f c = zero."
+      },
+      "circleAverage_linear": {
+        "kind": "lemma",
+        "lines": [197, 203],
+        "content": "Lemma circleAverage_linear :\n  forall f g c,\n    circleAverage (fun z => add (f z) (g z)) c =\n    add (circleAverage f c) (circleAverage g c)."
+      },
+      "circleAverage_shift_commute": {
+        "kind": "lemma",
+        "lines": [205, 213],
+        "content": "Lemma circleAverage_shift_commute :\n  forall f c d,\n    circleAverage (fun z => f (circleMap d z)) c =\n    circleAverage f (add c d)."
+      }
+    },
+    "items": [
+      {
+        "name": "circleMap_zero",
+        "lean": {
+          "kind": "theorem",
+          "lines": [25, 27],
+          "statement": "theorem circleMap_zero (θ : R) :\n  circleMap AddMonoid.zero θ = θ := by",
+          "proof": "  dsimp [circleMap]\n  rw [AddMonoid.add_zero]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.add_zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [32, 36],
+          "statement": "  Lemma circleMap_zero : forall θ, circleMap zero θ = θ.",
+          "proof": "Proof.\n    intros θ; unfold circleMap.\n    rewrite add_zero; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "add_zero", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_zero",
+        "lean": {
+          "kind": "theorem",
+          "lines": [30, 34],
+          "statement": "theorem circleAverage_zero (f : R → R) :\n  circleAverage f AddMonoid.zero = integral f := by",
+          "proof": "  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_zero]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral", "category": "axiom" },
+              { "symbol": "AddMonoid.zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [39, 44],
+          "statement": "  Lemma circleAverage_zero : forall f, circleAverage f zero = integral f.",
+          "proof": "Proof.\n    intros f; unfold circleAverage.\n    apply integral_ext; intros θ.\n    now rewrite circleMap_zero.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral", "category": "axiom" },
+              { "symbol": "zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "circleMap_zero", "category": "lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [38, 40],
+          "statement": "theorem circleAverage_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c) := by",
+          "proof": "  dsimp [circleAverage]\n  rw [integral_add]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [49, 53],
+          "statement": "  Lemma circleAverage_add :    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      add (circleAverage f c) (circleAverage g c).",
+          "proof": "Proof.\n    intros f g c; unfold circleAverage.\n    rewrite integral_add; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_fun_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [44, 50],
+          "statement": "theorem circleAverage_fun_add (f : R → R) (c : R) :\n  circleAverage (fun z => f (AddMonoid.add z c)) AddMonoid.zero =\n  circleAverage f c := by",
+          "proof": "  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  rw [AddMonoid.add_comm]\n  rw [←AddMonoid.add_assoc]\n  rw [AddMonoid.add_zero]\n  rw [AddMonoid.add_comm]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" },
+              { "symbol": "AddMonoid.zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_comm", "category": "class_field" },
+              { "symbol": "AddMonoid.add_assoc", "category": "class_field" },
+              { "symbol": "AddMonoid.add_zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [56, 66],
+          "statement": "  Theorem circleAverage_fun_add :\n    forall f c,\n      circleAverage (fun z => f (add z c)) zero =\n      circleAverage f c.",
+          "proof": "Proof.\n    intros f c.\n    unfold circleAverage, circleMap.\n    apply integral_ext; intro θ.\n    rewrite add_comm.\n    rewrite <- (add_assoc c θ zero).\n    rewrite add_zero.\n    rewrite add_comm.\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "add", "category": "class_field" },
+              { "symbol": "zero", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "add_comm", "category": "class_field" },
+              { "symbol": "add_assoc", "category": "class_field" },
+              { "symbol": "add_zero", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleMap_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [54, 57],
+          "statement": "theorem circleMap_add (c d θ : R) :\n  circleMap (AddMonoid.add c d) θ =\n  circleMap c (circleMap d θ) := by",
+          "proof": "  dsimp [circleMap]\n  rw [AddMonoid.add_comm c d]\n  rw [AddMonoid.add_assoc]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.add_comm", "category": "class_field" },
+              { "symbol": "AddMonoid.add_assoc", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [73, 79],
+          "statement": "  Lemma circleMap_add :    forall c d θ,\n      circleMap (add c d) θ =\n      circleMap c (circleMap d θ).",
+          "proof": "Proof.\n    intros c d θ; unfold circleMap.\n    rewrite add_comm with (x := c) (y := d).\n    rewrite add_assoc.\n    rewrite <- add_assoc.\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "add_comm", "category": "class_field" },
+              { "symbol": "add_assoc", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_shift",
+        "lean": {
+          "kind": "theorem",
+          "lines": [61, 65],
+          "statement": "theorem circleAverage_shift (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage (fun z => f (AddMonoid.add z d)) c := by",
+          "proof": "  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_assoc]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_assoc", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [86, 93],
+          "statement": "  Lemma circleAverage_shift :    forall f c d,\n      circleAverage f (add c d) =\n      circleAverage (fun z => f (add z d)) c.",
+          "proof": "Proof.\n    intros f c d.\n    unfold circleAverage.\n    apply integral_ext; intro θ.\n    unfold circleMap.\n    rewrite add_assoc; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "add_assoc", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_const",
+        "lean": {
+          "kind": "theorem",
+          "lines": [68, 70],
+          "statement": "theorem circleAverage_const (k c : R) :\n  circleAverage (fun _ => k) c = k := by",
+          "proof": "  dsimp [circleAverage]\n  rw [integral_const]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_const", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [99, 103],
+          "statement": "  Lemma circleAverage_const : forall k c, circleAverage (fun _ => k) c = k.",
+          "proof": "Proof.\n    intros k c; unfold circleAverage.\n    rewrite integral_const; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_const", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_add_const",
+        "lean": {
+          "kind": "theorem",
+          "lines": [74, 77],
+          "statement": "theorem circleAverage_add_const (f : R → R) (k c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) k) c =\n  AddMonoid.add (circleAverage f c) k := by",
+          "proof": "  dsimp [circleAverage]\n  rw [integral_add]\n  rw [integral_const]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" },
+              { "symbol": "integral_const", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [106, 116],
+          "statement": "  Lemma circleAverage_add_const :    forall f k c,\n      circleAverage (fun z => add (f z) k) c =\n      add (circleAverage f c) k.",
+          "proof": "Proof.\n    intros f k c; unfold circleAverage.\n    replace (fun θ => add (f (circleMap c θ)) k)\n      with (fun θ => add (f (circleMap c θ)) ((fun _ => k) θ))\n      by reflexivity.\n    rewrite integral_add.\n    rewrite integral_const.\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" },
+              { "symbol": "integral_const", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_comm_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [81, 85],
+          "statement": "theorem circleAverage_comm_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  circleAverage (fun z => AddMonoid.add (g z) (f z)) c := by",
+          "proof": "  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_comm]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_comm", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [119, 124],
+          "statement": "  Lemma circleAverage_comm_add :    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      circleAverage (fun z => add (g z) (f z)) c.",
+          "proof": "Proof.\n    intros f g c; unfold circleAverage.\n    apply integral_ext; intro θ.\n    rewrite add_comm; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "add_comm", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_add_assoc",
+        "lean": {
+          "kind": "theorem",
+          "lines": [90, 94],
+          "statement": "theorem circleAverage_add_assoc (f g h : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (AddMonoid.add (f z) (g z)) (h z)) c =\n  AddMonoid.add (circleAverage f c)\n              (AddMonoid.add (circleAverage g c) (circleAverage h c)) := by",
+          "proof": "  dsimp [circleAverage]\n  rw [integral_add]\n  rw [integral_add]\n  rw [AddMonoid.add_assoc]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" },
+              { "symbol": "AddMonoid.add_assoc", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [127, 150],
+          "statement": "  Lemma circleAverage_add_assoc :    forall f g h c,\n      circleAverage (fun z => add (add (f z) (g z)) (h z)) c =\n      add (circleAverage f c)\n          (add (circleAverage g c) (circleAverage h c)).",
+          "proof": "Proof.\n    intros f g h c; unfold circleAverage.\n\n    replace\n      (fun θ => add (add (f (circleMap c θ)) (g (circleMap c θ)))\n                    (h (circleMap c θ)))\n      with\n      (fun θ => add (add (f (circleMap c θ)) (g (circleMap c θ)))\n                    ((fun θ => h (circleMap c θ)) θ))\n      by reflexivity.\n    rewrite integral_add.\n\n    replace\n      (integral (fun θ => add (f (circleMap c θ)) (g (circleMap c θ))))\n      with\n      (add (integral (fun θ => f (circleMap c θ)))\n           (integral (fun θ => g (circleMap c θ))))\n      by (rewrite integral_add; reflexivity).\n\n    rewrite add_assoc.\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" },
+              { "symbol": "add_assoc", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_center_comm",
+        "lean": {
+          "kind": "theorem",
+          "lines": [98, 101],
+          "statement": "theorem circleAverage_center_comm (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage f (AddMonoid.add d c) := by",
+          "proof": "  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  simp [AddMonoid.add_comm]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_comm", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [153, 160],
+          "statement": "  Lemma circleAverage_center_comm :    forall f c d,\n      circleAverage f (add c d) =\n      circleAverage f (add d c).",
+          "proof": "Proof.\n    intros f c d.\n    unfold circleAverage, circleMap.\n    apply integral_ext; intro θ.\n    rewrite (f_equal (fun x => add θ x) (add_comm c d)).\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "add_comm", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_center_independent",
+        "lean": {
+          "kind": "theorem",
+          "lines": [104, 106],
+          "statement": "theorem circleAverage_center_independent (f : R → R) (c : R) :\n  circleAverage f c = integral f := by",
+          "proof": "  dsimp [circleAverage]\n  apply integral_shift",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral", "category": "axiom" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_shift", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [162, 165],
+          "statement": "  Lemma circleAverage_center_independent :    forall f c,\n      circleAverage f c = integral f.",
+          "proof": "Proof.\n    intros f c; unfold circleAverage; apply integral_shift.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral", "category": "axiom" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_shift", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_center_eq",
+        "lean": {
+          "kind": "theorem",
+          "lines": [109, 112],
+          "statement": "theorem circleAverage_center_eq (f : R → R) (c d : R) :\n  circleAverage f c = circleAverage f d := by",
+          "proof": "  have h1 := circleAverage_center_independent f c\n  have h2 := circleAverage_center_independent f d\n  exact Eq.trans h1 (Eq.symm h2)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage_center_independent", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [168, 173],
+          "statement": "  Lemma circleAverage_center_eq :    forall f c d,\n      circleAverage f c = circleAverage f d.",
+          "proof": "Proof.\n    intros f c d.\n    rewrite (circleAverage_center_independent f c).\n    rewrite (circleAverage_center_independent f d).\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage_center_independent", "category": "lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_idempotent",
+        "lean": {
+          "kind": "theorem",
+          "lines": [115, 122],
+          "statement": "theorem circleAverage_idempotent (f : R → R) (c : R) :\n  circleAverage (fun z => circleAverage f z) c = circleAverage f c := by",
+          "proof": "  dsimp [circleAverage]\n  have h1 := by\n    apply integral_ext; intro θ\n    apply circleAverage_center_independent f (circleMap c θ)\n  have h2 := integral_const (integral f)\n  have h3 := circleAverage_center_independent f c\n  exact Eq.trans (Eq.trans h1 h2) (Eq.symm h3)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "integral_const", "category": "axiom" },
+              { "symbol": "circleAverage_center_independent", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [176, 186],
+          "statement": "  Lemma circleAverage_idempotent :  forall f c,\n    circleAverage (fun z => circleAverage f z) c = circleAverage f c.",
+          "proof": "Proof.\n    intros f c.\n    rewrite (circleAverage_center_independent f c).\n    unfold circleAverage.\n    rewrite <- (integral_const (integral f)).\n    apply integral_ext with (h := fun _ => integral f).\n    intros θ.\n    apply (circleAverage_center_independent f (circleMap c θ)).",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage_center_independent", "category": "lemma" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_const", "category": "axiom" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "circleMap", "category": "definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_of_zero_integral",
+        "lean": {
+          "kind": "theorem",
+          "lines": [125, 127],
+          "statement": "theorem circleAverage_of_zero_integral (f : R → R) (c : R) (H : integral f = AddMonoid.zero) :\n  circleAverage f c = AddMonoid.zero := by",
+          "proof": "  rw [circleAverage_center_independent f c]\n  exact H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "integral", "category": "axiom" },
+              { "symbol": "AddMonoid.zero", "category": "class_field" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage_center_independent", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [189, 195],
+          "statement": "  Lemma circleAverage_of_zero_integral :    forall f c,\n      integral f = zero -> circleAverage f c = zero.",
+          "proof": "Proof.\n    intros f c H.\n    rewrite circleAverage_center_independent.\n    assumption.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "integral", "category": "axiom" },
+              { "symbol": "zero", "category": "class_field" },
+              { "symbol": "circleAverage", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage_center_independent", "category": "lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_linear",
+        "lean": {
+          "kind": "theorem",
+          "lines": [131, 133],
+          "statement": "theorem circleAverage_linear (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c) := by",
+          "proof": "  dsimp [circleAverage]\n  rw [integral_add]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [198, 203],
+          "statement": "  Lemma circleAverage_linear :    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      add (circleAverage f c) (circleAverage g c).",
+          "proof": "Proof.\n    intros f g c.\n    unfold circleAverage.\n    rewrite integral_add.\n    reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "integral_add", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "circleAverage_shift_commute",
+        "lean": {
+          "kind": "theorem",
+          "lines": [137, 140],
+          "statement": "theorem circleAverage_shift_commute (f : R → R) (c d : R) :\n  circleAverage (fun z => f (circleMap d z)) c =\n  circleAverage f (AddMonoid.add c d) := by",
+          "proof": "  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  rw [AddMonoid.add_assoc]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "AddMonoid.add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "AddMonoid.add_assoc", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [206, 213],
+          "statement": "  Lemma circleAverage_shift_commute :    forall f c d,\n      circleAverage (fun z => f (circleMap d z)) c =\n      circleAverage f (add c d).",
+          "proof": "Proof.\n    intros f c d.\n    unfold circleAverage, circleMap.\n    apply integral_ext.\n    intros θ; rewrite add_assoc; reflexivity.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "add", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "AddMonoid", "category": "class" },
+              { "symbol": "circleAverage", "category": "definition" },
+              { "symbol": "circleMap", "category": "definition" },
+              { "symbol": "integral_ext", "category": "axiom" },
+              { "symbol": "add_assoc", "category": "class_field" }
+            ]
+          }
+        }
+      }
+    ],
+    "context": {
+      "lean": {
+        "AddMonoid": { "lines": [0, 5], "content": "class AddMonoid (R : Type) where\n  zero      : R\n  add       : R → R → R\n  add_zero  : ∀ x, add x zero = x\n  add_comm  : ∀ x y, add x y = add y x\n  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+        "AddMonoid.zero": { "lines": [1, 1], "content": "  zero      : R" },
+        "AddMonoid.add": { "lines": [2, 2], "content": "  add       : R → R → R" },
+        "AddMonoid.add_zero": { "lines": [3, 3], "content": "  add_zero  : ∀ x, add x zero = x" },
+        "AddMonoid.add_comm": { "lines": [4, 4], "content": "  add_comm  : ∀ x y, add x y = add y x" },
+        "AddMonoid.add_assoc": { "lines": [5, 5], "content": "  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+        "CircleAverage": { "lines": [7, 7], "content": "namespace CircleAverage" },
+        "variable": { "lines": [8, 8], "content": "variable {R : Type} [AddMonoid R]" },
+        "integral": { "lines": [10, 10], "content": "axiom integral       : (R → R) → R" },
+        "integral_ext": { "lines": [11, 11], "content": "axiom integral_ext   : ∀ (g h : R → R), (∀ θ, g θ = h θ) → integral g = integral h" },
+        "integral_const": { "lines": [12, 12], "content": "axiom integral_const : ∀ (c : R), integral (fun _ => c) = c" },
+        "integral_add": { "lines": [13, 15], "content": "axiom integral_add   : ∀ (f g : R → R),\n  integral (fun θ => AddMonoid.add (f θ) (g θ)) =\n  AddMonoid.add (integral f) (integral g)" },
+        "integral_shift": { "lines": [16, 17], "content": "axiom integral_shift : ∀ (f : R → R) (c : R),\n  integral (fun θ => f (AddMonoid.add θ c)) = integral f" },
+        "circleMap": { "lines": [19, 19], "content": "def circleMap (c θ : R) : R := AddMonoid.add θ c" },
+        "circleAverage": { "lines": [20, 21], "content": "noncomputable def circleAverage (f : R → R) (c : R) : R :=\n  integral (fun θ => f (circleMap c θ))" },
+        "circleMap_zero": { "lines": [23, 27], "content": "theorem circleMap_zero (θ : R) :\n  circleMap AddMonoid.zero θ = θ := by\n  dsimp [circleMap]\n  rw [AddMonoid.add_zero]" },
+        "circleAverage_zero": { "lines": [29, 34], "content": "theorem circleAverage_zero (f : R → R) :\n  circleAverage f AddMonoid.zero = integral f := by\n  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_zero]" },
+        "circleAverage_add": { "lines": [36, 40], "content": "theorem circleAverage_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c) := by\n  dsimp [circleAverage]\n  rw [integral_add]" },
+        "circleAverage_fun_add": { "lines": [42, 52], "content": "theorem circleAverage_fun_add (f : R → R) (c : R) :\n  circleAverage (fun z => f (AddMonoid.add z c)) AddMonoid.zero =\n  circleAverage f c := by\n  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  rw [AddMonoid.add_comm]\n  rw [←AddMonoid.add_assoc]\n  rw [AddMonoid.add_zero]\n  rw [AddMonoid.add_comm]" },
+        "circleMap_add": { "lines": [54, 61], "content": "theorem circleMap_add (c d θ : R) :\n  circleMap (AddMonoid.add c d) θ =\n  circleMap c (circleMap d θ) := by\n  dsimp [circleMap]\n  rw [AddMonoid.add_comm c d]\n  rw [AddMonoid.add_assoc]" },
+        "circleAverage_shift": { "lines": [63, 69], "content": "theorem circleAverage_shift (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage (fun z => f (AddMonoid.add z d)) c := by\n  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_assoc]" },
+        "circleAverage_const": { "lines": [71, 74], "content": "theorem circleAverage_const (k c : R) :\n  circleAverage (fun _ => k) c = k := by\n  dsimp [circleAverage]\n  rw [integral_const]" },
+        "circleAverage_add_const": { "lines": [76, 80], "content": "theorem circleAverage_add_const (f : R → R) (k c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) k) c =\n  AddMonoid.add (circleAverage f c) k := by\n  dsimp [circleAverage]\n  rw [integral_add]\n  rw [integral_const]" },
+        "circleAverage_comm_add": { "lines": [82, 87], "content": "theorem circleAverage_comm_add (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  circleAverage (fun z => AddMonoid.add (g z) (f z)) c := by\n  dsimp [circleAverage]\n  apply integral_ext; intro θ\n  dsimp [circleMap]\n  rw [AddMonoid.add_comm]" },
+        "circleAverage_add_assoc": { "lines": [89, 94], "content": "theorem circleAverage_add_assoc (f g h : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (AddMonoid.add (f z) (g z)) (h z)) c =\n  AddMonoid.add (circleAverage f c)\n              (AddMonoid.add (circleAverage g c) (circleAverage h c)) := by\n  dsimp [circleAverage]\n  rw [integral_add]\n  rw [integral_add]\n  rw [AddMonoid.add_assoc]" },
+        "circleAverage_center_comm": { "lines": [96, 101], "content": "theorem circleAverage_center_comm (f : R → R) (c d : R) :\n  circleAverage f (AddMonoid.add c d) =\n  circleAverage f (AddMonoid.add d c) := by\n  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  simp [AddMonoid.add_comm]" },
+        "circleAverage_center_independent": { "lines": [103, 106], "content": "theorem circleAverage_center_independent (f : R → R) (c : R) :\n  circleAverage f c = integral f := by\n  dsimp [circleAverage]\n  apply integral_shift" },
+        "circleAverage_center_eq": { "lines": [108, 112], "content": "theorem circleAverage_center_eq (f : R → R) (c d : R) :\n  circleAverage f c = circleAverage f d := by\n  have h1 := circleAverage_center_independent f c\n  have h2 := circleAverage_center_independent f d\n  exact Eq.trans h1 (Eq.symm h2)" },
+        "circleAverage_idempotent": { "lines": [114, 123], "content": "theorem circleAverage_idempotent (f : R → R) (c : R) :\n  circleAverage (fun z => circleAverage f z) c = circleAverage f c := by\n  dsimp [circleAverage]\n  have h1 := by\n    apply integral_ext; intro θ\n    apply circleAverage_center_independent f (circleMap c θ)\n  have h2 := integral_const (integral f)\n  have h3 := circleAverage_center_independent f c\n  exact Eq.trans (Eq.trans h1 h2) (Eq.symm h3)" },
+        "circleAverage_of_zero_integral": { "lines": [125, 128], "content": "theorem circleAverage_of_zero_integral (f : R → R) (c : R) (H : integral f = AddMonoid.zero) :\n  circleAverage f c = AddMonoid.zero := by\n  rw [circleAverage_center_independent f c]\n  exact H" },
+        "circleAverage_linear": { "lines": [130, 133], "content": "theorem circleAverage_linear (f g : R → R) (c : R) :\n  circleAverage (fun z => AddMonoid.add (f z) (g z)) c =\n  AddMonoid.add (circleAverage f c) (circleAverage g c) := by\n  dsimp [circleAverage]\n  rw [integral_add]" },
+        "circleAverage_shift_commute": { "lines": [135, 139], "content": "theorem circleAverage_shift_commute (f : R → R) (c d : R) :\n  circleAverage (fun z => f (circleMap d z)) c =\n  circleAverage f (AddMonoid.add c d) := by\n  dsimp [circleAverage, circleMap]\n  apply integral_ext; intro θ\n  rw [AddMonoid.add_assoc]" },
+        "end CircleAverage": { "lines": [141, 141], "content": "end CircleAverage" }
+      },
+      "coq": {
+        "AddMonoid": { "lines": [0, 6], "content": "Class AddMonoid (R : Type) := {\n  zero      : R;\n  add       : R -> R -> R;\n  add_zero  : forall x, add x zero = x;\n  add_comm  : forall x y, add x y = add y x;\n  add_assoc : forall x y z, add (add x y) z = add x (add y z)\n}." },
+        "zero": { "lines": [1, 1], "content": "  zero      : R;" },
+        "add": { "lines": [2, 2], "content": "  add       : R -> R -> R;" },
+        "add_zero": { "lines": [3, 3], "content": "  add_zero  : forall x, add x zero = x;" },
+        "add_comm": { "lines": [4, 4], "content": "  add_comm  : forall x y, add x y = add y x;" },
+        "add_assoc": { "lines": [5, 5], "content": "  add_assoc : forall x y z, add (add x y) z = add x (add y z)" },
+        "Section CircleAverage.": { "lines": [8, 8], "content": "Section CircleAverage." },
+        "Context": { "lines": [9, 9], "content": "  Context {R : Type} {M : AddMonoid R}." },
+        "integral": { "lines": [11, 11], "content": "  Axiom integral       : (R -> R) -> R." },
+        "integral_ext": { "lines": [12, 14], "content": "  Axiom integral_ext   : forall g h,\n      (forall θ, g θ = h θ) ->\n      integral g = integral h." },
+        "integral_const": { "lines": [15, 16], "content": "  Axiom integral_const : forall c,\n      integral (fun _ => c) = c." },
+        "integral_add": { "lines": [17, 19], "content": "  Axiom integral_add   : forall f g,\n      integral (fun θ => add (f θ) (g θ)) =\n      add (integral f) (integral g)." },
+        "integral_shift": { "lines": [21, 22], "content": "  Axiom integral_shift : forall f c,\n    integral (fun θ => f (add θ c)) = integral f." },
+        "circleMap": { "lines": [25, 25], "content": "  Definition circleMap (c θ : R) : R := add θ c." },
+        "circleAverage": { "lines": [27, 28], "content": "  Definition circleAverage (f : R -> R) (c : R) : R :=\n    integral (fun θ => f (circleMap c θ))." },
+        "circleMap_zero": { "lines": [30, 36], "content": "  Lemma circleMap_zero :\n    forall θ, circleMap zero θ = θ.\n  Proof.\n    intros θ; unfold circleMap.\n    rewrite add_zero; reflexivity.\n  Qed." },
+        "circleAverage_zero": { "lines": [38, 44], "content": "  Lemma circleAverage_zero :\n    forall f, circleAverage f zero = integral f.\n  Proof.\n    intros f; unfold circleAverage.\n    apply integral_ext; intros θ.\n    now rewrite circleMap_zero.\n  Qed." },
+        "circleAverage_add": { "lines": [46, 53], "content": "  Lemma circleAverage_add :\n    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      add (circleAverage f c) (circleAverage g c).\n  Proof.\n    intros f g c; unfold circleAverage.\n    rewrite integral_add; reflexivity.\n  Qed." },
+        "circleAverage_fun_add": { "lines": [55, 66], "content": "  Theorem circleAverage_fun_add :\n    forall f c,\n      circleAverage (fun z => f (add z c)) zero =\n      circleAverage f c.\n  Proof.\n    intros f c.\n    unfold circleAverage, circleMap.\n    apply integral_ext; intro θ.\n    rewrite add_comm.\n    rewrite <- (add_assoc c θ zero).\n    rewrite add_zero.\n    rewrite add_comm.\n    reflexivity.\n  Qed." },
+        "circleMap_add": { "lines": [68, 79], "content": " Lemma circleMap_add :\n    forall c d θ,\n      circleMap (add c d) θ =\n      circleMap c (circleMap d θ).\n  Proof.\n    intros c d θ; unfold circleMap.\n    rewrite add_comm with (x := c) (y := d).\n    rewrite add_assoc.\n    rewrite <- add_assoc.\n    reflexivity.\n  Qed." },
+        "circleAverage_shift": { "lines": [81, 93], "content": "  Lemma circleAverage_shift :\n    forall f c d,\n      circleAverage f (add c d) =\n      circleAverage (fun z => f (add z d)) c.\n  Proof.\n    intros f c d.\n    unfold circleAverage.\n    apply integral_ext; intro θ.\n    unfold circleMap.\n    rewrite add_assoc; reflexivity.\n  Qed." },
+        "circleAverage_const": { "lines": [95, 103], "content": "  Lemma circleAverage_const :\n    forall k c, circleAverage (fun _ => k) c = k.\n  Proof.\n    intros k c; unfold circleAverage.\n    rewrite integral_const; reflexivity.\n  Qed." },
+        "circleAverage_add_const": { "lines": [105, 116], "content": "  Lemma circleAverage_add_const :\n    forall f k c,\n      circleAverage (fun z => add (f z) k) c =\n      add (circleAverage f c) k.\n  Proof.\n    intros f k c; unfold circleAverage.\n    replace (fun θ => add (f (circleMap c θ)) k)\n      with (fun θ => add (f (circleMap c θ)) ((fun _ => k) θ))\n      by reflexivity.\n    rewrite integral_add.\n    rewrite integral_const.\n    reflexivity.\n  Qed." },
+        "circleAverage_comm_add": { "lines": [118, 124], "content": "  Lemma circleAverage_comm_add :\n    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      circleAverage (fun z => add (g z) (f z)) c.\n  Proof.\n    intros f g c; unfold circleAverage.\n    apply integral_ext; intro θ.\n    rewrite add_comm; reflexivity.\n  Qed." },
+        "circleAverage_add_assoc": { "lines": [126, 150], "content": "  Lemma circleAverage_add_assoc :\n    forall f g h c,\n      circleAverage (fun z => add (add (f z) (g z)) (h z)) c =\n      add (circleAverage f c)\n          (add (circleAverage g c) (circleAverage h c)).\n  Proof.\n    intros f g h c; unfold circleAverage.\n\n    replace\n      (fun θ => add (add (f (circleMap c θ)) (g (circleMap c θ)))\n                    (h (circleMap c θ)))\n      with\n      (fun θ => add (add (f (circleMap c θ)) (g (circleMap c θ)))\n                    ((fun θ => h (circleMap c θ)) θ))\n      by reflexivity.\n    rewrite integral_add.\n\n    replace\n      (integral (fun θ => add (f (circleMap c θ)) (g (circleMap c θ))))\n      with\n      (add (integral (fun θ => f (circleMap c θ)))\n           (integral (fun θ => g (circleMap c θ))))\n      by (rewrite integral_add; reflexivity).\n\n    rewrite add_assoc.\n    reflexivity.\n  Qed." },
+        "circleAverage_center_comm": { "lines": [152, 160], "content": "  Lemma circleAverage_center_comm :\n    forall f c d,\n      circleAverage f (add c d) =\n      circleAverage f (add d c).\n  Proof.\n    intros f c d.\n    unfold circleAverage, circleMap.\n    apply integral_ext; intro θ.\n    rewrite (f_equal (fun x => add θ x) (add_comm c d)).\n    reflexivity.\n  Qed." },
+        "circleAverage_center_independent": { "lines": [161, 165], "content": "  Lemma circleAverage_center_independent :\n    forall f c,\n      circleAverage f c = integral f.\n  Proof.\n    intros f c; unfold circleAverage; apply integral_shift.\n  Qed." },
+        "circleAverage_center_eq": { "lines": [167, 173], "content": "  Lemma circleAverage_center_eq :\n    forall f c d,\n      circleAverage f c = circleAverage f d.\n  Proof.\n    intros f c d.\n    rewrite (circleAverage_center_independent f c).\n    rewrite (circleAverage_center_independent f d).\n    reflexivity.\n  Qed." },
+        "circleAverage_idempotent": { "lines": [175, 186], "content": "  Lemma circleAverage_idempotent :\n  forall f c,\n    circleAverage (fun z => circleAverage f z) c = circleAverage f c.\n  Proof.\n    intros f c.\n    rewrite (circleAverage_center_independent f c).\n    unfold circleAverage.\n    rewrite <- (integral_const (integral f)).\n    apply integral_ext with (h := fun _ => integral f).\n    intros θ.\n    apply (circleAverage_center_independent f (circleMap c θ)).\n  Qed." },
+        "circleAverage_of_zero_integral": { "lines": [188, 195], "content": "  Lemma circleAverage_of_zero_integral :\n    forall f c,\n      integral f = zero -> circleAverage f c = zero.\n  Proof.\n    intros f c H.\n    rewrite circleAverage_center_independent.\n    assumption.\n  Qed." },
+        "circleAverage_linear": { "lines": [197, 203], "content": "  Lemma circleAverage_linear :\n    forall f g c,\n      circleAverage (fun z => add (f z) (g z)) c =\n      add (circleAverage f c) (circleAverage g c).\n  Proof.\n    intros f g c.\n    unfold circleAverage.\n    rewrite integral_add.\n    reflexivity.\n  Qed." },
+        "circleAverage_shift_commute": { "lines": [205, 213], "content": "  Lemma circleAverage_shift_commute :\n    forall f c d,\n      circleAverage (fun z => f (circleMap d z)) c =\n      circleAverage f (add c d).\n  Proof.\n    intros f c d.\n    unfold circleAverage, circleMap.\n    apply integral_ext.\n    intros θ; rewrite add_assoc; reflexivity.\n  Qed." },
+        "End CircleAverage.": { "lines": [223, 223], "content": "End CircleAverage." }
+      }
+    }
+  }
+  

@@ -1,0 +1,800 @@
+{
+    "source": "supinf",
+    "lean": {
+      "CompleteOrderedField": {
+        "kind": "class",
+        "lines": [0, 49],
+        "content": "class CompleteOrderedField where\n  R       : Type\n  NatAlt  : Type\n  zero_nat : NatAlt\n  Succ : NatAlt -> NatAlt\n  NatAltle : NatAlt -> NatAlt -> Prop\n\n  zero    : R\n  one     : R\n  add     : R → R → R\n  mul     : R → R → R\n  opp     : R → R\n  inv     : R → R\n  Rle     : R → R → Prop\n  Rlt     : R → R → Prop\n  Rabs    : R → R\n  INR     : NatAlt → R\n\n  NatAltle_n : ∀ n : NatAlt, NatAltle n n\n  le_succ_of_le : ∀ n m: NatAlt, NatAltle n m → NatAltle n (Succ m)\n  le_succ : ∀ n : NatAlt, NatAltle n (Succ n)\n\n  add_comm      : ∀ x y : R, add x y = add y x\n  add_assoc     : ∀ x y z : R, add (add x y) z = add x (add y z)\n  add_zero      : ∀ x : R, add x zero = x\n  add_opp       : ∀ x : R, add (opp x) x = zero\n  mul_comm      : ∀ x y : R, mul x y = mul y x\n  mul_assoc     : ∀ x y z : R, mul (mul x y) z = mul x (mul y z)\n  mul_one       : ∀ x : R, mul x one = x\n  dist_l        : ∀ x y z : R, mul x (add y z) = add (mul x y) (mul x z)\n  sub_zero      : ∀ x : R, add x (opp zero) = x\n  Rle_refl      : ∀ x : R, Rle x x\n  Rle_trans     : ∀ x y z : R, Rle x y → Rle y z → Rle x z\n  Rle_antisym   : ∀ x y : R, Rle x y → Rle y x → x = y\n  Rlt_def       : ∀ x y : R, Rlt x y ↔ (Rle x y ∧ x ≠ y)\n  Rle_abs       : ∀ x : R, Rle (add x (opp zero)) (Rabs x)\n  Rinv_0_lt_compat : ∀ x : R, Rlt zero x → Rlt zero (inv x)\n  Rplus_le_compat_l : ∀ x y z : R, Rle y z → Rle (add x y) (add x z)\n  Rinv_involutive   : ∀ x : R, Rlt zero x → inv (inv x) = x\n  INR_pos       : ∀ n, Rlt zero (INR (Succ n))\n  INR_le        : ∀ m n, (NatAltle m n) → Rle (INR m) (INR n)\n  INR_0         : INR zero_nat = zero\n  INR_S         : ∀ n, INR (Succ n) = add (INR n) one\n  Rtotal_order  : ∀ x y : R, Rlt x y ∨ x = y ∨ Rlt y x\n  Rle_inv_contravar : ∀ a b : R, Rlt zero a → Rlt zero b → Rle a b → Rle (inv b) (inv a)\n  eps_between   : ∀ x y : R, Rlt x y → ∃ eps, Rlt zero eps ∧ Rlt (add x eps) y\n  archimedean   : ∀ x : R, ∃ n, Rle x (INR n)\n  completeness  : ∀ (A : R → Prop),\n    (∃ ub, ∀ a, A a → Rle ub a) →\n    ∃ sup, (∀ a, A a → Rle a sup) ∧ ∀ y, (∀ a, A a → Rle a y) → Rle sup y"
+      },
+      "SupInf": {
+        "kind": "namespace",
+        "lines": [51, 51],
+        "content": "namespace SupInf"
+      },
+      "F": {
+        "kind": "variable",
+        "lines": [53, 53],
+        "content": "variable [F : CompleteOrderedField]"
+      },
+      "open": {
+        "kind": "open",
+        "lines": [54, 54],
+        "content": "open CompleteOrderedField (R zero one add mul opp inv Rle Rlt Rabs INR NatAltle)"
+      },
+      "x + y": {
+        "kind": "notation",
+        "lines": [56, 56],
+        "content": "infixl:65 \" + \" => add"
+      },
+      "x * y": {
+        "kind": "notation",
+        "lines": [57, 57],
+        "content": "infixl:70 \" * \" => mul"
+      },
+      "- x": {
+        "kind": "notation",
+        "lines": [58, 58],
+        "content": "prefix:100 \"-\" => opp"
+      },
+      "x - y": {
+        "kind": "notation",
+        "lines": [59, 59],
+        "content": "notation x \" - \" y:65 => add x (opp y)"
+      },
+      "/ x": {
+        "kind": "notation",
+        "lines": [60, 60],
+        "content": "prefix:100 \"/\" => inv"
+      },
+      "<=": {
+        "kind": "notation",
+        "lines": [61, 61],
+        "content": "infixl:70 \" <= \" => NatAltle"
+      },
+      "<=R": {
+        "kind": "notation",
+        "lines": [62, 62],
+        "content": "infixl:70 \" <=R \" => Rle"
+      },
+      "<R": {
+        "kind": "notation",
+        "lines": [63, 63],
+        "content": "infixl:70 \" <R \" => Rlt"
+      },
+      ">R": {
+        "kind": "notation",
+        "lines": [64, 64],
+        "content": "infixl:70 \" >R \" => (fun x y => Rlt y x)"
+      },
+      "| x |": {
+        "kind": "notation",
+        "lines": [65, 65],
+        "content": "notation \"|\" x \"|\" => Rabs x"
+      },
+      "R": {
+        "kind": "local notation",
+        "lines": [68, 68],
+        "content": "local notation \"R\" => F.R"
+      },
+      "up_bounds": {
+        "kind": "def",
+        "lines": [70, 72],
+        "content": "def up_bounds (A : R → Prop) : R → Prop :=\n  fun x => ∀ a, A a → a <=R x"
+      },
+      "is_maximum": {
+        "kind": "def",
+        "lines": [73, 75],
+        "content": "def is_maximum (a : R) (A : R → Prop) : Prop :=\n  A a ∧ up_bounds A a"
+      },
+      "is_a_max_of": {
+        "kind": "notation",
+        "lines": [76, 76],
+        "content": "infix:70 \" is_a_max_of \" => is_maximum"
+      },
+      "add_sub_cancel_r": {
+        "kind": "theorem",
+        "lines": [78, 87],
+        "content": "theorem add_sub_cancel_r (a b : R) :\n    a + (b - a) = b :=\nby\n  rw [←F.add_assoc]\n  rw [F.add_comm]\n  rw [←F.add_assoc]\n  rw [F.add_opp]\n  rw [F.add_comm]\n  rw [F.add_zero]"
+      },
+      "Rabs_pos": {
+        "kind": "theorem",
+        "lines": [88, 93],
+        "content": "theorem Rabs_pos (t : R) : t <=R |t| :=\nby\n  have H := F.Rle_abs t\n  rw [F.sub_zero] at H\n  exact H"
+      },
+      "unique_max": {
+        "kind": "theorem",
+        "lines": [94, 101],
+        "content": "theorem unique_max (A : R → Prop) (x y : R) :\n    x is_a_max_of A → y is_a_max_of A → x = y :=\nby\n  rintro ⟨HxA, Hx⟩ ⟨HyA, Hy⟩\n  apply F.Rle_antisym\n  · apply Hy; exact HxA\n  · apply Hx; exact HyA"
+      },
+      "low_bounds": {
+        "kind": "def",
+        "lines": [102, 104],
+        "content": "def low_bounds (A : R → Prop) : R → Prop :=\n  fun x => ∀ a, A a → x <=R a"
+      },
+      "is_inf": {
+        "kind": "def",
+        "lines": [105, 107],
+        "content": "def is_inf (x : R) (A : R → Prop) : Prop :=\n  is_maximum x (low_bounds A)"
+      },
+      "is_an_inf_of": {
+        "kind": "notation",
+        "lines": [108, 108],
+        "content": "infix:70 \" is_an_inf_of \" => is_inf"
+      },
+      "classic": {
+        "kind": "axiom",
+        "lines": [110, 110],
+        "content": "axiom classic : ∀ P : Prop, P ∨ ¬P"
+      },
+      "inf_lt": {
+        "kind": "theorem",
+        "lines": [112, 136],
+        "content": "theorem inf_lt (A : R → Prop) (x : R) :\n    x is_an_inf_of A → ∀ y, x <R y → ∃ a, A a ∧ a <R y :=\nby\n  intro Hinf y Hlt\n  rcases Hinf with ⟨Hlow, Hmax⟩\n  cases classic (∃ a, A a ∧ a <R y) with\n  | inl Hex => exact Hex\n  | inr Hnex =>\n      have Hlb : low_bounds A y :=\n        fun a Ha =>\n          match F.Rtotal_order y a with\n          | Or.inl Hya =>\n              (F.Rlt_def y a).mp Hya |>.1\n          | Or.inr (Or.inl Heq) =>\n              Heq ▸ F.Rle_refl y\n          | Or.inr (Or.inr Hay) =>\n              False.elim (Hnex ⟨a, Ha, Hay⟩)\n      let Hmax_y := Hmax y Hlb\n      specialize Hmax y Hlb\n      let ⟨Hxly, Hneq⟩ := (F.Rlt_def x y).mp Hlt\n      have Hxy := F.Rle_antisym x y Hxly Hmax_y\n      subst Hxy\n      contradiction"
+      },
+      "le_of_le_add_eps": {
+        "kind": "theorem",
+        "lines": [137, 154],
+        "content": "-- Epsilon inequality\ntheorem le_of_le_add_eps (x y : R) :\n    (∀ eps, eps >R F.zero → y <=R (x + eps)) → y <=R x :=\nby\n  intro H\n  match F.Rtotal_order y x with\n  | Or.inl Hlt =>\n      exact (F.Rlt_def y x).mp Hlt |>.1\n  | Or.inr (Or.inl Heq) =>\n      rw [Heq]; exact F.Rle_refl x\n  | Or.inr (Or.inr Hgt) =>\n      obtain ⟨eps, Heps, Hxp⟩ := F.eps_between x y Hgt\n      specialize H eps Heps\n      let ⟨Hxp_le, Hxp_neq⟩ := (F.Rlt_def (x + eps) y).mp Hxp\n      exfalso\n      apply Hxp_neq\n      exact F.Rle_antisym (x + eps) y Hxp_le H"
+      },
+      "limit": {
+        "kind": "def",
+        "lines": [155, 157],
+        "content": "-- Limits of sequences\ndef limit (u : Nat → R) (l : R) : Prop :=\n  ∀ eps, eps >R F.zero → ∃ N, ∀ n : Nat, N ≤ n → |u n - l| <=R eps"
+      },
+      "le_lim": {
+        "kind": "theorem",
+        "lines": [158, 173],
+        "content": "theorem le_lim (x y : R) (u : Nat → R) :\n    limit u x → (∀ n : Nat, y <=R u n) → y <=R x :=\nby\n  intros Hlim Hle\n  apply le_of_le_add_eps\n  intro eps Heps\n  obtain ⟨N, HN⟩ := Hlim eps Heps\n  apply F.Rle_trans y (u N) (x + eps) (Hle N)\n  apply F.Rle_trans (u N) (x + (u N - x)) (x + eps)\n  · rw [add_sub_cancel_r]\n    exact F.Rle_refl (u N)\n  · apply F.Rplus_le_compat_l\n    apply F.Rle_trans (u N - x) (|u N - x|) eps\n    · apply Rabs_pos\n    · exact HN N (Nat.le_refl N)"
+      },
+      "inv_succ_pos": {
+        "kind": "theorem",
+        "lines": [174, 178],
+        "content": "theorem inv_succ_pos (n : F.NatAlt) : F.zero <R /F.INR (F.Succ n) :=\n  by\n  apply F.Rinv_0_lt_compat\n  apply F.INR_pos"
+      },
+      "nat_le_S": {
+        "kind": "axiom",
+        "lines": [179, 179],
+        "content": "axiom nat_le_S : ∀ N n : Nat, N ≤ n → N ≤ Nat.succ n"
+      },
+      "limit_inv_succ": {
+        "kind": "theorem",
+        "lines": [181, 205],
+        "content": "theorem limit_inv_succ (eps : R) (Heps : eps >R F.zero) :\n    ∃ N, ∀ n : F.NatAlt, N <= n → /F.INR (F.Succ n) <=R eps :=\nby\n  let x := /eps\n  have Hx_pos : F.zero <R x := by\n    apply F.Rinv_0_lt_compat\n    exact Heps\n  obtain ⟨N, Harch⟩ := F.archimedean x\n  let N1 := F.Succ N\n  exists N1\n  intros n Hn\n  have H_INR_le : F.INR N1 <=R F.INR (F.Succ n) :=\n    F.INR_le N1 (F.Succ n) (F.le_succ_of_le N1 n Hn)\n  have H_INR_pos : F.zero <R F.INR (F.Succ n) :=\n    F.INR_pos n\n  have H_INR_N_pos : F.zero <R F.INR N1 :=\n    F.INR_pos N\n  apply F.Rle_trans\n  · exact F.Rle_inv_contravar (F.INR N1) (F.INR (F.Succ n)) H_INR_N_pos H_INR_pos H_INR_le\n  have Harch1 : x <=R F.INR N1 := F.Rle_trans x (F.INR N) (F.INR N1) Harch (F.INR_le N N1 (F.le_succ N))\n  apply F.Rle_trans\n  · exact F.Rle_inv_contravar x (F.INR N1) Hx_pos H_INR_N_pos Harch1\n  rw [F.Rinv_involutive _ Heps]\n  exact F.Rle_refl eps"
+      },
+      "end SupInf": {
+        "kind": "end",
+        "lines": [206, 206],
+        "content": "end SupInf"
+      },
+      "Rle_abs": { "kind": "class_field", "lines": [35, 35], "content": "  Rle_abs       : ∀ x : R, Rle (add x (opp zero)) (Rabs x)" },
+      "sub_zero": { "kind": "class_field", "lines": [30, 30], "content": "  sub_zero      : ∀ x : R, add x (opp zero) = x" },
+      "Rle_antisym": { "kind": "class_field", "lines": [33, 33], "content": "  Rle_antisym   : ∀ x y : R, Rle x y → Rle y x → x = y" },
+      "Rtotal_order": { "kind": "class_field", "lines": [43, 43], "content": "  Rtotal_order  : ∀ x y : R, Rlt x y ∨ x = y ∨ Rlt y x" },
+      "Rlt_def": { "kind": "class_field", "lines": [34, 34], "content": "  Rlt_def       : ∀ x y : R, Rlt x y ↔ (Rle x y ∧ x ≠ y)" },
+      "Rle_refl": { "kind": "class_field", "lines": [31, 31], "content": "  Rle_refl      : ∀ x : R, Rle x x" },
+      "eps_between": { "kind": "class_field", "lines": [45, 45], "content": "  eps_between   : ∀ x y : R, Rlt x y → ∃ eps, Rlt zero eps ∧ Rlt (add x eps) y" },
+      "Rplus_le_compat_l": { "kind": "class_field", "lines": [37, 37], "content": "  Rplus_le_compat_l : ∀ x y z : R, Rle y z → Rle (add x y) (add x z)" },
+      "INR_pos": { "kind": "class_field", "lines": [39, 39], "content": "  INR_pos       : ∀ n, Rlt zero (INR (Succ n))" },
+      "INR_le": { "kind": "class_field", "lines": [40, 40], "content": "  INR_le        : ∀ m n, (NatAltle m n) → Rle (INR m) (INR n)" },
+      "Rle_inv_contravar": { "kind": "class_field", "lines": [44, 44], "content": "  Rle_inv_contravar : ∀ a b : R, Rlt zero a → Rlt zero b → Rle a b → Rle (inv b) (inv a)" },
+      "Rinv_0_lt_compat": { "kind": "class_field", "lines": [36, 36], "content": "  Rinv_0_lt_compat : ∀ x : R, Rlt zero x → Rlt zero (inv x)" },
+      "Rinv_involutive": { "kind": "class_field", "lines": [38, 38], "content": "  Rinv_involutive   : ∀ x : R, Rlt zero x → inv (inv x) = x" },
+      "archimedean": { "kind": "class_field", "lines": [46, 46], "content": "  archimedean   : ∀ x : R, ∃ n, Rle x (INR n)" },
+      "le_succ_of_le": { "kind": "class_field", "lines": [19, 19], "content": "  le_succ_of_le : ∀ n m: NatAlt, NatAltle n m → NatAltle n (Succ m)" },
+      "le_succ": { "kind": "class_field", "lines": [20, 20], "content": "  le_succ : ∀ n : NatAlt, NatAltle n (Succ n)" },
+      "NatAltle_n": { "kind": "class_field", "lines": [18, 18], "content": "  NatAltle_n : ∀ n : NatAlt, NatAltle n n" },
+      "INR": { "kind": "class_field", "lines": [15, 15], "content": "  INR     : NatAlt → R" },
+      "Succ": { "kind": "class_field", "lines": [4, 4], "content": "  Succ : NatAlt -> NatAlt" },
+      "NatAltle": { "kind": "class_field", "lines": [5, 5], "content": "  NatAltle : NatAlt -> NatAlt -> Prop" },
+      "add": { "kind": "class_field", "lines": [9, 9], "content": "  add     : R → R → R" },
+      "opp": { "kind": "class_field", "lines": [11, 11], "content": "  opp     : R → R" },
+      "Rle": { "kind": "class_field", "lines": [13, 13], "content": "  Rle     : R → R → Prop" },
+      "Rlt": { "kind": "class_field", "lines": [14, 14], "content": "  Rlt     : R → R → Prop" },
+      "Rabs": { "kind": "class_field", "lines": [15, 15], "content": "  Rabs    : R → R" },
+      "inv": { "kind": "class_field", "lines": [12, 12], "content": "  inv     : R → R" },
+      "zero": { "kind": "class_field", "lines": [7, 7], "content": "  zero    : R" },
+      "one": { "kind": "class_field", "lines": [8, 8], "content": "  one     : R" },
+      "mul": { "kind": "class_field", "lines": [10, 10], "content": "  mul     : R → R → R" },
+      "dist_l": { "kind": "class_field", "lines": [27, 27], "content": "  dist_l        : ∀ x y z : R, mul x (add y z) = add (mul x y) (mul x z)" },
+      "mul_assoc": { "kind": "class_field", "lines": [26, 26], "content": "  mul_assoc     : ∀ x y z : R, mul (mul x y) z = mul x (mul y z)" },
+      "mul_comm": { "kind": "class_field", "lines": [24, 24], "content": "  mul_comm      : ∀ x y : R, mul x y = mul y x" },
+      "mul_one": { "kind": "class_field", "lines": [28, 28], "content": "  mul_one       : ∀ x : R, mul x one = x" },
+      "add_assoc": { "kind": "class_field", "lines": [23, 23], "content": "  add_assoc     : ∀ x y z : R, add (add x y) z = add x (add y z)" },
+      "add_comm": { "kind": "class_field", "lines": [22, 22], "content": "  add_comm      : ∀ x y : R, add x y = add y x" },
+      "add_opp": { "kind": "class_field", "lines": [25, 25], "content": "  add_opp       : ∀ x : R, add (opp x) x = zero" },
+      "add_zero": { "kind": "class_field", "lines": [24, 24], "content": "  mul_comm      : ∀ x y : R, mul x y = mul y x" }
+    },
+    "coq": {
+      "Section SupInf.": {
+        "kind": "Section",
+        "lines": [56, 56],
+        "content": "Section SupInf."
+      },
+      "F": {
+        "kind": "Context",
+        "lines": [59, 59],
+        "content": "  Context {F : CompleteOrderedField}."
+      },
+      "x + y": {
+        "kind": "Infix",
+        "lines": [61, 61],
+        "content": "  Infix \"+\"   := add."
+      },
+      "x * y": {
+        "kind": "Infix",
+        "lines": [62, 62],
+        "content": "  Infix \"*\"   := mul."
+      },
+      "- x": {
+        "kind": "Notation",
+        "lines": [63, 63],
+        "content": "  Notation \"- x\" := (opp x)."
+      },
+      "x - y": {
+        "kind": "Notation",
+        "lines": [64, 64],
+        "content": "  Notation \"x - y\" := (add x (opp y))."
+      },
+      "/ x": {
+        "kind": "Notation",
+        "lines": [65, 65],
+        "content": "  Notation \"/ x\" := (inv x)."
+      },
+      "<=": {
+        "kind": "Infix",
+        "lines": [66, 66],
+        "content": "  Infix \"<=\"   := NatAltle (at level 70)."
+      },
+      "<=R": {
+        "kind": "Infix",
+        "lines": [68, 68],
+        "content": "  Infix \"<=R\"   := Rle (at level 70)."
+      },
+      "<R": {
+        "kind": "Infix",
+        "lines": [69, 69],
+        "content": "  Infix \"<R\"    := Rlt (at level 70)."
+      },
+      ">R": {
+        "kind": "Infix",
+        "lines": [70, 70],
+        "content": "  Infix \">R\"    := (fun x y => Rlt y x) (at level 70)."
+      },
+      "| x |": {
+        "kind": "Notation",
+        "lines": [71, 71],
+        "content": "  Notation \"| x |\" := (Rabs x) (at level 40)."
+      },
+      "up_bounds": {
+        "kind": "Definition",
+        "lines": [71, 72],
+        "content": "  Definition up_bounds (A : R -> Prop) (x : R) : Prop :=\n    forall a, A a -> Rle a x."
+      },
+      "is_maximum": {
+        "kind": "Definition",
+        "lines": [74, 75],
+        "content": "  Definition is_maximum (a : R) (A : R -> Prop) : Prop :=\n    A a /\\ up_bounds A a."
+      },
+      "is_a_max_of": {
+        "kind": "Infix",
+        "lines": [76, 76],
+        "content": "  Infix \"is_a_max_of\" := is_maximum (at level 70)."
+      },
+      "add_sub_cancel_r": {
+        "kind": "Lemma",
+        "lines": [79, 91],
+        "content": "  Lemma add_sub_cancel_r : forall a b : R,\n  a + (b - a) = b.\nProof.\n  intros a b.\n  unfold minus.\n  rewrite <- add_assoc.\n  rewrite add_comm.\n  rewrite <- add_assoc.\n  rewrite add_opp.\n  rewrite add_comm.\n  rewrite add_zero.\n  reflexivity.\nQed."
+      },
+      "Rabs_pos": {
+        "kind": "Lemma",
+        "lines": [93, 98],
+        "content": "  Lemma Rabs_pos (t : R) : t <=R |t|.\n    Proof.\n    pose proof (Rle_abs t) as H.\n    rewrite sub_zero in H.\n    exact H.\n    Qed."
+      },
+      "unique_max": {
+        "kind": "Lemma",
+        "lines": [101, 106],
+        "content": "  Lemma unique_max (A : R -> Prop) (x y : R) :\n    x is_a_max_of A -> y is_a_max_of A -> x = y.\n  Proof.\n    intros [HxA Hx] [HyA Hy].\n    apply Rle_antisym; [apply Hy| apply Hx]; assumption.\n  Qed."
+      },
+      "low_bounds": {
+        "kind": "Definition",
+        "lines": [111, 112],
+        "content": "  Definition low_bounds (A : R -> Prop) : R -> Prop :=\n    fun x => forall a, A a -> x <=R a."
+      },
+      "is_inf": {
+        "kind": "Definition",
+        "lines": [114, 115],
+        "content": "  Definition is_inf (x : R) (A : R -> Prop) : Prop :=\n    is_maximum x (low_bounds A)."
+      },
+      "is_an_inf_of": {
+        "kind": "Infix",
+        "lines": [115, 115],
+        "content": "  Infix \"is_an_inf_of\" := is_inf (at level 70)."
+      },
+      "classic": {
+        "kind": "Axiom",
+        "lines": [117, 117],
+        "content": "  Axiom classic : forall P:Prop, P \\/ ~P."
+      },
+      "inf_lt": {
+        "kind": "Lemma",
+        "lines": [116, 135],
+        "content": "  Lemma inf_lt (A : R -> Prop) (x : R) :\n    x is_an_inf_of A -> forall y, x <R y -> exists a, A a /\\ a <R y.\n  Proof.\n  intros Hinf y Hlt.\n  unfold is_inf, is_maximum, up_bounds, low_bounds in Hinf.\n  destruct Hinf as [Hlow Hmax].\n  destruct (classic (exists a, A a /\\ a <R y)) as [Hex | Hnex].\n  - exact Hex.\n  - assert (Hlb: low_bounds A y).\n    { intros a Ha.\n      destruct (Rtotal_order y a) as [Hya | [Heq | Hay]].\n      + apply (proj1 (Rlt_def _ _)) in Hya. apply Hya.\n      + rewrite Heq. apply Rle_refl.\n      + exfalso. apply Hnex. exists a. split; [assumption|apply Hay].\n    }\n    specialize (Hmax y Hlb).\n    apply (proj1 (Rlt_def _ _)) in Hlt as [Hxly Hneq].\n    apply Rle_antisym in Hmax; [|exact Hxly].\n    subst y. contradiction.\n  Qed."
+      },
+      "le_of_le_add_eps": {
+        "kind": "Lemma",
+        "lines": [137, 150],
+        "content": "  Lemma le_of_le_add_eps (x y : R) :\n    (forall eps, eps >R zero -> y <=R x + eps) -> y <=R x.\n  Proof. \n    intros H.\n    destruct (Rtotal_order y x) as [Hlt | [Heq | Hgt]].\n    - now apply (proj1 (Rlt_def _ _)) in Hlt.\n    - rewrite Heq; apply Rle_refl.\n    - destruct (eps_between _ _ Hgt) as [eps [Heps Hxp]].\n        specialize (H eps Heps).\n        apply Rlt_def in Hxp as [Hxp_le Hxp_neq].\n        exfalso.\n        apply Hxp_neq.\n        apply Rle_antisym; [exact Hxp_le | exact H].\n  Qed."
+      },
+      "limit": {
+        "kind": "Definition",
+        "lines": [149, 150],
+        "content": "  Definition limit (u : NatAlt -> R) (l : R) : Prop :=\n    forall eps, eps >R zero -> exists N, forall n : NatAlt, (N <= n) -> |u n - l| <=R eps."
+      },
+      "le_lim": {
+        "kind": "Lemma",
+        "lines": [155, 170],
+        "content": "  Lemma le_lim (x y : R) (u : NatAlt -> R) :\n  limit u x -> (forall n : NatAlt, y <=R u n) -> y <=R x.\n  Proof.\n    intros Hlim Hle.\n    apply le_of_le_add_eps; intros eps Heps.\n    destruct (Hlim _ Heps) as [N HN].\n    specialize (HN N (NatAltle_n _)).\n    apply Rle_trans with (y := u N).\n    - apply Hle.\n    - apply Rle_trans with (y := x + (u N - x)).\n      + rewrite add_sub_cancel_r. apply Rle_refl.\n      + apply Rplus_le_compat_l.\n        apply Rle_trans with (y := |u N - x|).\n        * apply Rabs_pos.\n        * apply HN.\n  Qed."
+      },
+      "inv_succ_pos": {
+        "kind": "Lemma",
+        "lines": [172, 173],
+        "content": "  Lemma inv_succ_pos : forall n, zero <R / INR (Succ n).\n  Proof. intro n; apply Rinv_0_lt_compat, INR_pos. Qed."
+      },
+      "nat_le_S": {
+        "kind": "Axiom",
+        "lines": [175, 175],
+        "content": "  Axiom nat_le_S : forall N n : NatAlt, (N <= n) -> (N <= Succ n)."
+      },
+      "limit_inv_succ": {
+        "kind": "Lemma",
+        "lines": [176, 203],
+        "content": "  Lemma limit_inv_succ : forall eps : R, eps >R zero ->\n    exists N, forall n : NatAlt, (N <= n) -> / INR (Succ n) <=R eps.\n  Proof.\n    intros eps Heps.\n    set (x := / eps) in *.\n    assert (Hx_pos : zero <R x).\n    { unfold x; apply Rinv_0_lt_compat; exact Heps. }\n    destruct (archimedean x) as [N Harch].\n    set (N1 := Succ N).\n    exists N1; intros n Hn.\n    assert (H_INR_le : INR N1 <=R INR (Succ n)).\n    { apply INR_le. apply nat_le_S. exact Hn. }\n    assert (H_INR_pos : zero <R INR (Succ n)).\n    { apply INR_pos. }\n    assert (H_INR_N_pos : zero <R INR N1).\n    { apply INR_pos. }\n    apply Rle_trans with (y := / INR N1).\n  - apply Rle_inv_contravar; try assumption.\n  - apply Rle_trans with (y := / x).\n    + unfold x in Harch. apply Rle_inv_contravar; try assumption.\n      apply Rle_trans with (y := INR N).\n      * apply Harch.\n      * apply INR_le. apply nat_le_S, NatAltle_n.\n    + unfold x. \n      assert (Hxx: zero <R / eps) by (apply Rinv_0_lt_compat; exact Heps).\n      rewrite (Rinv_involutive eps Heps).\n      apply Rle_refl.\n  Qed."
+      },
+      "End SupInf.": {
+        "kind": "End",
+        "lines": [205, 205],
+        "content": "End SupInf."
+      },
+      "CompleteOrderedField": {
+        "kind": "Class",
+        "lines": [0, 55],
+        "content": "Class CompleteOrderedField := {\n  R         : Type;\n  NatAlt    : Type;\n  zero_nat  : NatAlt;\n  Succ      : NatAlt -> NatAlt;\n  NatAltle  : NatAlt -> NatAlt -> Prop;\n\n  zero      : R;\n  one       : R;\n  add       : R -> R -> R;\n  mul       : R -> R -> R;\n  opp       : R -> R;\n  inv       : R -> R;\n  Rle       : R -> R -> Prop;\n  Rlt       : R -> R -> Prop;\n  Rabs      : R -> R;\n  INR       : NatAlt -> R;\n\n  le_succ_of_le : forall n m, NatAltle n m -> NatAltle n (Succ m);\n  le_succ       : forall n, NatAltle n (Succ n);\n  NatAltle_n : forall n : NatAlt, NatAltle n n;\n\n  add_comm      : forall x y, add x y = add y x;\n  add_assoc     : forall x y z, add (add x y) z = add x (add y z);\n  add_zero      : forall x, add x zero = x;\n  add_opp       : forall x, add (opp x) x = zero;\n  mul_comm      : forall x y, mul x y = mul y x;\n  mul_assoc     : forall x y z, mul (mul x y) z = mul x (mul y z);\n  mul_one       : forall x, mul x one = x;\n  dist_l        : forall x y z, mul x (add y z) = add (mul x y) (mul x z);\n  sub_zero      : forall x, add x (opp zero) = x;\n\n  Rle_refl      : forall x, Rle x x;\n  Rle_trans     : forall x y z, Rle x y -> Rle y z -> Rle x z;\n  Rle_antisym   : forall x y, Rle x y -> Rle y x -> x = y;\n  Rlt_def       : forall x y, Rlt x y <-> (Rle x y /\\ x <> y);\n  Rle_abs       : forall x, Rle (add x (opp zero)) (Rabs x);\n  Rinv_0_lt_compat   : forall x, Rlt zero x -> Rlt zero (inv x);\n  Rplus_le_compat_l  : forall x y z, Rle y z -> Rle (add x y) (add x z);\n  Rinv_involutive    : forall x, Rlt zero x -> inv (inv x) = x;\n\n  INR_pos       : forall n, Rlt zero (INR (Succ n));\n  INR_le        : forall m n, NatAltle m n -> Rle (INR m) (INR n);\n  INR_0         : INR zero_nat = zero;\n  INR_S         : forall n, INR (Succ n) = add (INR n) one;\n\n  Rtotal_order       : forall x y, Rlt x y \\/ x = y \\/ Rlt y x;\n  Rle_inv_contravar  : forall a b, Rlt zero a -> Rlt zero b -> Rle a b -> Rle (inv b) (inv a);\n  eps_between        : forall x y, Rlt x y -> exists eps, Rlt zero eps /\\ Rlt (add x eps) y;\n\n  archimedean  : forall x, exists n, Rle x (INR n);\n  completeness  : forall A : R -> Prop,\n    (exists ub, forall a, A a -> Rle ub a) ->\n    exists sup,\n      (forall a, A a -> Rle a sup) /\\\n      (forall y, (forall a, A a -> Rle a y) -> Rle sup y)\n}."
+      },
+      "add_assoc": { "kind": "class_field", "lines": [24, 24], "content": "  add_assoc     : forall x y z, add (add x y) z = add x (add y z);" },
+      "add_comm": { "kind": "class_field", "lines": [23, 23], "content": "  add_comm      : forall x y, add x y = add y x;" },
+      "add_opp": { "kind": "class_field", "lines": [26, 26], "content": "  add_opp       : forall x, add (opp x) x = zero;" },
+      "add_zero": { "kind": "class_field", "lines": [25, 25], "content": "  add_zero      : forall x, add x zero = x;" },
+      "Rle_abs": { "kind": "class_field", "lines": [36, 36], "content": "  Rle_abs       : forall x, Rle (add x (opp zero)) (Rabs x);" },
+      "sub_zero": { "kind": "class_field", "lines": [30, 30], "content": "  sub_zero      : forall x, add x (opp zero) = x;" },
+      "Rle_antisym": { "kind": "class_field", "lines": [34, 34], "content": "  Rle_antisym   : forall x y, Rle x y -> Rle y x -> x = y;" },
+      "Rtotal_order": { "kind": "class_field", "lines": [46, 46], "content": "  Rtotal_order       : forall x y, Rlt x y \\/ x = y \\/ Rlt y x;" },
+      "Rlt_def": { "kind": "class_field", "lines": [35, 35], "content": "  Rlt_def       : forall x y, Rlt x y <-> (Rle x y /\\ x <> y);" },
+      "Rle_refl": { "kind": "class_field", "lines": [32, 32], "content": "  Rle_refl      : forall x, Rle x x;" },
+      "eps_between": { "kind": "class_field", "lines": [48, 48], "content": "  eps_between        : forall x y, Rlt x y -> exists eps, Rlt zero eps /\\ Rlt (add x eps) y;" },
+      "Rplus_le_compat_l": { "kind": "class_field", "lines": [38, 38], "content": "  Rplus_le_compat_l  : forall x y z, Rle y z -> Rle (add x y) (add x z);" },
+      "INR_pos": { "kind": "class_field", "lines": [41, 41], "content": "  INR_pos       : forall n, Rlt zero (INR (Succ n));" },
+      "INR_le": { "kind": "class_field", "lines": [42, 42], "content": "  INR_le        : forall m n, NatAltle m n -> Rle (INR m) (INR n);" },
+      "Rle_inv_contravar": { "kind": "class_field", "lines": [47, 47], "content": "  Rle_inv_contravar  : forall a b, Rlt zero a -> Rlt zero b -> Rle a b -> Rle (inv b) (inv a);" },
+      "Rinv_0_lt_compat": { "kind": "class_field", "lines": [37, 37], "content": "  Rinv_0_lt_compat   : forall x, Rlt zero x -> Rlt zero (inv x);" },
+      "Rinv_involutive": { "kind": "class_field", "lines": [39, 39], "content": "  Rinv_involutive    : forall x, Rlt zero x -> inv (inv x) = x;" },
+      "archimedean": { "kind": "class_field", "lines": [50, 50], "content": "  archimedean  : forall x, exists n, Rle x (INR n);" },
+      "le_succ_of_le": { "kind": "class_field", "lines": [18, 18], "content": "  le_succ_of_le : forall n m, NatAltle n m -> NatAltle n (Succ m);" },
+      "le_succ": { "kind": "class_field", "lines": [19, 19], "content": "  le_succ       : forall n, NatAltle n (Succ n);" },
+      "NatAltle_n": { "kind": "class_field", "lines": [20, 20], "content": "  NatAltle_n : forall n : NatAlt, NatAltle n n;" },
+      "INR": { "kind": "class_field", "lines": [16, 16], "content": "  INR       : NatAlt -> R;" },
+      "Succ": { "kind": "class_field", "lines": [4, 4], "content": "  Succ      : NatAlt -> NatAlt;" },
+      "NatAltle": { "kind": "class_field", "lines": [5, 5], "content": "  NatAltle  : NatAlt -> NatAlt -> Prop;" },
+      "add": { "kind": "class_field", "lines": [10, 10], "content": "  add       : R -> R -> R;" },
+      "opp": { "kind": "class_field", "lines": [12, 12], "content": "  opp       : R -> R;" },
+      "Rle": { "kind": "class_field", "lines": [14, 14], "content": "  Rle       : R -> R -> Prop;" },
+      "Rlt": { "kind": "class_field", "lines": [15, 15], "content": "  Rlt       : R -> R -> Prop;" },
+      "Rabs": { "kind": "class_field", "lines": [16, 16], "content": "  Rabs      : R -> R;" },
+      "inv": { "kind": "class_field", "lines": [13, 13], "content": "  inv       : R -> R;" },
+      "zero": { "kind": "class_field", "lines": [8, 8], "content": "  zero      : R;" },
+      "one": { "kind": "class_field", "lines": [9, 9], "content": "  one       : R;" },
+      "mul": { "kind": "class_field", "lines": [11, 11], "content": "  mul       : R -> R -> R;" },
+      "dist_l": { "kind": "class_field", "lines": [29, 29], "content": "  dist_l        : forall x y z, mul x (add y z) = add (mul x y) (mul x z);" },
+      "mul_assoc": { "kind": "class_field", "lines": [27, 27], "content": "  mul_assoc     : forall x y z, mul (mul x y) z = mul x (mul y z);" },
+      "mul_comm": { "kind": "class_field", "lines": [26, 26], "content": "  mul_comm      : forall x y, mul x y = mul y x;" },
+      "mul_one": { "kind": "class_field", "lines": [28, 28], "content": "  mul_one       : forall x, mul x one = x;" }
+    },
+    "items": [
+      {
+        "name": "add_sub_cancel_r",
+        "lean": {
+          "kind": "theorem",
+          "lines": [80, 86],
+          "statement": "theorem add_sub_cancel_r (a b : R) :\n    a + (b - a) = b := by",
+          "proof": "  rw [←F.add_assoc]\n  rw [F.add_comm]\n  rw [←F.add_assoc]\n  rw [F.add_opp]\n  rw [F.add_comm]\n  rw [F.add_zero]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "R", "category": "notation" },
+              { "symbol": "x + y", "category": "notation" },
+              { "symbol": "x - y", "category": "notation" },
+              { "symbol": "- x", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "x + y", "category": "notation" },
+              { "symbol": "x - y", "category": "notation" },
+              { "symbol": "- x", "category": "notation" },
+              { "symbol": "add_assoc", "category": "class_field" },
+              { "symbol": "add_comm", "category": "class_field" },
+              { "symbol": "add_opp", "category": "class_field" },
+              { "symbol": "add_zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [81, 92],
+          "statement": "Lemma add_sub_cancel_r : forall a b : R,  a + (b - a) = b.",
+          "proof": "Proof.\n  intros a b.\n  unfold minus.\n  rewrite <- add_assoc.\n  rewrite add_comm.\n  rewrite <- add_assoc.\n  rewrite add_opp.\n  rewrite add_comm.\n  rewrite add_zero.\n  reflexivity.\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "x + y", "category": "Infix" },
+              { "symbol": "x - y", "category": "Notation" },
+              { "symbol": "- x", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "x + y", "category": "Infix" },
+              { "symbol": "x - y", "category": "Notation" },
+              { "symbol": "- x", "category": "Notation" },
+              { "symbol": "add_assoc", "category": "class_field" },
+              { "symbol": "add_comm", "category": "class_field" },
+              { "symbol": "add_opp", "category": "class_field" },
+              { "symbol": "add_zero", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "Rabs_pos",
+        "lean": {
+          "kind": "theorem",
+          "lines": [88, 91],
+          "statement": "theorem Rabs_pos (t : R) : t <=R |t| := by",
+          "proof": "  have H := F.Rle_abs t\n  rw [F.sub_zero] at H\n  exact H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "<=R", "category": "notation" },
+              { "symbol": "| x |", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "Rle_abs", "category": "class_field" },
+              { "symbol": "sub_zero", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [94, 99],
+          "statement": "Lemma Rabs_pos (t : R) : t <=R |t|.",
+          "proof": "Proof.\n    pose proof (Rle_abs t) as H.\n    rewrite sub_zero in H.\n    exact H.\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "<=R", "category": "Infix" },
+              { "symbol": "| x |", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "Rle_abs", "category": "class_field" },
+              { "symbol": "sub_zero", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "unique_max",
+        "lean": {
+          "kind": "theorem",
+          "lines": [94, 98],
+          "statement": "theorem unique_max (A : R → Prop) (x y : R) :\n    x is_a_max_of A → y is_a_max_of A → x = y := by",
+          "proof": "  rintro ⟨HxA, Hx⟩ ⟨HyA, Hy⟩\n  apply F.Rle_antisym\n  · apply Hy; exact HxA\n  · apply Hx; exact HyA",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "is_maximum", "category": "definition" },
+              { "symbol": "up_bounds", "category": "definition" },
+              { "symbol": "is_a_max_of", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "is_maximum", "category": "definition" },
+              { "symbol": "up_bounds", "category": "definition" },
+              { "symbol": "is_a_max_of", "category": "notation" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [103, 107],
+          "statement": "Lemma unique_max (A : R -> Prop) (x y : R) : x is_a_max_of A -> y is_a_max_of A -> x = y.",
+          "proof": "Proof.\n  intros [HxA Hx] [HyA Hy].\n  apply Rle_antisym; [apply Hy| apply Hx]; assumption.\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "is_maximum", "category": "Definition" },
+              { "symbol": "up_bounds", "category": "Definition" },
+              { "symbol": "is_a_max_of", "category": "Infix" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "is_maximum", "category": "Definition" },
+              { "symbol": "up_bounds", "category": "Definition" },
+              { "symbol": "is_a_max_of", "category": "Infix" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inf_lt",
+        "lean": {
+          "kind": "theorem",
+          "lines": [111, 131],
+          "statement": "theorem inf_lt (A : R → Prop) (x : R) :\n    x is_an_inf_of A → ∀ y, x <R y → ∃ a, A a ∧ a <R y := by",
+          "proof": "  intro Hinf y Hlt\n  rcases Hinf with ⟨Hlow, Hmax⟩\n  cases classic (∃ a, A a ∧ a <R y) with\n  | inl Hex => exact Hex\n  | inr Hnex =>\n      have Hlb : low_bounds A y :=\n        fun a Ha =>\n          match F.Rtotal_order y a with\n          | Or.inl Hya =>\n              (F.Rlt_def y a).mp Hya |>.1\n          | Or.inr (Or.inl Heq) =>\n              Heq ▸ F.Rle_refl y\n          | Or.inr (Or.inr Hay) =>\n              False.elim (Hnex ⟨a, Ha, Hay⟩)\n      let Hmax_y := Hmax y Hlb\n      specialize Hmax y Hlb\n      let ⟨Hxly, Hneq⟩ := (F.Rlt_def x y).mp Hlt\n      have Hxy := F.Rle_antisym x y Hxly Hmax_y\n      subst Hxy\n      contradiction",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "is_inf", "category": "definition" },
+              { "symbol": "low_bounds", "category": "definition" },
+              { "symbol": "is_an_inf_of", "category": "notation" },
+              { "symbol": "<R", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "classic", "category": "axiom" },
+              { "symbol": "is_inf", "category": "definition" },
+              { "symbol": "is_maximum", "category": "definition" },
+              { "symbol": "up_bounds", "category": "definition" },
+              { "symbol": "low_bounds", "category": "definition" },
+              { "symbol": "Rtotal_order", "category": "class_field" },
+              { "symbol": "Rlt_def", "category": "class_field" },
+              { "symbol": "Rle_refl", "category": "class_field" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [118, 136],
+          "statement": "Lemma inf_lt (A : R -> Prop) (x : R) : x is_an_inf_of A -> forall y, x <R y -> exists a, A a /\\ a <R y.",
+          "proof": "Proof.\n  intros Hinf y Hlt.\n  unfold is_inf, is_maximum, up_bounds, low_bounds in Hinf.\n  destruct Hinf as [Hlow Hmax].\n  destruct (classic (exists a, A a /\\ a <R y)) as [Hex | Hnex].\n  - exact Hex.\n  - assert (Hlb: low_bounds A y).\n    { intros a Ha.\n      destruct (Rtotal_order y a) as [Hya | [Heq | Hay]].\n      + apply (proj1 (Rlt_def _ _)) in Hya. apply Hya.\n      + rewrite Heq. apply Rle_refl.\n      + exfalso. apply Hnex. exists a. split; [assumption|apply Hay].\n    }\n    specialize (Hmax y Hlb).\n    apply (proj1 (Rlt_def _ _)) in Hlt as [Hxly Hneq].\n    apply Rle_antisym in Hmax; [|exact Hxly].\n    subst y. contradiction.\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "is_inf", "category": "Definition" },
+              { "symbol": "low_bounds", "category": "Definition" },
+              { "symbol": "is_an_inf_of", "category": "Infix" },
+              { "symbol": "<R", "category": "Infix" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "classic", "category": "Axiom" },
+              { "symbol": "is_inf", "category": "Definition" },
+              { "symbol": "is_maximum", "category": "Definition" },
+              { "symbol": "up_bounds", "category": "Definition" },
+              { "symbol": "low_bounds", "category": "Definition" },
+              { "symbol": "Rtotal_order", "category": "class_field" },
+              { "symbol": "Rlt_def", "category": "class_field" },
+              { "symbol": "Rle_refl", "category": "class_field" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "le_of_le_add_eps",
+        "lean": {
+          "kind": "theorem",
+          "lines": [135, 148],
+          "statement": "theorem le_of_le_add_eps (x y : R) :\n    (∀ eps, eps >R F.zero → y <=R (x + eps)) → y <=R x := by",
+          "proof": "  intro H\n  match F.Rtotal_order y x with\n  | Or.inl Hlt =>\n      exact (F.Rlt_def y x).mp Hlt |>.1\n  | Or.inr (Or.inl Heq) =>\n      rw [Heq]; exact F.Rle_refl x\n  | Or.inr (Or.inr Hgt) =>\n      obtain ⟨eps, Heps, Hxp⟩ := F.eps_between x y Hgt\n      specialize H eps Heps\n      let ⟨Hxp_le, Hxp_neq⟩ := (F.Rlt_def (x + eps) y).mp Hxp\n      exfalso\n      apply Hxp_neq\n      exact F.Rle_antisym (x + eps) y Hxp_le H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": ">R", "category": "notation" },
+              { "symbol": "<=R", "category": "notation" },
+              { "symbol": "x + y", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "Rtotal_order", "category": "class_field" },
+              { "symbol": "Rlt_def", "category": "class_field" },
+              { "symbol": "Rle_refl", "category": "class_field" },
+              { "symbol": "eps_between", "category": "class_field" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [139, 151],
+          "statement": "Lemma le_of_le_add_eps (x y : R) :\n     (forall eps, eps >R zero -> y <=R x + eps) -> y <=R x.",
+          "proof": "Proof. \n  intros H.\n  destruct (Rtotal_order y x) as [Hlt | [Heq | Hgt]].\n  - now apply (proj1 (Rlt_def _ _)) in Hlt.\n  - rewrite Heq; apply Rle_refl.\n  - destruct (eps_between _ _ Hgt) as [eps [Heps Hxp]].\n      specialize (H eps Heps).\n      apply Rlt_def in Hxp as [Hxp_le Hxp_neq].\n      exfalso.\n      apply Hxp_neq.\n      apply Rle_antisym; [exact Hxp_le | exact H].\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": ">R", "category": "Infix" },
+              { "symbol": "<=R", "category": "Infix" },
+              { "symbol": "x + y", "category": "Infix" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "Rtotal_order", "category": "class_field" },
+              { "symbol": "Rlt_def", "category": "class_field" },
+              { "symbol": "Rle_refl", "category": "class_field" },
+              { "symbol": "eps_between", "category": "class_field" },
+              { "symbol": "Rle_antisym", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "le_lim",
+        "lean": {
+          "kind": "theorem",
+          "lines": [155, 167],
+          "statement": "theorem le_lim (x y : R) (u : F.NatAlt → R) :\n    limit u x → (∀ n : F.NatAlt, y <=R u n) → y <=R x := by",
+          "proof": "  intros Hlim Hle\n  apply le_of_le_add_eps\n  intro eps Heps\n  obtain ⟨N, HN⟩ := Hlim eps Heps\n  apply F.Rle_trans y (u N) (x + eps) (Hle N)\n  apply F.Rle_trans (u N) (x + (u N - x)) (x + eps)\n  · rw [add_sub_cancel_r]\n    exact F.Rle_refl (u N)\n  · apply F.Rplus_le_compat_l\n    apply F.Rle_trans (u N - x) (|u N - x|) eps\n    · apply Rabs_pos\n    · exact HN N (F.NatAltle_n N)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "limit", "category": "definition" },
+              { "symbol": "<=R", "category": "notation" },
+              { "symbol": "| x |", "category": "notation" },
+              { "symbol": "x + y", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "le_of_le_add_eps", "category": "theorem" },
+              { "symbol": "add_sub_cancel_r", "category": "theorem" },
+              { "symbol": "Rabs_pos", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [157, 171],
+          "statement": "Lemma le_lim (x y : R) (u : NatAlt -> R) : limit u x -> (forall n : NatAlt, y <=R u n) -> y <=R x.",
+          "proof": "Proof.\n  intros Hlim Hle.\n  apply le_of_le_add_eps; intros eps Heps.\n  destruct (Hlim _ Heps) as [N HN].\n  specialize (HN N (NatAltle_n _)).\n  apply Rle_trans with (y := u N).\n  - apply Hle.\n  - apply Rle_trans with (y := x + (u N - x)).\n    + rewrite add_sub_cancel_r. apply Rle_refl.\n    + apply Rplus_le_compat_l.\n      apply Rle_trans with (y := |u N - x|).\n      * apply Rabs_pos.\n      * apply HN.\nQed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "limit", "category": "Definition" },
+              { "symbol": "<=R", "category": "Infix" },
+              { "symbol": "| x |", "category": "Notation" },
+              { "symbol": "x + y", "category": "Infix" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "le_of_le_add_eps", "category": "Lemma" },
+              { "symbol": "add_sub_cancel_r", "category": "Lemma" },
+              { "symbol": "Rabs_pos", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_succ_pos",
+        "lean": {
+          "kind": "theorem",
+          "lines": [169, 171],
+          "statement": "theorem inv_succ_pos (n : F.NatAlt) : F.zero <R /F.INR (F.Succ n) := by",
+          "proof": "  apply F.Rinv_0_lt_compat\n  apply F.INR_pos",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "<R", "category": "notation" },
+              { "symbol": "/ x", "category": "notation" },
+              { "symbol": "INR", "category": "class_field" },
+              { "symbol": "Succ", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "Rinv_0_lt_compat", "category": "class_field" },
+              { "symbol": "INR_pos", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [173, 174],
+          "statement": "Lemma inv_succ_pos : forall n, zero <R / INR (Succ n).",
+          "proof": "Proof. intro n; apply Rinv_0_lt_compat, INR_pos. Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "<R", "category": "Infix" },
+              { "symbol": "/ x", "category": "Notation" },
+              { "symbol": "INR", "category": "class_field" },
+              { "symbol": "Succ", "category": "class_field" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "Rinv_0_lt_compat", "category": "class_field" },
+              { "symbol": "INR_pos", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "limit_inv_succ",
+        "lean": {
+          "kind": "theorem",
+          "lines": [174, 195],
+          "statement": "theorem limit_inv_succ (eps : R) (Heps : eps >R F.zero) :\n    ∃ N, ∀ n : F.NatAlt, N <= n → /F.INR (F.Succ n) <=R eps := by",
+          "proof": "  let x := /eps\n  have Hx_pos : F.zero <R x := by\n    apply F.Rinv_0_lt_compat\n    exact Heps\n  obtain ⟨N, Harch⟩ := F.archimedean x\n  let N1 := F.Succ N\n  exists N1\n  intros n Hn\n  have H_INR_le : F.INR N1 <=R F.INR (F.Succ n) :=\n    F.INR_le N1 (F.Succ n) (F.le_succ_of_le N1 n Hn)\n  have H_INR_pos : F.zero <R F.INR (F.Succ n) :=\n    F.INR_pos n\n  have H_INR_N_pos : F.zero <R F.INR N1 :=\n    F.INR_pos N\n  apply F.Rle_trans\n  · exact F.Rle_inv_contravar (F.INR N1) (F.INR (F.Succ n)) H_INR_N_pos H_INR_pos H_INR_le\n  have Harch1 : x <=R F.INR N1 := F.Rle_trans x (F.INR N) (F.INR N1) Harch (F.INR_le N N1 (F.le_succ N))\n  apply F.Rle_trans\n  · exact F.Rle_inv_contravar x (F.INR N1) Hx_pos H_INR_N_pos Harch1\n  rw [F.Rinv_involutive _ Heps]\n  exact F.Rle_refl eps",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" },
+              { "symbol": "/ x", "category": "notation" },
+              { "symbol": "<=R", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "class" },
+              { "symbol": "F", "category": "variable" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [178, 204],
+          "statement": "Lemma limit_inv_succ : forall eps : R, eps >R zero ->\n  exists N, forall n : NatAlt, (N <= n) -> / INR (Succ n) <=R eps.",
+          "proof": "intros eps Heps.\n    set (x := / eps) in *.\n    assert (Hx_pos : zero <R x) by (unfold x; apply Rinv_0_lt_compat; exact Heps).\n    destruct (archimedean x) as [N Harch].\n    set (N1 := Succ N).\n    exists N1; intros n Hn.\n    assert (H_INR_le : INR N1 <=R INR (Succ n)).\n    { apply INR_le. apply le_succ_of_le. exact Hn. }\n    assert (H_INR_pos : zero <R INR (Succ n)) by apply INR_pos.\n    assert (H_INR_N_pos : zero <R INR N1) by apply INR_pos.\n    apply Rle_trans with (y := / INR N1).\n    - apply Rle_inv_contravar; try assumption.\n    - apply Rle_trans with (y := / x).\n      + (* use archimedean bound x <= INR N <= INR (Succ N) = INR N1 *)\n        apply Rle_inv_contravar; try assumption.\n        apply Rle_trans with (y := INR N).\n        * exact Harch.\n        * apply INR_le. apply le_succ.\n      + unfold x. rewrite (Rinv_involutive eps Heps). apply Rle_refl.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "/ x", "category": "Notation" },
+              { "symbol": "<=R", "category": "Infix" }
+            ],
+            "proof": [
+              { "symbol": "CompleteOrderedField", "category": "Class" },
+              { "symbol": "F", "category": "Context variable" },
+              { "symbol": "nat_le_S", "category": "Axiom" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

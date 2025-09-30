@@ -1,0 +1,406 @@
+{
+    "source": "comp_commute",
+    "lean": {
+      "universe": {
+        "kind": "universe",
+        "lines": [0, 0],
+        "content": "universe u v w"
+      },
+      "CompCommute": {
+        "kind": "namespace",
+        "lines": [2, 2],
+        "content": "namespace CompCommute"
+      },
+      "variable": {
+        "kind": "variable",
+        "lines": [4, 4],
+        "content": "variable {α : Type u} {β : Type v} {γ : Type w}"
+      },
+      "comp": {
+        "kind": "def",
+        "lines": [6, 6],
+        "content": "def comp {α β γ} (g : β → γ) (f : α → β) : α → γ := fun x => g (f x)"
+      },
+      "id": {
+        "kind": "def",
+        "lines": [7, 7],
+        "content": "def id {α} : α → α := fun x => x"
+      },
+      "comp_assoc": {
+        "kind": "axiom",
+        "lines": [9, 9],
+        "content": "axiom comp_assoc : ∀ {α β γ δ} (h : γ → δ) (g : β → γ) (f : α → β), comp h (comp g f) = comp (comp h g) f"
+      },
+      "comp_id_l": {
+        "kind": "axiom",
+        "lines": [10, 10],
+        "content": "axiom comp_id_l  : ∀ {α β} (f : α → β), comp (id) f = f"
+      },
+      "comp_id_r": {
+        "kind": "axiom",
+        "lines": [11, 11],
+        "content": "axiom comp_id_r  : ∀ {α β} (f : α → β), comp f id = f"
+      },
+      "commute": {
+        "kind": "def",
+        "lines": [13, 13],
+        "content": "def commute {α} (f g : α → α) : Prop := comp f g = comp g f"
+      },
+      "commute_symm": {
+        "kind": "theorem",
+        "lines": [15, 21],
+        "content": "theorem commute_symm {α} (f g : α → α) : commute f g → commute g f :=\nby\n  intro H\n  have : comp f g = comp g f := H\n  have Hsym : comp g f = comp f g := by\n    exact Eq.symm this\n  exact Hsym"
+      },
+      "commute_with_id_l": {
+        "kind": "theorem",
+        "lines": [23, 30],
+        "content": "theorem commute_with_id_l {α} (f : α → α) : commute f (id) :=\nby\n  unfold commute\n  have H1 : comp f id = f := comp_id_r f\n  have H2 : comp id f = f := comp_id_l f\n  have : comp f id = comp id f := by\n    simp [H1, H2]\n  exact this"
+      },
+      "commute_with_id_r": {
+        "kind": "theorem",
+        "lines": [32, 39],
+        "content": "theorem commute_with_id_r {α} (f : α → α) : commute (id) f :=\nby\n  unfold commute\n  have H1 : comp id f = f := comp_id_l f\n  have H2 : comp f id = f := comp_id_r f\n  have : comp id f = comp f id := by\n    simp [H1, H2]\n  exact this"
+      },
+      "commute_refl": {
+        "kind": "theorem",
+        "lines": [41, 44],
+        "content": "theorem commute_refl {α} (f : α → α) : commute f f :=\nby\n  unfold commute\n  rfl"
+      },
+      "commute_congr": {
+        "kind": "theorem",
+        "lines": [46, 52],
+        "content": "theorem commute_congr {α} (f1 f2 g1 g2 : α → α) :\n  f1 = f2 → g1 = g2 → commute f1 g1 → commute f2 g2 :=\nby\n  intro Hf Hg Hc\n  subst Hf\n  subst Hg\n  exact Hc"
+      },
+      "commute_transport_left_id": {
+        "kind": "theorem",
+        "lines": [54, 59],
+        "content": "theorem commute_transport_left_id {α} (f g : α → α) :\n  commute f g → commute (comp (id) f) g :=\nby\n  intro H\n  unfold commute at *\n  simpa [comp_id_l] using H"
+      },
+      "commute_transport_right_id": {
+        "kind": "theorem",
+        "lines": [61, 66],
+        "content": "theorem commute_transport_right_id {α} (f g : α → α) :\n  commute f g → commute f (comp (id) g) :=\nby\n  intro H\n  unfold commute at *\n  simpa [comp_id_l] using H"
+      },
+      "end CompCommute": {
+        "kind": "end",
+        "lines": [68, 68],
+        "content": "end CompCommute"
+      }
+    },
+    "coq": {
+      "Section CompCommute.": {
+        "kind": "Section",
+        "lines": [0, 0],
+        "content": "Section CompCommute."
+      },
+      "Universes": {
+        "kind": "Universes",
+        "lines": [1, 1],
+        "content": "  Universes u v w."
+      },
+      "comp": {
+        "kind": "Definition",
+        "lines": [2, 2],
+        "content": "  Definition comp {α β γ : Type} (g : β -> γ) (f : α -> β) : α -> γ := fun x => g (f x)."
+      },
+      "id": {
+        "kind": "Definition",
+        "lines": [3, 3],
+        "content": "  Definition id {α : Type} : α -> α := fun x => x."
+      },
+      "FunProps": {
+        "kind": "Class",
+        "lines": [5, 9],
+        "content": "  Class FunProps := {\n    comp_assoc : forall {α β γ δ} (h : γ -> δ) (g : β -> γ) (f : α -> β), comp h (comp g f) = comp (comp h g) f;\n    comp_id_l  : forall {α β} (f : α -> β), comp (@id β) f = f;\n    comp_id_r  : forall {α β} (f : α -> β), comp f (@id α) = f\n  }."
+      },
+      "commute": {
+        "kind": "Definition",
+        "lines": [11, 11],
+        "content": "  Definition commute {α : Type} (f g : α -> α) : Prop := comp f g = comp g f."
+      },
+      "Context {FP : FunProps}.": {
+        "kind": "Context",
+        "lines": [13, 13],
+        "content": "  Context {FP : FunProps}."
+      },
+      "commute_symm": {
+        "kind": "Lemma",
+        "lines": [15, 21],
+        "content": "  Lemma commute_symm : forall {α} (f g : α -> α), commute f g -> commute g f.\n  Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite H.\n    reflexivity.\n  Qed."
+      },
+      "commute_with_id_l": {
+        "kind": "Lemma",
+        "lines": [23, 30],
+        "content": "  Lemma commute_with_id_l : forall {α} (f : α -> α), commute f (@id α).\n  Proof.\n    intros α f.\n    unfold commute.\n    rewrite comp_id_r.\n    rewrite comp_id_l.\n    reflexivity.\n  Qed."
+      },
+      "commute_with_id_r": {
+        "kind": "Lemma",
+        "lines": [32, 39],
+        "content": "  Lemma commute_with_id_r : forall {α} (f : α -> α), commute (@id α) f.\n  Proof.\n    intros α f.\n    unfold commute.\n    rewrite comp_id_l.\n    rewrite comp_id_r.\n    reflexivity.\n  Qed."
+      },
+      "commute_refl": {
+        "kind": "Lemma",
+        "lines": [41, 46],
+        "content": "  Lemma commute_refl : forall {α} (f : α -> α), commute f f.\n  Proof.\n    intros α f.\n    unfold commute.\n    reflexivity.\n  Qed."
+      },
+      "commute_congr": {
+        "kind": "Lemma",
+        "lines": [48, 54],
+        "content": "  Lemma commute_congr : forall {α} (f1 f2 g1 g2 : α -> α),\n    f1 = f2 -> g1 = g2 -> commute f1 g1 -> commute f2 g2.\n  Proof.\n    intros α f1 f2 g1 g2 Hf Hg Hc.\n    subst f2. subst g2.\n    exact Hc.\n  Qed."
+      },
+      "commute_transport_left_id": {
+        "kind": "Lemma",
+        "lines": [56, 63],
+        "content": "  Lemma commute_transport_left_id : forall {α} (f g : α -> α),\n    commute f g -> commute (comp (@id α) f) g.\n  Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite comp_id_l.\n    exact H.\n  Qed."
+      },
+      "commute_transport_right_id": {
+        "kind": "Lemma",
+        "lines": [65, 72],
+        "content": "  Lemma commute_transport_right_id : forall {α} (f g : α -> α),\n    commute f g -> commute f (comp (@id α) g).\n  Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite comp_id_l.\n    exact H.\n  Qed."
+      },
+      "End CompCommute.": {
+        "kind": "End",
+        "lines": [74, 74],
+        "content": "End CompCommute."
+      },
+      "comp_assoc": {
+        "kind": "class_field",
+        "lines": [6, 6],
+        "content": "    comp_assoc : forall {α β γ δ} (h : γ -> δ) (g : β -> γ) (f : α -> β), comp h (comp g f) = comp (comp h g) f;"
+      },
+      "comp_id_l": {
+        "kind": "class_field",
+        "lines": [7, 7],
+        "content": "    comp_id_l  : forall {α β} (f : α -> β), comp (@id β) f = f;"
+      },
+      "comp_id_r": {
+        "kind": "class_field",
+        "lines": [8, 8],
+        "content": "    comp_id_r  : forall {α β} (f : α -> β), comp f (@id α) = f"
+      }
+    },
+    "items": [
+      {
+        "name": "commute_symm",
+        "lean": {
+          "kind": "theorem",
+          "lines": [17, 22],
+          "statement": "theorem commute_symm {α} (f g : α → α) : commute f g → commute g f := by",
+          "proof": "  intro H\n  have : comp f g = comp g f := H\n  have Hsym : comp g f = comp f g := by\n    exact Eq.symm this\n  exact Hsym",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [16, 22],
+          "statement": "  Lemma commute_symm : forall {α} (f g : α -> α), commute f g -> commute g f.",
+          "proof": "Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite H.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        }
+      },
+      {
+        "name": "commute_with_id_l",
+        "lean": {
+          "kind": "theorem",
+          "lines": [25, 31],
+          "statement": "theorem commute_with_id_l {α} (f : α → α) : commute f (id) := by",
+          "proof": "  unfold commute\n  have H1 : comp f id = f := comp_id_r f\n  have H2 : comp id f = f := comp_id_l f\n  have : comp f id = comp id f := by\n    simp [H1, H2]\n  exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" },
+              { "symbol": "comp_id_r", "category": "axiom" },
+              { "symbol": "comp_id_l", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [24, 31],
+          "statement": "  Lemma commute_with_id_l : forall {α} (f : α -> α), commute f (@id α).",
+          "proof": "Proof.\n    intros α f.\n    unfold commute.\n    rewrite comp_id_r.\n    rewrite comp_id_l.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_r", "category": "class_field" },
+              { "symbol": "comp_id_l", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "commute_with_id_r",
+        "lean": {
+          "kind": "theorem",
+          "lines": [34, 40],
+          "statement": "theorem commute_with_id_r {α} (f : α → α) : commute (id) f := by",
+          "proof": "  unfold commute\n  have H1 : comp id f = f := comp_id_l f\n  have H2 : comp f id = f := comp_id_r f\n  have : comp id f = comp f id := by\n    simp [H1, H2]\n  exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "axiom" },
+              { "symbol": "comp_id_r", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [33, 40],
+          "statement": "  Lemma commute_with_id_r : forall {α} (f : α -> α), commute (@id α) f.",
+          "proof": "Proof.\n    intros α f.\n    unfold commute.\n    rewrite comp_id_l.\n    rewrite comp_id_r.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "class_field" },
+              { "symbol": "comp_id_r", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "commute_refl",
+        "lean": {
+          "kind": "theorem",
+          "lines": [43, 45],
+          "statement": "theorem commute_refl {α} (f : α → α) : commute f f := by",
+          "proof": "  unfold commute\n  rfl",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [42, 47],
+          "statement": "  Lemma commute_refl : forall {α} (f : α -> α), commute f f.",
+          "proof": "Proof.\n    intros α f.\n    unfold commute.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        }
+      },
+      {
+        "name": "commute_congr",
+        "lean": {
+          "kind": "theorem",
+          "lines": [49, 53],
+          "statement": "theorem commute_congr {α} (f1 f2 g1 g2 : α → α) :\n  f1 = f2 → g1 = g2 → commute f1 g1 → commute f2 g2 := by",
+          "proof": "  intro Hf Hg Hc\n  subst Hf\n  subst Hg\n  exact Hc",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [49, 55],
+          "statement": "  Lemma commute_congr : forall {α} (f1 f2 g1 g2 : α -> α),\n    f1 = f2 -> g1 = g2 -> commute f1 g1 -> commute f2 g2.",
+          "proof": "Proof.\n    intros α f1 f2 g1 g2 Hf Hg Hc.\n    subst f2. subst g2.\n    exact Hc.\n  Qed.",
+          "dependencies": {
+            "statement": [{ "symbol": "commute", "category": "definition" }],
+            "proof": [{ "symbol": "commute", "category": "definition" }]
+          }
+        }
+      },
+      {
+        "name": "commute_transport_left_id",
+        "lean": {
+          "kind": "theorem",
+          "lines": [57, 60],
+          "statement": "theorem commute_transport_left_id {α} (f g : α → α) :\n  commute f g → commute (comp (id) f) g := by",
+          "proof": "  intro H\n  unfold commute at *\n  simpa [comp_id_l] using H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [57, 64],
+          "statement": "  Lemma commute_transport_left_id : forall {α} (f g : α -> α),\n    commute f g -> commute (comp (@id α) f) g.",
+          "proof": "Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite comp_id_l.\n    exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "commute_transport_right_id",
+        "lean": {
+          "kind": "theorem",
+          "lines": [64, 67],
+          "statement": "theorem commute_transport_right_id {α} (f g : α → α) :\n  commute f g → commute f (comp (id) g) := by",
+          "proof": "  intro H\n  unfold commute at *\n  simpa [comp_id_l] using H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [66, 73],
+          "statement": "  Lemma commute_transport_right_id : forall {α} (f g : α -> α),\n    commute f g -> commute f (comp (@id α) g).",
+          "proof": "Proof.\n    intros α f g H.\n    unfold commute in *.\n    rewrite comp_id_l.\n    exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp", "category": "definition" },
+              { "symbol": "id", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "commute", "category": "definition" },
+              { "symbol": "comp_id_l", "category": "class_field" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

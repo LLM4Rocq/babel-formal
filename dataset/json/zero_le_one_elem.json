@@ -1,0 +1,651 @@
+{
+    "source": "zero_le_one_elem",
+    "lean": {
+      "universe": {
+        "kind": "universe",
+        "lines": [0, 0],
+        "content": "universe u"
+      },
+      "DecidableEqAlt": {
+        "kind": "class",
+        "lines": [2, 3],
+        "content": "class DecidableEqAlt (A : Type u) where\n  decEq : (x y : A) → Bool"
+      },
+      "ZeroAlt": {
+        "kind": "class",
+        "lines": [5, 6],
+        "content": "class ZeroAlt (A : Type u) where\n  zero : A"
+      },
+      "OneAlt": {
+        "kind": "class",
+        "lines": [8, 9],
+        "content": "class OneAlt (A : Type u) where\n  one : A"
+      },
+      "Preorder": {
+        "kind": "class",
+        "lines": [11, 14],
+        "content": "class Preorder (A : Type u) where\n  le    : A → A → Prop\n  refl  : ∀ x, le x x\n  trans : ∀ {x y z}, le x y → le y z → le x z"
+      },
+      "infix_le": {
+        "kind": "infix",
+        "lines": [16, 16],
+        "content": "infix:50 \" ≤ \" => Preorder.le"
+      },
+      "ZeroLEOneClass": {
+        "kind": "class",
+        "lines": [18, 20],
+        "content": "class ZeroLEOneClass (A : Type u) [ZeroAlt A] [OneAlt A] [Preorder A] : Prop where\n  zero_le_one  : (ZeroAlt.zero : A) ≤ (OneAlt.one : A)\n  zero_le_zero : (ZeroAlt.zero : A) ≤ (ZeroAlt.zero : A)"
+      },
+      "namespace Matrix": {
+        "kind": "namespace",
+        "lines": [22, 22],
+        "content": "namespace Matrix"
+      },
+      "m": {
+        "kind": "variable",
+        "lines": [23, 23],
+        "content": "variable (m : Type u) [DecidableEqAlt m]"
+      },
+      "α": {
+        "kind": "variable",
+        "lines": [24, 24],
+        "content": "variable (α : Type u) [ZeroAlt α] [OneAlt α] [Preorder α] [ZeroLEOneClass α]"
+      },
+      "abbrev matrix": {
+        "kind": "abbrev",
+        "lines": [25, 25],
+        "content": "abbrev matrix := m → m → α"
+      },
+      "One_matrix": {
+        "kind": "def",
+        "lines": [28, 29],
+        "content": "def One_matrix : matrix m α :=\n    fun i j => if DecidableEqAlt.decEq i j then OneAlt.one else ZeroAlt.zero"
+      },
+      "zero_le_one_elem": {
+        "kind": "theorem",
+        "lines": [31, 40],
+        "content": "theorem zero_le_one_elem\n  (i j : m) : (ZeroAlt.zero : α) ≤ One_matrix m α i j :=\nby\n  cases h : DecidableEqAlt.decEq i j with\n  | true  =>\n      simpa [One_matrix, h]\n        using (ZeroLEOneClass.zero_le_one : (ZeroAlt.zero : α) ≤ (OneAlt.one : α))\n  | false =>\n      simpa [One_matrix, h]\n        using (ZeroLEOneClass.zero_le_zero : (ZeroAlt.zero : α) ≤ (ZeroAlt.zero : α))"
+      },
+      "Zero_matrix": {
+        "kind": "def",
+        "lines": [43, 43],
+        "content": "def Zero_matrix : matrix m α := fun _ _ => ZeroAlt.zero"
+      },
+      "matrix_le": {
+        "kind": "def",
+        "lines": [45, 45],
+        "content": "def matrix_le (A B : matrix m α) : Prop := ∀ i j, A i j ≤ B i j"
+      },
+      "Zero_le_One_matrix": {
+        "kind": "theorem",
+        "lines": [47, 56],
+        "content": "theorem Zero_le_One_matrix : matrix_le m α (Zero_matrix m α) (One_matrix m α) :=\nby\n  intro i j\n  cases h : DecidableEqAlt.decEq i j with\n  | true  =>\n      simpa [Zero_matrix, One_matrix, h]\n        using (ZeroLEOneClass.zero_le_one : (ZeroAlt.zero : α) ≤ (OneAlt.one : α))\n  | false =>\n      simpa [Zero_matrix, One_matrix, h]\n        using (ZeroLEOneClass.zero_le_zero : (ZeroAlt.zero : α) ≤ (ZeroAlt.zero : α))"
+      },
+      "matrix_le_refl": {
+        "kind": "theorem",
+        "lines": [58, 60],
+        "content": "theorem matrix_le_refl (A : matrix m α) : matrix_le m α A A :=\nby\n  intro i j; exact Preorder.refl (A i j)"
+      },
+      "matrix_le_trans": {
+        "kind": "theorem",
+        "lines": [62, 66],
+        "content": "theorem matrix_le_trans (A B C : matrix m α) :\n    matrix_le m α A B → matrix_le m α B C → matrix_le m α A C :=\nby\n  intro HAB HBC i j\n  exact Preorder.trans (HAB i j) (HBC i j)"
+      },
+      "matrix_eq": {
+        "kind": "def",
+        "lines": [69, 69],
+        "content": "def matrix_eq (A B : matrix m α) : Prop := ∀ i j, A i j = B i j"
+      },
+      "matrix_eq_refl": {
+        "kind": "theorem",
+        "lines": [71, 71],
+        "content": "theorem matrix_eq_refl (A : matrix m α) : matrix_eq m α A A := by intro _ _; rfl"
+      },
+      "matrix_eq_sym": {
+        "kind": "theorem",
+        "lines": [73, 75],
+        "content": "theorem matrix_eq_sym (A B : matrix m α) : matrix_eq m α A B → matrix_eq m α B A :=\nby\n  intro h i j; symm; exact h i j"
+      },
+      "matrix_eq_trans": {
+        "kind": "theorem",
+        "lines": [77, 83],
+        "content": "theorem matrix_eq_trans (A B C : matrix m α) :\n    matrix_eq m α A B → matrix_eq m α B C → matrix_eq m α A C :=\nby\n  intro hAB hBC i j\n  calc\n    A i j = B i j := hAB i j\n    _ = C i j := hBC i j"
+      },
+      "matrix_eq_le": {
+        "kind": "theorem",
+        "lines": [85, 93],
+        "content": "theorem matrix_eq_le (A B : matrix m α) :\n    matrix_eq m α A B → matrix_le m α A B ∧ matrix_le m α B A :=\nby\n  intro Heq\n  constructor\n  · intro i j; have := Heq i j; simpa [this]\n    using (Preorder.refl (B i j))\n  · intro i j; have := Heq i j; simpa [this]\n    using (Preorder.refl (A i j))"
+      },
+      "PartialOrder": {
+        "kind": "class",
+        "lines": [96, 97],
+        "content": "class PartialOrder (A : Type u) [Preorder A] : Prop where\n  le_antisym : ∀ {x y : A}, x ≤ y → y ≤ x → x = y"
+      },
+      "variable PartialOrder α": {
+        "kind": "variable",
+        "lines": [99, 99],
+        "content": "variable [PartialOrder α]"
+      },
+      "matrix_le_antisymm": {
+        "kind": "theorem",
+        "lines": [101, 107],
+        "content": "theorem matrix_le_antisymm (A B : matrix m α) :\n    matrix_le m α A B → matrix_le m α B A → matrix_eq m α A B :=\nby\n  intro HAB HBA i j\n  apply PartialOrder.le_antisym\n  · exact HAB i j\n  · exact HBA i j"
+      },
+      "end Matrix": {
+        "kind": "end",
+        "lines": [109, 109],
+        "content": "end Matrix"
+      },
+      "Preorder.le": { "kind": "class_field", "lines": [12, 12], "content": "  le    : A → A → Prop" },
+      "Preorder.refl": { "kind": "class_field", "lines": [13, 13], "content": "  refl  : ∀ x, le x x" },
+      "Preorder.trans": { "kind": "class_field", "lines": [14, 14], "content": "  trans : ∀ {x y z}, le x y → le y z → le x z" },
+      "ZeroLEOneClass.zero_le_one": { "kind": "class_field", "lines": [19, 19], "content": "  zero_le_one  : (ZeroAlt.zero : A) ≤ (OneAlt.one : A)" },
+      "ZeroLEOneClass.zero_le_zero": { "kind": "class_field", "lines": [20, 20], "content": "  zero_le_zero : (ZeroAlt.zero : A) ≤ (ZeroAlt.zero : A)" },
+      "DecidableEqAlt.decEq": { "kind": "class_field", "lines": [3, 3], "content": "  decEq : (x y : A) → Bool" },
+      "ZeroAlt.zero": { "kind": "class_field", "lines": [6, 6], "content": "  zero : A" },
+      "OneAlt.one": { "kind": "class_field", "lines": [9, 9], "content": "  one : A" },
+      "PartialOrder.le_antisym": { "kind": "class_field", "lines": [97, 97], "content": "  le_antisym : ∀ {x y : A}, x ≤ y → y ≤ x → x = y" }
+    },
+    "coq": {
+      "DecidableEqAlt": {
+        "kind": "Class",
+        "lines": [0, 2],
+        "content": "Class DecidableEqAlt (A : Type) := {\n  dec_eq : forall x y : A, {x = y} + {x <> y}\n}."
+      },
+      "ZeroAlt": {
+        "kind": "Class",
+        "lines": [4, 4],
+        "content": "Class ZeroAlt (A : Type) := zero : A."
+      },
+      "OneAlt": {
+        "kind": "Class",
+        "lines": [5, 5],
+        "content": "Class OneAlt  (A : Type) := one  : A."
+      },
+      "Preorder": {
+        "kind": "Class",
+        "lines": [7, 11],
+        "content": "Class Preorder (A : Type) := {\n  le                  : A -> A -> Prop;\n  Preorder_Reflexive  : forall x,       le x x;\n  Preorder_Transitive : forall x y z,   le x y -> le y z -> le x z\n}."
+      },
+      "≤": {
+        "kind": "Infix",
+        "lines": [13, 13],
+        "content": "Infix \"≤\" := le (at level 70, no associativity)."
+      },
+      "ZeroLEOneClass": {
+        "kind": "Class",
+        "lines": [15, 19],
+        "content": "Class ZeroLEOneClass (A : Type)\n      `{ZeroAlt A} `{OneAlt A} `{Preorder A} := {\n  zero_le_one : zero ≤ (one : A);\n  zero_le_zero : zero ≤ (zero : A)\n}."
+      },
+      "Section Matrix.": { "kind": "Section", "lines": [21, 21], "content": "Section Matrix." },
+      "m": { "kind": "Variable", "lines": [22, 22], "content": "  Variable (m : Type)." },
+      "Context DecidableEqAlt m": { "kind": "Context", "lines": [23, 23], "content": "  Context `{DecidableEqAlt m}." },
+      "α": { "kind": "Variable", "lines": [25, 25], "content": "  Variable (α : Type)." },
+      "Context ZeroLEOneClass α": { "kind": "Context", "lines": [26, 26], "content": "  Context `{ZeroLEOneClass α}." },
+      "matrix": { "kind": "Definition", "lines": [28, 28], "content": "  Definition matrix := m -> m -> α." },
+      "One_matrix": {
+        "kind": "Definition",
+        "lines": [30, 31],
+        "content": "  Definition One_matrix : matrix :=\n    fun i j => if dec_eq i j then one else zero."
+      },
+      "zero_le_one_elem": {
+        "kind": "Lemma",
+        "lines": [33, 40],
+        "content": "  Lemma zero_le_one_elem (i j : m) :\n    zero ≤ (One_matrix : matrix) i j.\n  Proof.\n    unfold One_matrix; simpl.\n    destruct (dec_eq i j) as [->|neq].\n    - apply zero_le_one.\n    - apply zero_le_zero.\n  Qed."
+      },
+      "Zero_matrix": { "kind": "Definition", "lines": [42, 42], "content": "  Definition Zero_matrix : matrix := fun _ _ => zero." },
+      "matrix_le": {
+        "kind": "Definition",
+        "lines": [44, 45],
+        "content": "  Definition matrix_le (A B : matrix) : Prop :=\n    forall i j, A i j ≤ B i j."
+      },
+      "≤ₘ": {
+        "kind": "notation",
+        "lines": [46, 46],
+        "content": " Infix \"≤ₘ\" := matrix_le (at level 70)."
+      },
+      "Zero_le_One_matrix": {
+        "kind": "Lemma",
+        "lines": [48, 55],
+        "content": "  Lemma Zero_le_One_matrix : Zero_matrix ≤ₘ One_matrix.\n  Proof.\n    unfold matrix_le, Zero_matrix; intros i j.\n    unfold One_matrix; simpl.\n    destruct (dec_eq i j) as [->|neq].\n    - apply zero_le_one.\n    - apply zero_le_zero.\n  Qed."
+      },
+      "matrix_le_refl": {
+        "kind": "Lemma",
+        "lines": [57, 60],
+        "content": "  Lemma matrix_le_refl (A : matrix) : A ≤ₘ A.\n  Proof.\n    unfold matrix_le; intros i j; apply Preorder_Reflexive.\n  Qed."
+      },
+      "matrix_le_trans": {
+        "kind": "Lemma",
+        "lines": [62, 67],
+        "content": "  Lemma matrix_le_trans (A B C : matrix) :\n    A ≤ₘ B -> B ≤ₘ C -> A ≤ₘ C.\n  Proof.\n    intros HAB HBC i j.\n    apply Preorder_Transitive with (y := B i j); [apply HAB | apply HBC].\n  Qed."
+      },
+      "matrix_eq": {
+        "kind": "Definition",
+        "lines": [69, 70],
+        "content": "  Definition matrix_eq (A B : matrix) : Prop :=\n    forall i j, A i j = B i j."
+      },
+      "≃ₘ": {
+        "kind": "Notation",
+        "lines": [71, 71],
+        "content": "  Infix \"≃ₘ\" := matrix_eq (at level 70)."
+      },
+      "matrix_eq_refl": {
+        "kind": "Lemma",
+        "lines": [73, 76],
+        "content": "  Lemma matrix_eq_refl (A : matrix) : A ≃ₘ A.\n  Proof.\n    unfold matrix_eq; intros i j; reflexivity.\n  Qed."
+      },
+      "matrix_eq_sym": {
+        "kind": "Lemma",
+        "lines": [78, 81],
+        "content": "  Lemma matrix_eq_sym (A B : matrix) : A ≃ₘ B -> B ≃ₘ A.\n  Proof.\n    unfold matrix_eq; intros Ha i j; symmetry; apply Ha.\n  Qed."
+      },
+      "matrix_eq_trans": {
+        "kind": "Lemma",
+        "lines": [83, 88],
+        "content": "  Lemma matrix_eq_trans (A B C : matrix) :\n    A ≃ₘ B -> B ≃ₘ C -> A ≃ₘ C.\n  Proof.\n    unfold matrix_eq; intros HAB HBC i j.\n    etransitivity; [apply HAB| apply HBC].\n  Qed."
+      },
+      "matrix_eq_le": {
+        "kind": "Lemma",
+        "lines": [90, 98],
+        "content": "  Lemma matrix_eq_le (A B : matrix) :\n    A ≃ₘ B -> A ≤ₘ B /\\ B ≤ₘ A.\n  Proof.\n    intro Heq; split.\n    - unfold matrix_le; intros i j.\n      rewrite <- (Heq i j); apply Preorder_Reflexive.\n    - unfold matrix_le; intros i j.\n      rewrite   (Heq i j); apply Preorder_Reflexive.\n  Qed."
+      },
+      "PartialOrder": {
+        "kind": "Class",
+        "lines": [100, 102],
+        "content": "  Class PartialOrder (A : Type) `{Preorder A} := {\n    le_antisym : forall x y, x ≤ y -> y ≤ x -> x = y\n  }."
+      },
+      "Context PO": { "kind": "Context", "lines": [103, 103], "content": "  Context {PO : PartialOrder α}." },
+      "matrix_le_antisymm": {
+        "kind": "Lemma",
+        "lines": [105, 110],
+        "content": "  Lemma matrix_le_antisymm (A B : matrix) :\n    A ≤ₘ B -> B ≤ₘ A -> A ≃ₘ B.\n  Proof.\n    intros HAB HBA i j.\n    apply (@le_antisym α H2 PO); [apply (HAB i j) | apply (HBA i j)].\n  Qed."
+      },
+      "End Matrix.": { "kind": "End", "lines": [111, 111], "content": "End Matrix." },
+      "dec_eq": { "kind": "class_field", "lines": [1, 1], "content": "  dec_eq : forall x y : A, {x = y} + {x <> y}" },
+      "le": { "kind": "class_field", "lines": [8, 8], "content": "  le                  : A -> A -> Prop;" },
+      "Preorder_Reflexive": { "kind": "class_field", "lines": [9, 9], "content": "  Preorder_Reflexive  : forall x,       le x x;" },
+      "Preorder_Transitive": { "kind": "class_field", "lines": [10, 10], "content": "  Preorder_Transitive : forall x y z,   le x y -> le y z -> le x z" },
+      "zero_le_one": { "kind": "class_field", "lines": [17, 17], "content": "  zero_le_one : zero ≤ (one : A);" },
+      "zero_le_zero": { "kind": "class_field", "lines": [18, 18], "content": "  zero_le_zero : zero ≤ (zero : A)" },
+      "le_antisym": { "kind": "class_field", "lines": [101, 101], "content": "    le_antisym : forall x y, x ≤ y -> y ≤ x -> x = y" }
+    },
+    "items": [
+      {
+        "name": "zero_le_one_elem",
+        "lean": {
+          "kind": "theorem",
+          "lines": [34, 41],
+          "statement": "theorem zero_le_one_elem (i j : m) : (ZeroAlt.zero : α) ≤ One_matrix m α i j := by",
+          "proof": "  cases h : DecidableEqAlt.decEq i j with\n  | true  =>\n      simpa [One_matrix, h]\n        using (ZeroLEOneClass.zero_le_one : (ZeroAlt.zero : α) ≤ (OneAlt.one : α))\n  | false =>\n      simpa [One_matrix, h]\n        using (ZeroLEOneClass.zero_le_zero : (ZeroAlt.zero : α) ≤ (ZeroAlt.zero : α))",
+          "dependencies": {
+            "statement": [
+              { "symbol": "One_matrix", "category": "definition" },
+              { "symbol": "ZeroAlt.zero", "category": "class_field" },
+              { "symbol": "infix_le", "category": "notation" },
+              { "symbol": "m", "category": "variable" },
+              { "symbol": "α", "category": "variable" },
+              { "symbol": "DecidableEqAlt", "category": "class" },
+              { "symbol": "ZeroAlt", "category": "class" },
+              { "symbol": "OneAlt", "category": "class" },
+              { "symbol": "Preorder", "category": "class" },
+              { "symbol": "ZeroLEOneClass", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "DecidableEqAlt.decEq", "category": "class_field" },
+              { "symbol": "ZeroLEOneClass.zero_le_one", "category": "class_field" },
+              { "symbol": "ZeroLEOneClass.zero_le_zero", "category": "class_field" },
+              { "symbol": "OneAlt.one", "category": "class_field" },
+              { "symbol": "ZeroAlt.zero", "category": "class_field" },
+              { "symbol": "One_matrix", "category": "definition" },
+              { "symbol": "infix_le", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [35, 41],
+          "statement": "  Lemma zero_le_one_elem (i j : m) : zero ≤ (One_matrix : matrix) i j.",
+          "proof": "Proof.\n    unfold One_matrix; simpl.\n    destruct (dec_eq i j) as [->|neq].\n    - apply zero_le_one.\n    - apply zero_le_zero.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "One_matrix", "category": "Definition" },
+              { "symbol": "≤", "category": "notation" },
+              { "symbol": "matrix", "category": "Definition" },
+              { "symbol": "m", "category": "Variable" },
+              { "symbol": "α", "category": "Variable" },
+              { "symbol": "DecidableEqAlt", "category": "Class" },
+              { "symbol": "ZeroLEOneClass", "category": "Class" },
+              { "symbol": "ZeroAlt", "category": "Class" },
+              { "symbol": "OneAlt", "category": "Class" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "dec_eq", "category": "class_field" },
+              { "symbol": "zero_le_one", "category": "class_field" },
+              { "symbol": "zero_le_zero", "category": "class_field" },
+              { "symbol": "One_matrix", "category": "Definition" },
+              { "symbol": "≤", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "Zero_le_One_matrix",
+        "lean": {
+          "kind": "theorem",
+          "lines": [49, 57],
+          "statement": "theorem Zero_le_One_matrix : matrix_le m α (Zero_matrix m α) (One_matrix m α) := by",
+          "proof": "  intro i j\n  cases h : DecidableEqAlt.decEq i j with\n  | true  =>\n      simpa [Zero_matrix, One_matrix, h]\n        using (ZeroLEOneClass.zero_le_one : (ZeroAlt.zero : α) ≤ (OneAlt.one : α))\n  | false =>\n      simpa [Zero_matrix, One_matrix, h]\n        using (ZeroLEOneClass.zero_le_zero : (ZeroAlt.zero : α) ≤ (ZeroAlt.zero : α))",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "definition" },
+              { "symbol": "Zero_matrix", "category": "definition" },
+              { "symbol": "One_matrix", "category": "definition" },
+              { "symbol": "m", "category": "variable" },
+              { "symbol": "α", "category": "variable" },
+              { "symbol": "DecidableEqAlt", "category": "class" },
+              { "symbol": "ZeroAlt", "category": "class" },
+              { "symbol": "OneAlt", "category": "class" },
+              { "symbol": "Preorder", "category": "class" },
+              { "symbol": "ZeroLEOneClass", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "DecidableEqAlt.decEq", "category": "class_field" },
+              { "symbol": "Zero_matrix", "category": "definition" },
+              { "symbol": "One_matrix", "category": "definition" },
+              { "symbol": "ZeroLEOneClass.zero_le_one", "category": "class_field" },
+              { "symbol": "ZeroLEOneClass.zero_le_zero", "category": "class_field" },
+              { "symbol": "ZeroAlt.zero", "category": "class_field" },
+              { "symbol": "OneAlt.one", "category": "class_field" },
+              { "symbol": "infix_le", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [49, 56],
+          "statement": "  Lemma Zero_le_One_matrix : Zero_matrix ≤ₘ One_matrix.",
+          "proof": "Proof.\n    unfold matrix_le, Zero_matrix; intros i j.\n    unfold One_matrix; simpl.\n    destruct (dec_eq i j) as [->|neq].\n    - apply zero_le_one.\n    - apply zero_le_zero.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Zero_matrix", "category": "Definition" },
+              { "symbol": "One_matrix", "category": "Definition" },
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "≤ₘ", "category": "notation" },
+              { "symbol": "m", "category": "Variable" },
+              { "symbol": "α", "category": "Variable" },
+              { "symbol": "DecidableEqAlt", "category": "Class" },
+              { "symbol": "ZeroLEOneClass", "category": "Class" },
+              { "symbol": "ZeroAlt", "category": "Class" },
+              { "symbol": "OneAlt", "category": "Class" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "dec_eq", "category": "class_field" },
+              { "symbol": "zero_le_one", "category": "class_field" },
+              { "symbol": "zero_le_zero", "category": "class_field" },
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "Zero_matrix", "category": "Definition" },
+              { "symbol": "One_matrix", "category": "Definition" },
+              { "symbol": "≤", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_le_refl",
+        "lean": {
+          "kind": "theorem",
+          "lines": [60, 61],
+          "statement": "theorem matrix_le_refl (A : matrix m α) : matrix_le m α A A := by",
+          "proof": "  intro i j; exact Preorder.refl (A i j)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" },
+              { "symbol": "m", "category": "variable" },
+              { "symbol": "α", "category": "variable" },
+              { "symbol": "Preorder", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "Preorder.refl", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [58, 61],
+          "statement": "  Lemma matrix_le_refl (A : matrix) : A ≤ₘ A.",
+          "proof": "Proof.\n    unfold matrix_le; intros i j; apply Preorder_Reflexive.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "matrix", "category": "Definition" },
+              { "symbol": "≤ₘ", "category": "notation" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "Preorder_Reflexive", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_le_trans",
+        "lean": {
+          "kind": "theorem",
+          "lines": [64, 66],
+          "statement": "theorem matrix_le_trans (A B C : matrix m α) :\n    matrix_le m α A B → matrix_le m α B C → matrix_le m α A C := by",
+          "proof": "  intro HAB HBC i j\n  exact Preorder.trans (HAB i j) (HBC i j)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" },
+              { "symbol": "m", "category": "variable" },
+              { "symbol": "α", "category": "variable" },
+              { "symbol": "Preorder", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "Preorder.trans", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [64, 68],
+          "statement": "  Lemma matrix_le_trans (A B C : matrix) :\n    A ≤ₘ B -> B ≤ₘ C -> A ≤ₘ C.",
+          "proof": "Proof.\n    intros HAB HBC i j.\n    apply Preorder_Transitive with (y := B i j); [apply HAB | apply HBC].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "matrix", "category": "Definition" },
+              { "symbol": "≤ₘ", "category": "notation" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "Preorder_Transitive", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_eq_refl",
+        "lean": {
+          "kind": "theorem",
+          "lines": [71, 72],
+          "statement": "theorem matrix_eq_refl (A : matrix m α) : matrix_eq m α A A := by",
+          "proof": "  intro _ _; rfl",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" }
+            ],
+            "proof": []
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [74, 77],
+          "statement": "  Lemma matrix_eq_refl (A : matrix) : A ≃ₘ A.",
+          "proof": "Proof.\n    unfold matrix_eq; intros i j; reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "Definition" },
+              { "symbol": "≃ₘ", "category": "notation" },
+              { "symbol": "matrix", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "matrix_eq", "category": "Definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_eq_sym",
+        "lean": {
+          "kind": "theorem",
+          "lines": [75, 76],
+          "statement": "theorem matrix_eq_sym (A B : matrix m α) : matrix_eq m α A B → matrix_eq m α B A := by",
+          "proof": "  intro h i j; symm; exact h i j",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" }
+            ],
+            "proof": []
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [79, 82],
+          "statement": "  Lemma matrix_eq_sym (A B : matrix) : A ≃ₘ B -> B ≃ₘ A.",
+          "proof": "Proof.\n    unfold matrix_eq; intros Ha i j; symmetry; apply Ha.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "Definition" },
+              { "symbol": "≃ₘ", "category": "notation" },
+              { "symbol": "matrix", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "matrix_eq", "category": "Definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_eq_trans",
+        "lean": {
+          "kind": "theorem",
+          "lines": [80, 84],
+          "statement": "theorem matrix_eq_trans (A B C : matrix m α) :\n    matrix_eq m α A B → matrix_eq m α B C → matrix_eq m α A C := by",
+          "proof": "  intro hAB hBC i j\n  calc\n    A i j = B i j := hAB i j\n    _ = C i j := hBC i j",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" }
+            ],
+            "proof": []
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [85, 89],
+          "statement": "  Lemma matrix_eq_trans (A B C : matrix) :\n    A ≃ₘ B -> B ≃ₘ C -> A ≃ₘ C.",
+          "proof": "Proof.\n    unfold matrix_eq; intros HAB HBC i j.\n    etransitivity; [apply HAB| apply HBC].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "Definition" },
+              { "symbol": "≃ₘ", "category": "notation" },
+              { "symbol": "matrix", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "matrix_eq", "category": "Definition" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_eq_le",
+        "lean": {
+          "kind": "theorem",
+          "lines": [88, 94],
+          "statement": "theorem matrix_eq_le (A B : matrix m α) :\n    matrix_eq m α A B → matrix_le m α A B ∧ matrix_le m α B A := by",
+          "proof": "  intro Heq\n  constructor\n  · intro i j; have := Heq i j; simpa [this]\n    using (Preorder.refl (B i j))\n  · intro i j; have := Heq i j; simpa [this]\n    using (Preorder.refl (A i j))",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "definition" },
+              { "symbol": "matrix_le", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" },
+              { "symbol": "Preorder", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "Preorder.refl", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [92, 99],
+          "statement": "  Lemma matrix_eq_le (A B : matrix) :\n    A ≃ₘ B -> A ≤ₘ B /\\ B ≤ₘ A.",
+          "proof": "Proof.\n    intro Heq; split.\n    - unfold matrix_le; intros i j.\n      rewrite <- (Heq i j); apply Preorder_Reflexive.\n    - unfold matrix_le; intros i j.\n      rewrite   (Heq i j); apply Preorder_Reflexive.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_eq", "category": "Definition" },
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "≃ₘ", "category": "notation" },
+              { "symbol": "≤ₘ", "category": "notation" },
+              { "symbol": "matrix", "category": "Definition" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "Preorder_Reflexive", "category": "class_field" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "matrix_le_antisymm",
+        "lean": {
+          "kind": "theorem",
+          "lines": [104, 108],
+          "statement": "theorem matrix_le_antisymm (A B : matrix m α) :\n    matrix_le m α A B → matrix_le m α B A → matrix_eq m α A B := by",
+          "proof": "  intro HAB HBA i j\n  apply PartialOrder.le_antisym\n  · exact HAB i j\n  · exact HBA i j",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "definition" },
+              { "symbol": "matrix_eq", "category": "definition" },
+              { "symbol": "abbrev matrix", "category": "abbrev" },
+              { "symbol": "PartialOrder", "category": "class" },
+              { "symbol": "Preorder", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "PartialOrder.le_antisym", "category": "class_field" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [107, 111],
+          "statement": "  Lemma matrix_le_antisymm (A B : matrix) :\n    A ≤ₘ B -> B ≤ₘ A -> A ≃ₘ B.",
+          "proof": "Proof.\n    intros HAB HBA i j.\n    apply (@le_antisym α H2 PO); [apply (HAB i j) | apply (HBA i j)].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "matrix_le", "category": "Definition" },
+              { "symbol": "matrix_eq", "category": "Definition" },
+              { "symbol": "≤ₘ", "category": "notation" },
+              { "symbol": "≃ₘ", "category": "notation" },
+              { "symbol": "PartialOrder", "category": "Class" },
+              { "symbol": "Preorder", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "le_antisym", "category": "class_field" },
+              { "symbol": "PartialOrder", "category": "Class" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

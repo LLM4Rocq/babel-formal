@@ -1,0 +1,1049 @@
+{
+    "source": "group",
+    "lean": {
+      "Group": {
+        "kind": "class",
+        "lines": [0, 8],
+        "content": "class Group (G : Type) where\n  inv : G → G\n  one : G\n  mul : G → G → G\n  mul_assoc : ∀ a b c : G, mul a (mul b c) = mul (mul a b) c\n  mul_one   : ∀ a : G, mul a one = a\n  one_mul   : ∀ a : G, mul one a = a\n  mul_inv_l : ∀ a : G, mul (inv a) a = one\n  mul_inv_r : ∀ a : G, mul a (inv a) = one"
+      },
+      "*": {
+        "kind": "notation",
+        "lines": [12, 12],
+        "content": "infixl:70 \" * \" => Group.mul"
+      },
+      "⁻¹": {
+        "kind": "notation",
+        "lines": [13, 13],
+        "content": "postfix:max \"⁻¹\" => Group.inv"
+      },
+      "GroupComm": {
+        "kind": "class",
+        "lines": [15, 16],
+        "content": "class GroupComm (G : Type) [Group G] where\n  mul_comm : ∀ a b : G, a * b = b * a"
+      },
+      "MulRotate": {
+        "kind": "variable",
+        "lines": [19, 19],
+        "content": "  variable {G : Type} [Group G] [GroupComm G]"
+      },
+      "mul_rotate'": {
+        "kind": "theorem",
+        "lines": [21, 23],
+        "content": "  theorem mul_rotate' (a b c : G) : a * (b * c) = b * (c * a) := by\n    rw [GroupComm.mul_comm]\n    rw [← Group.mul_assoc]"
+      },
+      "GroupLemmas": {
+        "kind": "variable",
+        "lines": [27, 27],
+        "content": "  variable {G : Type} [Group G]"
+      },
+      "mul_left_cancel": {
+        "kind": "theorem",
+        "lines": [29, 35],
+        "content": "  theorem mul_left_cancel (a b c : G) (h : a * b = a * c) : b = c := by\n    have h' : a⁻¹ * (a * b) = a⁻¹ * (a * c) := by rw [h]\n    repeat rw [Group.mul_assoc] at h'\n    repeat rw [Group.mul_inv_l] at h'\n    repeat rw [Group.one_mul] at h'\n    exact h'"
+      },
+      "mul_right_cancel": {
+        "kind": "theorem",
+        "lines": [36, 42],
+        "content": "  theorem mul_right_cancel (a b c : G) (h : b * a = c * a) : b = c := by\n    have h' : (b * a) * a⁻¹ = (c * a) * a⁻¹ := by rw [h]\n    repeat rw [← Group.mul_assoc] at h'\n    repeat rw [Group.mul_inv_r] at h'\n    repeat rw [Group.mul_one] at h'\n    exact h'"
+      },
+      "inv_inv": {
+        "kind": "theorem",
+        "lines": [43, 47],
+        "content": "  theorem inv_inv (a : G) : (a⁻¹)⁻¹ = a := by\n    have h : (a⁻¹)⁻¹ * a⁻¹ = a * a⁻¹ := by\n      rw [Group.mul_inv_l, Group.mul_inv_r]\n    exact mul_right_cancel _ _ _ h"
+      },
+      "inv_mul": {
+        "kind": "theorem",
+        "lines": [48, 57],
+        "content": "  theorem inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by\n    have h : (a * b)⁻¹ * (a * b) = (b⁻¹ * a⁻¹) * (a * b) := by\n      rw [Group.mul_inv_l]\n      repeat rw [← Group.mul_assoc]\n      rw [Group.mul_assoc (a⁻¹) a b]\n      rw [Group.mul_inv_l]\n      rw [Group.one_mul]\n      rw [Group.mul_inv_l]\n    exact mul_right_cancel _ _ _ h"
+      },
+      "inv_eq_of_mul_eq_one": {
+        "kind": "theorem",
+        "lines": [58, 61],
+        "content": "  theorem inv_eq_of_mul_eq_one (a b : G) (h : a * b = one) : b = a⁻¹ := by\n    have h' : a⁻¹ * (a * b) = a⁻¹ * one := by rw [h]\n    rw [Group.mul_assoc, Group.mul_inv_l, Group.one_mul, Group.mul_one] at h'\n    exact h'"
+      },
+      "Act": {
+        "kind": "class",
+        "lines": [64, 70],
+        "content": "class Act (G : Type) (X : Type) [Group G] where\n  act : G → X → X\n  act_one : ∀ x : X, act one x = x\n  act_mul : ∀ g h : G, ∀ x : X, act (g * h) x = act g (act h x)"
+      },
+      "G": {
+        "kind": "variable",
+        "lines": [72, 72],
+        "content": "  variable {G : Type} {X : Type} [Group G] [Act G X]"
+      },
+      "X": {
+        "kind": "variable",
+        "lines": [72, 72],
+        "content": "  variable {G : Type} {X : Type} [Group G] [Act G X]"
+      },
+      "•": {
+        "kind": "notation",
+        "lines": [75, 75],
+        "content": "  infixr:73 \" • \" => Act.act"
+      },
+      "act_inv": {
+        "kind": "theorem",
+        "lines": [77, 83],
+        "content": "  theorem act_inv (g : G) (x : X) : g⁻¹ • (g • x) = x := by\n    have h : (g⁻¹ * g) • x = x := by\n      rw [Group.mul_inv_l]\n      apply Act.act_one\n    rw [Act.act_mul] at h\n    exact h"
+      },
+      "act_inv_r": {
+        "kind": "theorem",
+        "lines": [84, 90],
+        "content": "  theorem act_inv_r (g : G) (x : X) : g • (g⁻¹ • x) = x := by\n    have h : (g * g⁻¹) • x = x := by\n      rw [Group.mul_inv_r]\n      apply Act.act_one\n    rw [Act.act_mul] at h\n    exact h"
+      },
+      "orbit": {
+        "kind": "def",
+        "lines": [91, 92],
+        "content": "  def orbit {G : Type} {X : Type} [Group G] [Act G X] (x : X) : X → Prop :=\n    fun y => ∃ g : G, g • x = y"
+      },
+      "stabilizer": {
+        "kind": "def",
+        "lines": [94, 94],
+        "content": "  def stabilizer (x : X) : G → Prop := fun g => g • x = x"
+      },
+      "orbit_refl": {
+        "kind": "theorem",
+        "lines": [96, 99],
+        "content": "  theorem orbit_refl\n    (x : X) : orbit (G:=G) x x := by\n    exists one\n    exact Act.act_one x"
+      },
+      "orbit_sym": {
+        "kind": "theorem",
+        "lines": [101, 105],
+        "content": "  theorem orbit_sym (x y : X) (h : orbit (G:=G) x y) : orbit (G:=G) y x := by\n    rcases h with ⟨g, hg⟩\n    exists g⁻¹\n    rw [← hg, ← Act.act_mul, Group.mul_inv_l, Act.act_one]"
+      },
+      "orbit_trans": {
+        "kind": "theorem",
+        "lines": [106, 111],
+        "content": "  theorem orbit_trans (x y z : X) (h1 : orbit (G:=G) x y) (h2 : orbit (G:=G) y z) : orbit (G:=G) x z := by\n    rcases h1 with ⟨g1, hg1⟩\n    rcases h2 with ⟨g2, hg2⟩\n    exists (g2 * g1)\n    rw [Act.act_mul, hg1, hg2]"
+      },
+      "orbit_partition": {
+        "kind": "theorem",
+        "lines": [112, 128],
+        "content": "  theorem orbit_partition (x y : X) (hxy : orbit (G:=G) x y) (z : X) :\n      orbit (G:=G) x z ↔ orbit (G:=G) y z := by\n    constructor\n    · intro hz\n      rcases hxy with ⟨g1, hg1⟩\n      rcases hz with ⟨g2, hg2⟩\n      exists (g2 * g1⁻¹)\n      rw [Act.act_mul, ← hg1]\n      repeat rw [← Act.act_mul]\n      rw [← Group.mul_assoc, Group.mul_inv_l, Group.mul_one]\n      exact hg2\n    · intro hz\n      rcases hxy with ⟨g1, hg1⟩\n      rcases hz with ⟨g2, hg2⟩\n      exists (g2 * g1)\n      rw [Act.act_mul, hg1, hg2]"
+      },
+      "stabilizer_mul": {
+        "kind": "theorem",
+        "lines": [129, 133],
+        "content": "  theorem stabilizer_mul (x : X) (g h : G)\n    (hg : stabilizer x g) (hh : stabilizer x h) : stabilizer x (g * h) := by\n    unfold stabilizer at *\n    rw [Act.act_mul, hh, hg]"
+      },
+      "stabilizer_inv": {
+        "kind": "theorem",
+        "lines": [134, 140],
+        "content": "  theorem stabilizer_inv (x : X) (g : G) (hg : stabilizer x g) : stabilizer x g⁻¹ := by\n    dsimp [stabilizer] at *\n    calc\n      g⁻¹ • x = g⁻¹ • (g • x) := by rw [hg]\n      _ = (g⁻¹ * g) • x := by rw [Act.act_mul]\n      _ = x := by rw [mul_inv_l, Act.act_one]"
+      },
+      "stabilizer_one": {
+        "kind": "theorem",
+        "lines": [141, 144],
+        "content": "  theorem stabilizer_one (x : X) : stabilizer (G:=G) x one := by\n    unfold stabilizer\n    apply Act.act_one"
+      },
+      "stabilizer_conjugate": {
+        "kind": "theorem",
+        "lines": [145, 149],
+        "content": "  theorem stabilizer_conjugate (x : X) (g h : G)\n    (hh : stabilizer x h) : stabilizer (g • x) (g * h * g⁻¹) := by\n    unfold stabilizer at *\n    rw [← Act.act_mul, ← Group.mul_assoc, Group.mul_inv_l, Group.mul_one, Act.act_mul, hh]"
+      },
+      "stabilizer_conjugate_orbit": {
+        "kind": "theorem",
+        "lines": [150, 169],
+        "content": "  theorem stabilizer_conjugate_orbit (x y : X) (g : G) (hxy : g • x = y) (h : G) :\n      stabilizer y h ↔ stabilizer x (g⁻¹ * h * g) := by\n    unfold stabilizer\n    constructor\n    · intro hy\n      rw [<- hxy] at hy\n      have hy' : g⁻¹ • h • (g • x) = x := by\n        rw [hy]\n        rw [<- Act.act_mul]\n        rw [mul_inv_l, Act.act_one]\n      repeat rw [Act.act_mul]\n      exact hy'\n    · intro hh\n      have hh' : g • ((g⁻¹ * h * g) • x) = g • x := by rw [hh]\n      rw [hxy] at hh'\n      simp [mul_assoc, <- Act.act_mul, mul_inv_r, one_mul] at hh'\n      rw [Act.act_mul] at hh'\n      rw [hxy] at hh'\n      exact hh'"
+      }
+    },
+    "coq": {
+      "Group": {
+        "kind": "Class",
+        "lines": [0, 9],
+        "content": "Class Group (G : Type) := {\n  inv : G -> G;\n  one : G;\n  mul : G -> G -> G;\n  mul_assoc : forall a b c, mul a (mul b  c) = mul (mul a b) c;\n  mul_one   : forall a, mul a one = a;\n  one_mul   : forall a, mul one a = a;\n  mul_inv_l : forall a, mul (inv a) a = one;\n  mul_inv_r : forall a, mul a (inv a) = one\n}."
+      },
+      "mul_assoc": {
+        "kind": "class_field",
+        "lines": [4, 4],
+        "content": "  mul_assoc : forall a b c, mul a (mul b  c) = mul (mul a b) c;"
+      },
+      "mul_one": {
+        "kind": "class_field",
+        "lines": [5, 5],
+        "content": "  mul_one   : forall a, mul a one = a;"
+      },
+      "one_mul": {
+        "kind": "class_field",
+        "lines": [6, 6],
+        "content": "  one_mul   : forall a, mul one a = a;"
+      },
+      "mul_inv_l": {
+        "kind": "class_field",
+        "lines": [7, 7],
+        "content": "  mul_inv_l : forall a, mul (inv a) a = one;"
+      },
+      "mul_inv_r": {
+        "kind": "class_field",
+        "lines": [8, 8],
+        "content": "  mul_inv_r : forall a, mul a (inv a) = one"
+      },
+      "*": {
+        "kind": "Notation",
+        "lines": [11, 11],
+        "content": "Infix \"*\" := mul (at level 40, left associativity)."
+      },
+      "1": {
+        "kind": "Notation",
+        "lines": [12, 12],
+        "content": "Notation \"1\" := one."
+      },
+      "^-1": {
+        "kind": "Notation",
+        "lines": [13, 13],
+        "content": "Notation \"x ^-1\" := (inv x) (at level 35, right associativity)."
+      },
+      "GroupComm": {
+        "kind": "Class",
+        "lines": [16, 18],
+        "content": "Class GroupComm   (G : Type) `{Group G} := {\n  mul_comm : forall a b, a * b = b * a\n}."
+      },
+      "mul_comm": {
+        "kind": "class_field",
+        "lines": [17, 17],
+        "content": "  mul_comm : forall a b, a * b = b * a"
+      },
+      "Section MulRotate.": {
+        "kind": "Section",
+        "lines": [20, 30],
+        "content": "Section MulRotate.\n  Variable G : Type.\n  Context `{GroupComm G}.\n\n  Lemma mul_rotate' (a b c : G) : a * (b * c) = b * (c * a).\n  Proof.\n    rewrite mul_comm.\n    rewrite <- mul_assoc.\n    trivial.\n  Qed.\nEnd MulRotate."
+      },
+      "G : Type.": {
+        "kind": "Variable",
+        "lines": [21, 21],
+        "content": "  Variable G : Type.\n Context `{GroupComm G}."
+      },
+      "mul_rotate'": {
+        "kind": "Lemma",
+        "lines": [24, 29],
+        "content": "  Lemma mul_rotate' (a b c : G) : a * (b * c) = b * (c * a).\n  Proof.\n    rewrite mul_comm.\n    rewrite <- mul_assoc.\n    trivial.\n  Qed."
+      },
+      "Context `{Group G}.": {
+        "kind": "Context",
+        "lines": [33, 33],
+        "content": "  Context {G : Type} `{Group G}."
+      },
+      "mul_left_cancel": {
+        "kind": "Lemma",
+        "lines": [35, 46],
+        "content": "  Lemma mul_left_cancel (a b c : G) :\n        a * b = a * c -> b = c.\n  Proof.\n    intro Ha.\n    assert (H' : a^-1 * (a * b) = a^-1 * (a * c)).\n    { now rewrite Ha. }\n\n    repeat rewrite mul_assoc in H'.\n    repeat rewrite mul_inv_l in H'.\n    repeat rewrite one_mul    in H'.\n    exact H'.\n  Qed."
+      },
+      "mul_right_cancel": {
+        "kind": "Lemma",
+        "lines": [48, 58],
+        "content": "  Lemma mul_right_cancel (a b c : G) :\n        b * a = c * a -> b = c.\n  Proof.\n    intro Ha.\n    assert (H' : (b * a) * a^-1 = (c * a) * a^-1).\n    { now rewrite Ha. }\n    repeat rewrite <- mul_assoc in H'.\n    repeat rewrite mul_inv_r in H'.\n    repeat rewrite mul_one in H'.\n    exact H'.\n  Qed."
+      },
+      "inv_inv": {
+        "kind": "Lemma",
+        "lines": [60, 66],
+        "content": "  Lemma inv_inv (a : G) : (a^-1)^-1 = a.\n  Proof.\n    assert (Ha : (a^-1)^-1 * a^-1 = a * a^-1).\n    { now rewrite mul_inv_l, mul_inv_r. }\n    apply mul_right_cancel in Ha.\n    exact Ha.\n  Qed."
+      },
+      "inv_mul": {
+        "kind": "Lemma",
+        "lines": [68, 82],
+        "content": "  Lemma inv_mul (a b : G) :\n        (a * b)^-1 = b^-1 * a^-1.\n  Proof.\n    assert (Ha : (a * b)^-1 * (a * b) = (b^-1 * a^-1) * (a * b)).\n    { rewrite mul_inv_l.\n      repeat rewrite <- mul_assoc.\n      rewrite (mul_assoc (inv a) a b).\n      rewrite mul_inv_l.\n      rewrite one_mul.\n      rewrite mul_inv_l.\n      reflexivity.\n    }\n    apply mul_right_cancel in Ha.\n    exact Ha.\n  Qed."
+      },
+      "inv_eq_of_mul_eq_one": {
+        "kind": "Lemma",
+        "lines": [84, 95],
+        "content": "  Lemma inv_eq_of_mul_eq_one (a b : G) :\n        a * b = 1 -> b = a^-1.\n  Proof.\n    intro Ha.\n    assert (H' : a^-1 * (a * b) = a^-1 * 1).\n    { now rewrite Ha. }\n    rewrite mul_assoc in H'.\n    rewrite mul_inv_l in H'.\n    rewrite one_mul  in H'.\n    rewrite mul_one  in H'.\n    exact H'.\n  Qed."
+      },
+      "Act": {
+        "kind": "Class",
+        "lines": [99, 105],
+        "content": "Class Act (G X : Type) `{Group G}:= \n{\n  act : G -> X -> X;\n  act_one : forall x, act 1 x = x;\n  act_mul : forall g h x, act (g * h) x = act g  (act h x)\n\n}."
+      },
+      "•": {
+        "kind": "Notation",
+        "lines": [106, 106],
+        "content": "Infix \"•\" := act (at level 50, left associativity)."
+      },
+      "Act G X": {
+        "kind": "Context",
+        "lines": [110, 110],
+        "content": "  Context {G X : Type} `{Act G X}."
+      },
+      "orbit": {
+        "kind": "Definition",
+        "lines": [134, 135],
+        "content": "  Definition orbit (x : X) : X -> Prop :=\n    fun y => exists g : G, g • x = y."
+      },
+      "stabilizer": {
+        "kind": "Definition",
+        "lines": [137, 138],
+        "content": "  Definition stabilizer (x : X) : G -> Prop :=\n    fun g => g • x = x."
+      },
+      "act_inv": {
+        "kind": "Lemma",
+        "lines": [112, 121],
+        "content": "  Lemma act_inv (g : G) (x : X) :\n        g^-1 • (g • x) = x.\n  Proof.\n    assert (Ha : (g^-1 * g) • x = x).\n    { rewrite mul_inv_l.\n      apply act_one.\n    }\n    rewrite act_mul in Ha.\n    exact Ha.\n  Qed."
+      },
+      "act_inv_r": {
+        "kind": "Lemma",
+        "lines": [123, 132],
+        "content": "  Lemma act_inv_r (g : G) (x : X) :\n        g • (g^-1 • x) = x.\n  Proof.\n    assert (Ha : (g * g^-1) • x = x).\n    { rewrite mul_inv_r.\n      apply act_one.\n    }\n    rewrite act_mul in Ha.\n    exact Ha.\n  Qed."
+      },
+      "orbit_refl": {
+        "kind": "Lemma",
+        "lines": [140, 144],
+        "content": "  Lemma orbit_refl (x : X) : orbit x x.\n  Proof.\n    exists 1.\n    apply act_one.\n  Qed."
+      },
+      "orbit_sym": {
+        "kind": "Lemma",
+        "lines": [146, 155],
+        "content": "  Lemma orbit_sym (x y : X) :\n        orbit x y -> orbit y x.\n  Proof.\n    intros [g Hg].\n    exists (g^-1).\n    rewrite <- Hg.\n    rewrite <- act_mul.\n    rewrite mul_inv_l.\n    apply act_one.\n  Qed."
+      },
+      "orbit_trans": {
+        "kind": "Lemma",
+        "lines": [157, 165],
+        "content": "  Lemma orbit_trans (x y z : X) :\n        orbit x y -> orbit y z -> orbit x z.\n  Proof.\n    intros [g1 Hg1] [g2 Hg2].\n    exists (g2 * g1).\n    rewrite act_mul.\n    rewrite Hg1, Hg2.\n    reflexivity.\n  Qed."
+      },
+      "orbit_partition": {
+        "kind": "Lemma",
+        "lines": [167, 188],
+        "content": "  Lemma orbit_partition (x y : X) :\n        orbit x y -> forall z, orbit x z <-> orbit y z.\n  Proof.\n    intros Hxy z.\n    split; intros Hz.\n    - destruct Hxy as [g1 Hg1].\n      destruct Hz as [g2 Hg2].\n      exists (g2 * g1^-1).\n      rewrite act_mul.\n      rewrite <- Hg1.\n      repeat rewrite <- act_mul.\n      rewrite <- mul_assoc.\n      rewrite mul_inv_l.\n      rewrite mul_one.\n      exact Hg2.\n    - destruct Hxy as [g1 Hg1].\n      destruct Hz as [g2 Hg2].\n      exists (g2 * g1).\n      rewrite act_mul.\n      rewrite Hg1.\n      exact Hg2.\n  Qed."
+      },
+      "stabilizer_mul": {
+        "kind": "Lemma",
+        "lines": [190, 198],
+        "content": "  Lemma stabilizer_mul (x : X) (g h : G) :\n        stabilizer x g -> stabilizer x h -> stabilizer x (g * h).\n  Proof.\n    intros Hg Hh.\n    unfold stabilizer in *.\n    rewrite act_mul.\n    rewrite Hh, Hg.\n    reflexivity.\n  Qed."
+      },
+      "stabilizer_inv": {
+        "kind": "Lemma",
+        "lines": [200, 211],
+        "content": "  Lemma stabilizer_inv (x : X) (g : G) :\n        stabilizer x g -> stabilizer x (g^-1).\n  Proof.\n    intro Hg.\n    unfold stabilizer in *.\n    apply (f_equal (fun y => g^-1 • y)) in Hg.\n    rewrite <- act_mul in Hg.\n    rewrite mul_inv_l in Hg.\n    rewrite act_one in Hg.\n    symmetry.\n    exact Hg.\n  Qed."
+      },
+      "stabilizer_one": {
+        "kind": "Lemma",
+        "lines": [213, 218],
+        "content": "  Lemma stabilizer_one (x : X) :\n        stabilizer x 1.\n  Proof.\n    unfold stabilizer.\n    apply act_one.\n  Qed."
+      },
+      "stabilizer_conjugate": {
+        "kind": "Lemma",
+        "lines": [220, 232],
+        "content": "  Lemma stabilizer_conjugate (x : X) (g h : G) :\n        stabilizer x h -> stabilizer (g • x) (g * h * g^-1).\n  Proof.\n    intro Hh.\n    unfold stabilizer in *.\n    rewrite <- act_mul.\n    rewrite <- mul_assoc.\n    rewrite mul_inv_l.\n    rewrite mul_one.\n    rewrite act_mul.\n    rewrite Hh.\n    reflexivity.\n  Qed."
+      },
+      "stabilizer_conjugate_orbit": {
+        "kind": "Lemma",
+        "lines": [234, 258],
+        "content": "  Lemma stabilizer_conjugate_orbit (x y : X) (g : G) :\n        g • x = y ->\n        forall h, stabilizer y h <-> stabilizer x (g^-1 * h * g).\n  Proof.\n    intro Hxy.\n    intro h.\n    unfold stabilizer.\n    split; intro Hh.\n    - rewrite <- Hxy in Hh.\n      rewrite <- mul_assoc.\n      rewrite act_mul.\n      rewrite act_mul.\n      rewrite Hh.\n      rewrite act_inv.\n      reflexivity.\n    - rewrite <- mul_assoc in Hh.\n      repeat rewrite act_mul in Hh.\n      apply (f_equal (fun y0 => g • y0)) in Hh.\n      repeat rewrite Hxy in Hh.\n      rewrite <- act_mul in Hh.\n      rewrite mul_inv_r in Hh.\n      rewrite <- act_mul in Hh.\n      rewrite one_mul in Hh.\n      assumption.\n  Qed."
+      }
+    },
+    "items": [
+      {
+        "name": "mul_rotate'",
+        "lean": {
+          "kind": "theorem",
+          "lines": [22, 24],
+          "statement": "theorem mul_rotate' (a b c : G) : a * (b * c) = b * (c * a) := by",
+          "proof": "rw [GroupComm.mul_comm]\nrw [← Group.mul_assoc]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "GroupComm", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "GroupComm", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [25, 30],
+          "statement": "Lemma mul_rotate' (a b c : G) : a * (b * c) = b * (c * a).",
+          "proof": "Proof.\n    rewrite mul_comm.\n    rewrite <- mul_assoc.\n    trivial.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "GroupComm", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "mul_comm", "category": "class_field" },
+              { "symbol": "mul_assoc", "category": "class_field" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "GroupComm", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "mul_left_cancel",
+        "lean": {
+          "kind": "theorem",
+          "lines": [30, 35],
+          "statement": "theorem mul_left_cancel (a b c : G) (h : a * b = a * c) : b = c := by",
+          "proof": "have h' : a⁻¹ * (a * b) = a⁻¹ * (a * c) := by rw [h]\nrepeat rw [Group.mul_assoc] at h'\nrepeat rw [Group.mul_inv_l] at h'\nrepeat rw [Group.one_mul] at h'\nexact h'",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [37, 47],
+          "statement": "Lemma mul_left_cancel (a b c : G) :\n        a * b = a * c -> b = c.",
+          "proof": "Proof.\n    intro Ha.\n    assert (H' : a^-1 * (a * b) = a^-1 * (a * c)).\n    { now rewrite Ha. }\n\n    repeat rewrite mul_assoc in H'.\n    repeat rewrite mul_inv_l in H'.\n    repeat rewrite one_mul    in H'.\n    exact H'.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "mul_right_cancel",
+        "lean": {
+          "kind": "theorem",
+          "lines": [37, 42],
+          "statement": "theorem mul_right_cancel (a b c : G) (h : b * a = c * a) : b = c := by",
+          "proof": "have h' : (b * a) * a⁻¹ = (c * a) * a⁻¹ := by rw [h]\nrepeat rw [← Group.mul_assoc] at h'\nrepeat rw [Group.mul_inv_r] at h'\nrepeat rw [Group.mul_one] at h'\nexact h'",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [50, 59],
+          "statement": "Lemma mul_right_cancel (a b c : G) :\n        b * a = c * a -> b = c.",
+          "proof": "Proof.\n    intro Ha.\n    assert (H' : (b * a) * a^-1 = (c * a) * a^-1).\n    { now rewrite Ha. }\n    repeat rewrite <- mul_assoc in H'.\n    repeat rewrite mul_inv_r in H'.\n    repeat rewrite mul_one in H'.\n    exact H'.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_inv",
+        "lean": {
+          "kind": "theorem",
+          "lines": [44, 47],
+          "statement": "theorem inv_inv (a : G) : (a⁻¹)⁻¹ = a := by",
+          "proof": "have h : (a⁻¹)⁻¹ * a⁻¹ = a * a⁻¹ := by\n  rw [Group.mul_inv_l, Group.mul_inv_r]\nexact mul_right_cancel _ _ _ h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "mul_right_cancel", "category": "theorem" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [61, 67],
+          "statement": "Lemma inv_inv (a : G) : (a^-1)^-1 = a.",
+          "proof": "Proof.\n    assert (Ha : (a^-1)^-1 * a^-1 = a * a^-1).\n    { now rewrite mul_inv_l, mul_inv_r. }\n    apply mul_right_cancel in Ha.\n    exact Ha.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "mul_right_cancel", "category": "Lemma" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_mul",
+        "lean": {
+          "kind": "theorem",
+          "lines": [49, 57],
+          "statement": "theorem inv_mul (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := by",
+          "proof": "have h : (a * b)⁻¹ * (a * b) = (b⁻¹ * a⁻¹) * (a * b) := by\n  rw [Group.mul_inv_l]\n  repeat rw [← Group.mul_assoc]\n  rw [Group.mul_assoc (a⁻¹) a b]\n  rw [Group.mul_inv_l]\n  rw [Group.one_mul]\n  rw [Group.mul_inv_l]\nexact mul_right_cancel _ _ _ h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "mul_right_cancel", "category": "theorem" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [70, 83],
+          "statement": "Lemma inv_mul (a b : G) :\n        (a * b)^-1 = b^-1 * a^-1.",
+          "proof": "Proof.\n    assert (Ha : (a * b)^-1 * (a * b) = (b^-1 * a^-1) * (a * b)).\n    { rewrite mul_inv_l.\n      repeat rewrite <- mul_assoc.\n      rewrite (mul_assoc (inv a) a b).\n      rewrite mul_inv_l.\n      rewrite one_mul.\n      rewrite mul_inv_l.\n      reflexivity.\n    }\n    apply mul_right_cancel in Ha.\n    exact Ha.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "mul_right_cancel", "category": "Lemma" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_eq_of_mul_eq_one",
+        "lean": {
+          "kind": "theorem",
+          "lines": [59, 62],
+          "statement": "theorem inv_eq_of_mul_eq_one (a b : G) (h : a * b = one) : b = a⁻¹ := by",
+          "proof": "have h' : a⁻¹ * (a * b) = a⁻¹ * one := by rw [h]\nrw [Group.mul_assoc, Group.mul_inv_l, Group.one_mul, Group.mul_one] at h'\nexact h'",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [86, 96],
+          "statement": "Lemma inv_eq_of_mul_eq_one (a b : G) :\n        a * b = 1 -> b = a^-1.",
+          "proof": "Proof.\n    intro Ha.\n    assert (H' : a^-1 * (a * b) = a^-1 * 1).\n    { now rewrite Ha. }\n    rewrite mul_assoc in H'.\n    rewrite mul_inv_l in H'.\n    rewrite one_mul  in H'.\n    rewrite mul_one  in H'.\n    exact H'.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "act_inv",
+        "lean": {
+          "kind": "theorem",
+          "lines": [78, 83],
+          "statement": "theorem act_inv (g : G) (x : X) : g⁻¹ • (g • x) = x := by",
+          "proof": "have h : (g⁻¹ * g) • x = x := by\n  rw [Group.mul_inv_l]\n  apply Act.act_one\nrw [Act.act_mul] at h\nexact h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [114, 122],
+          "statement": "Lemma act_inv (g : G) (x : X) :\n        g^-1 • (g • x) = x.",
+          "proof": "Proof.\n    assert (Ha : (g^-1 * g) • x = x).\n    { rewrite mul_inv_l.\n      apply act_one.\n    }\n    rewrite act_mul in Ha.\n    exact Ha.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "act_inv_r",
+        "lean": {
+          "kind": "theorem",
+          "lines": [85, 90],
+          "statement": "theorem act_inv_r (g : G) (x : X) : g • (g⁻¹ • x) = x := by",
+          "proof": "have h : (g * g⁻¹) • x = x := by\n  rw [Group.mul_inv_r]\n  apply Act.act_one\nrw [Act.act_mul] at h\nexact h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [125, 133],
+          "statement": "Lemma act_inv_r (g : G) (x : X) :\n        g • (g^-1 • x) = x.",
+          "proof": "Proof.\n    assert (Ha : (g * g^-1) • x = x).\n    { rewrite mul_inv_r.\n      apply act_one.\n    }\n    rewrite act_mul in Ha.\n    exact Ha.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "orbit_refl",
+        "lean": {
+          "kind": "theorem",
+          "lines": [98, 100],
+          "statement": "theorem orbit_refl\n    (x : X) : orbit (G:=G) x x := by",
+          "proof": "exists one\nexact Act.act_one x",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [141, 145],
+          "statement": "Lemma orbit_refl (x : X) : orbit x x.",
+          "proof": "Proof.\n    exists 1.\n    apply act_one.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "orbit_sym",
+        "lean": {
+          "kind": "theorem",
+          "lines": [102, 105],
+          "statement": "theorem orbit_sym (x y : X) (h : orbit (G:=G) x y) : orbit (G:=G) y x := by",
+          "proof": "rcases h with ⟨g, hg⟩\nexists g⁻¹\nrw [← hg, ← Act.act_mul, Group.mul_inv_l, Act.act_one]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [148, 156],
+          "statement": "Lemma orbit_sym (x y : X) :\n        orbit x y -> orbit y x.",
+          "proof": "Proof.\n    intros [g Hg].\n    exists (g^-1).\n    rewrite <- Hg.\n    rewrite <- act_mul.\n    rewrite mul_inv_l.\n    apply act_one.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "orbit_trans",
+        "lean": {
+          "kind": "theorem",
+          "lines": [107, 111],
+          "statement": "theorem orbit_trans (x y z : X) (h1 : orbit (G:=G) x y) (h2 : orbit (G:=G) y z) : orbit (G:=G) x z := by",
+          "proof": "rcases h1 with ⟨g1, hg1⟩\nrcases h2 with ⟨g2, hg2⟩\nexists (g2 * g1)\nrw [Act.act_mul, hg1, hg2]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [159, 166],
+          "statement": "Lemma orbit_trans (x y z : X) :\n        orbit x y -> orbit y z -> orbit x z.",
+          "proof": "Proof.\n    intros [g1 Hg1] [g2 Hg2].\n    exists (g2 * g1).\n    rewrite act_mul.\n    rewrite Hg1, Hg2.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "orbit_partition",
+        "lean": {
+          "kind": "theorem",
+          "lines": [114, 128],
+          "statement": "theorem orbit_partition (x y : X) (hxy : orbit (G:=G) x y) (z : X) :\n      orbit (G:=G) x z ↔ orbit (G:=G) y z := by",
+          "proof": "constructor\n· intro hz\n  rcases hxy with ⟨g1, hg1⟩\n  rcases hz with ⟨g2, hg2⟩\n  exists (g2 * g1⁻¹)\n  rw [Act.act_mul, ← hg1]\n  repeat rw [← Act.act_mul]\n  rw [← Group.mul_assoc, Group.mul_inv_l, Group.mul_one]\n  exact hg2\n· intro hz\n  rcases hxy with ⟨g1, hg1⟩\n  rcases hz with ⟨g2, hg2⟩\n  exists (g2 * g1)\n  rw [Act.act_mul, hg1, hg2]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [169, 189],
+          "statement": "Lemma orbit_partition (x y : X) :\n        orbit x y -> forall z, orbit x z <-> orbit y z.",
+          "proof": "Proof.\n    intros Hxy z.\n    split; intros Hz.\n    - destruct Hxy as [g1 Hg1].\n      destruct Hz as [g2 Hg2].\n      exists (g2 * g1^-1).\n      rewrite act_mul.\n      rewrite <- Hg1.\n      repeat rewrite <- act_mul.\n      rewrite <- mul_assoc.\n      rewrite mul_inv_l.\n      rewrite mul_one.\n      exact Hg2.\n    - destruct Hxy as [g1 Hg1].\n      destruct Hz as [g2 Hg2].\n      exists (g2 * g1).\n      rewrite act_mul.\n      rewrite Hg1.\n      exact Hg2.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "orbit", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "stabilizer_mul",
+        "lean": {
+          "kind": "theorem",
+          "lines": [131, 133],
+          "statement": "theorem stabilizer_mul (x : X) (g h : G)\n    (hg : stabilizer x g) (hh : stabilizer x h) : stabilizer x (g * h) := by",
+          "proof": "unfold stabilizer at *\nrw [Act.act_mul, hh, hg]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [192, 199],
+          "statement": "Lemma stabilizer_mul (x : X) (g h : G) :\n        stabilizer x g -> stabilizer x h -> stabilizer x (g * h).",
+          "proof": "Proof.\n    intros Hg Hh.\n    unfold stabilizer in *.\n    rewrite act_mul.\n    rewrite Hh, Hg.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "stabilizer_inv",
+        "lean": {
+          "kind": "theorem",
+          "lines": [135, 140],
+          "statement": "theorem stabilizer_inv (x : X) (g : G) (hg : stabilizer x g) : stabilizer x g⁻¹ := by",
+          "proof": "dsimp [stabilizer] at *\ncalc\n  g⁻¹ • x = g⁻¹ • (g • x) := by rw [hg]\n  _ = (g⁻¹ * g) • x := by rw [Act.act_mul]\n  _ = x := by rw [mul_inv_l, Act.act_one]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "⁻¹", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [202, 212],
+          "statement": "Lemma stabilizer_inv (x : X) (g : G) :\n        stabilizer x g -> stabilizer x (g^-1).",
+          "proof": "Proof.\n    intro Hg.\n    unfold stabilizer in *.\n    apply (f_equal (fun y => g^-1 • y)) in Hg.\n    rewrite <- act_mul in Hg.\n    rewrite mul_inv_l in Hg.\n    rewrite act_one in Hg.\n    symmetry.\n    exact Hg.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "^-1", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "stabilizer_one",
+        "lean": {
+          "kind": "theorem",
+          "lines": [142, 144],
+          "statement": "theorem stabilizer_one (x : X) : stabilizer (G:=G) x one := by",
+          "proof": "unfold stabilizer\napply Act.act_one",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [215, 219],
+          "statement": "Lemma stabilizer_one (x : X) :\n        stabilizer x 1.",
+          "proof": "Proof.\n    unfold stabilizer.\n    apply act_one.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "stabilizer_conjugate",
+        "lean": {
+          "kind": "theorem",
+          "lines": [147, 149],
+          "statement": "theorem stabilizer_conjugate (x : X) (g h : G)\n    (hh : stabilizer x h) : stabilizer (g • x) (g * h * g⁻¹) := by",
+          "proof": "unfold stabilizer at *\nrw [← Act.act_mul, ← Group.mul_assoc, Group.mul_inv_l, Group.mul_one, Act.act_mul, hh]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "•", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [222, 233],
+          "statement": "Lemma stabilizer_conjugate (x : X) (g h : G) :\n        stabilizer x h -> stabilizer (g • x) (g * h * g^-1).",
+          "proof": "Proof.\n    intro Hh.\n    unfold stabilizer in *.\n    rewrite <- act_mul.\n    rewrite <- mul_assoc.\n    rewrite mul_inv_l.\n    rewrite mul_one.\n    rewrite act_mul.\n    rewrite Hh.\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "stabilizer_conjugate_orbit",
+        "lean": {
+          "kind": "theorem",
+          "lines": [152, 169],
+          "statement": "theorem stabilizer_conjugate_orbit (x y : X) (g : G) (hxy : g • x = y) (h : G) :\n      stabilizer y h ↔ stabilizer x (g⁻¹ * h * g) := by",
+          "proof": "unfold stabilizer\nconstructor\n· intro hy\n  rw [<- hxy] at hy\n  have hy' : g⁻¹ • h • (g • x) = x := by\n    rw [hy]\n    rw [<- Act.act_mul]\n    rw [mul_inv_l, Act.act_one]\n  repeat rw [Act.act_mul]\n  exact hy'\n· intro hh\n  have hh' : g • ((g⁻¹ * h * g) • x) = g • x := by rw [hh]\n  rw [hxy] at hh'\n  simp [mul_assoc, <- Act.act_mul, mul_inv_r, one_mul] at hh'\n  rw [Act.act_mul] at hh'\n  rw [hxy] at hh'\n  exact hh'",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "⁻¹", "category": "notation" },
+              { "symbol": "•", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [237, 259],
+          "statement": "Lemma stabilizer_conjugate_orbit (x y : X) (g : G) :\n        g • x = y ->\n        forall h, stabilizer y h <-> stabilizer x (g^-1 * h * g).",
+          "proof": "Proof.\n    intro Hxy.\n    intro h.\n    unfold stabilizer.\n    split; intro Hh.\n    - rewrite <- Hxy in Hh.\n      rewrite <- mul_assoc.\n      rewrite act_mul.\n      rewrite act_mul.\n      rewrite Hh.\n      rewrite act_inv.\n      reflexivity.\n    - rewrite <- mul_assoc in Hh.\n      repeat rewrite act_mul in Hh.\n      apply (f_equal (fun y0 => g • y0)) in Hh.\n      repeat rewrite Hxy in Hh.\n      rewrite <- act_mul in Hh.\n      rewrite mul_inv_r in Hh.\n      rewrite <- act_mul in Hh.\n      rewrite one_mul in Hh.\n      assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "•", "category": "notation" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "stabilizer", "category": "definition" },
+              { "symbol": "Group", "category": "class" },
+              { "symbol": "Act", "category": "class" },
+              { "symbol": "*", "category": "notation" },
+              { "symbol": "^-1", "category": "notation" },
+              { "symbol": "•", "category": "notation" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

@@ -1,0 +1,480 @@
+{
+    "source": "inner_product",
+    "lean": {
+      "namespace Linear": {
+        "kind": "namespace",
+        "lines": [8, 8],
+        "content": "namespace Linear"
+      },
+      "Field": {
+        "kind": "class",
+        "lines": [11, 32],
+        "content": "class Field (R : Type) where\n  zero    : R\n  one     : R\n  add     : R → R → R\n  mul     : R → R → R\n  opp     : R → R\n\n  add_comm    : ∀ x y, add x y = add y x\n  add_assoc   : ∀ x y z, add (add x y) z = add x (add y z)\n  add_zero    : ∀ x, add x zero = x\n  zero_add    : ∀ x, add zero x = x\n  add_opp     : ∀ x, add x (opp x) = zero\n\n  mul_comm    : ∀ x y, mul x y = mul y x\n  mul_assoc   : ∀ x y z, mul (mul x y) z = mul x (mul y z)\n  mul_one     : ∀ x, mul x one = x\n  dist_l      : ∀ x y z, mul x (add y z) = add (mul x y) (mul x z)\n\n  opp_add     : ∀ x y, opp (add x y) = add (opp x) (opp y)\n  mul_opp_one : ∀ x, mul (opp one) x = opp x\n  opp_opp     : ∀ x, opp (opp x) = x"
+      },
+      "+R": {
+        "kind": "notation",
+        "lines": [33, 33],
+        "content": "infixl:65  \"+R\"  => Field.add"
+      },
+      "*R": {
+        "kind": "notation",
+        "lines": [34, 34],
+        "content": "infixl:70  \"*R\"  => Field.mul"
+      },
+      "-R": {
+        "kind": "notation",
+        "lines": [35, 35],
+        "content": "prefix:100 \"-R\"  => Field.opp"
+      },
+      "VSpace": {
+        "kind": "class",
+        "lines": [38, 55],
+        "content": "class VSpace (R : Type) [Field R] (V : Type) where\n  zeroV : V\n  addV  : V → V → V\n  oppV  : V → V\n  smul  : R → V → V\n\n  addV_comm  : ∀ u v, addV u v = addV v u\n  addV_assoc : ∀ u v w, addV (addV u v) w = addV u (addV v w)\n  addV_zero  : ∀ u, addV u zeroV = u\n  addV_opp   : ∀ u, addV u (oppV u) = zeroV\n\n  smul_addV  : ∀ a u v, smul a (addV u v) = addV (smul a u) (smul a v)\n  addR_smul  : ∀ a b u, smul (a +R b) u = addV (smul a u) (smul b u)\n  mul_smul   : ∀ a b u, smul (a *R b) u = smul a (smul b u)\n  one_smul   : ∀ u, smul Field.one u = u\n  smul_zero  : ∀ a, smul a zeroV = zeroV\n  opp_smul_one : ∀ u, oppV u = smul (Field.opp Field.one) u"
+      },
+      "+V": {
+        "kind": "notation",
+        "lines": [56, 56],
+        "content": "infixl:65  \"+V\"  => VSpace.addV"
+      },
+      "-V": {
+        "kind": "notation",
+        "lines": [57, 57],
+        "content": "prefix:100 \"-V\"  => VSpace.oppV"
+      },
+      "•V": {
+        "kind": "notation",
+        "lines": [58, 58],
+        "content": "notation:70 a \" •V \" u => VSpace.smul a u"
+      },
+      "subV": {
+        "kind": "def",
+        "lines": [60, 61],
+        "content": "def subV {R : Type} {V : Type} [Field R] [VSpace R V] (u v : V) : V :=\n  VSpace.addV (R := R) (V := V) u (VSpace.oppV (R := R) (V := V) v)"
+      },
+      "infix -V": {
+        "kind": "notation",
+        "lines": [62, 62],
+        "content": "infixl:65  \" -V \" => subV"
+      },
+      "Inner": {
+        "kind": "class",
+        "lines": [65, 80],
+        "content": "class Inner (R : Type) (V : Type) [Field R] [VSpace R V] where\n  ip : V → V → R\n\n  lin_left_add  : ∀ u v w,\n    ip (VSpace.addV (R := R) (V := V) u v) w = (ip u w) +R (ip v w)\n  lin_left_smul : ∀ a u v,\n    ip (VSpace.smul (R := R) (V := V) a u) v = a *R (ip u v)\n\n  lin_right_add  : ∀ u v w,\n    ip u (VSpace.addV (R := R) (V := V) v w) = (ip u v) +R (ip u w)\n  lin_right_smul : ∀ a u v,\n    ip u (VSpace.smul (R := R) (V := V) a v) = a *R (ip u v)\n\n  symm : ∀ u v, ip u v = ip v u"
+      },
+      "variables types": {
+        "kind": "variable",
+        "lines": [81, 81],
+        "content": "variable {R : Type} {V : Type}"
+      },
+      "variables instances": {
+        "kind": "variable",
+        "lines": [82, 82],
+        "content": "variable [Field R] [VSpace R V] [Inner R V]"
+      },
+      "ip_neg_left": {
+        "kind": "theorem",
+        "lines": [87, 95],
+        "content": "theorem ip_neg_left (u v : V) :\n  Inner.ip (R := R) (V := V)\n    (VSpace.oppV (R := R) (V := V) u) v\n    = Field.opp (Inner.ip (R := R) (V := V) u v) := by\n  -- rewrite -u as (-1) • u then pull scalar out\n  have h := Inner.lin_left_smul (R := R) (V := V)\n    (a := Field.opp (Field.one)) u v\n  -- conclude using mul_opp_one\n  simpa [VSpace.opp_smul_one, Field.mul_opp_one] using h"
+      },
+      "ip_neg_right": {
+        "kind": "theorem",
+        "lines": [97, 105],
+        "content": "theorem ip_neg_right (u v : V) :\n  Inner.ip (R := R) (V := V) u\n    (VSpace.oppV (R := R) (V := V) v)\n    = Field.opp (Inner.ip (R := R) (V := V) u v) := by\n  have h := Inner.lin_right_smul (R := R) (V := V)\n    (a := Field.opp (Field.one)) u v\n  simpa [VSpace.opp_smul_one, Field.mul_opp_one] using h"
+      },
+      "ip_add_add": {
+        "kind": "theorem",
+        "lines": [106, 128],
+        "content": "theorem ip_add_add (u v : V) :\n  Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n    = ((Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u)\n       +R (Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v)) := by\n  -- Expand in the right argument first, then in the left\n  have H := Inner.lin_right_add (R := R) (V := V)\n    (u := VSpace.addV (R := R) (V := V) u v) (v := u) (w := v)\n  -- expand each left-additivity\n  have H1 :\n    Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v) u\n      = Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u :=\n    Inner.lin_left_add (R := R) (V := V) (u := u) (v := v) (w := u)\n  have H2 :\n    Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v) v\n      = Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v :=\n    Inner.lin_left_add (R := R) (V := V) (u := u) (v := v) (w := v)\n  simpa [H1, H2, Field.add_assoc] using H"
+      },
+      "ip_sub_sub": {
+        "kind": "theorem",
+        "lines": [129, 202],
+        "content": "theorem ip_sub_sub (u v : V) :\n  Inner.ip (R := R) (V := V)\n      (subV (R := R) (V := V) u v)\n      (subV (R := R) (V := V) u v)\n    = ((Inner.ip (R := R) (V := V) u u +R Field.opp (Inner.ip (R := R) (V := V) v u))\n       +R (Field.opp (Inner.ip (R := R) (V := V) u v) +R Inner.ip (R := R) (V := V) v v)) := by\n  -- expand on right then left, and use negation rewrites\n  have H := Inner.lin_right_add (R := R) (V := V)\n    (u := subV (R := R) (V := V) u v) (v := u)\n    (w := VSpace.oppV (R := R) (V := V) v)\n  have H1 :\n    Inner.ip (R := R) (V := V) (subV (R := R) (V := V) u v) u =\n      Inner.ip (R := R) (V := V) u u\n        +R Inner.ip (R := R) (V := V)\n              (VSpace.oppV (R := R) (V := V) v) u := by\n      simpa using\n        Inner.lin_left_add (R := R) (V := V)\n          (u := u)\n          (v := VSpace.oppV (R := R) (V := V) v)\n          (w := u)\n  have H2 :\n    Inner.ip (R := R) (V := V)\n        (subV (R := R) (V := V) u v)\n        (VSpace.oppV (R := R) (V := V) v)\n      = Inner.ip (R := R) (V := V) u (VSpace.oppV (R := R) (V := V) v)\n        +R Inner.ip (R := R) (V := V)\n              (VSpace.oppV (R := R) (V := V) v)\n              (VSpace.oppV (R := R) (V := V) v) := by\n      simpa using\n        Inner.lin_left_add (R := R) (V := V)\n          (u := u)\n          (v := VSpace.oppV (R := R) (V := V) v)\n          (w := VSpace.oppV (R := R) (V := V) v)\n  -- mixed terms\n  have Huv_neg :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v) u\n        = Field.opp (Inner.ip (R := R) (V := V) v u) :=\n    ip_neg_left (v := u) v\n  have Huu :\n      Inner.ip (R := R) (V := V) u (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Inner.ip (R := R) (V := V) u v) :=\n    ip_neg_right (u := u) v\n  -- simplify ⟪-v,-v⟫ to ⟪v,v⟫ via two negations and opp_opp\n  have Hvv1 :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v)\n        (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Inner.ip (R := R) (V := V)\n                        (VSpace.oppV (R := R) (V := V) v) v) :=\n    ip_neg_right (u := VSpace.oppV (R := R) (V := V) v) v\n  have Hvv2 :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v) v\n        = Field.opp (Inner.ip (R := R) (V := V) v v) :=\n    ip_neg_left v v\n  have Hvv :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v)\n        (VSpace.oppV (R := R) (V := V) v)\n        = Inner.ip (R := R) (V := V) v v := by\n    -- combine Hvv1 and Hvv2, then use opp_opp\n    have :\n        Inner.ip (R := R) (V := V)\n          (VSpace.oppV (R := R) (V := V) v)\n          (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Field.opp (Inner.ip (R := R) (V := V) v v)) := by\n      simpa [Hvv2] using Hvv1\n    simpa [Field.opp_opp] using this\n  -- assemble\n  simpa [H1, H2, Huv_neg, Huu, Hvv, Field.add_assoc, Field.add_comm]\n    using H"
+      },
+      "pythagoras": {
+        "kind": "theorem",
+        "lines": [203, 224],
+        "content": "theorem pythagoras (u v : V)\n  (h : Inner.ip (R := R) (V := V) u v = Field.zero) :\n  Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n    = (Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v v) := by\n  -- Expand ⟪u+v,u+v⟫ and cancel the cross terms using symmetry\n  have H := ip_add_add (R := R) (V := V) u v\n  -- cross term symmetry\n  have hvu : Inner.ip (R := R) (V := V) v u = Field.zero := by\n    simpa [Inner.symm (R := R) (V := V) v u] using h\n  -- ((⟪u,u⟫ + 0) + (0 + ⟪v,v⟫)) → ⟪u,u⟫ + ⟪v,v⟫\n  have :\n      Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v)\n        (VSpace.addV (R := R) (V := V) u v)\n        = ((Inner.ip (R := R) (V := V) u u +R Field.zero)\n            +R (Field.zero +R Inner.ip (R := R) (V := V) v v)) := by\n    simp [H, h, hvu]\n  simpa [Field.add_zero, Field.zero_add, Field.add_comm, Field.add_assoc] using this"
+      },
+      "parallelogram": {
+        "kind": "theorem",
+        "lines": [225, 239],
+        "content": "theorem parallelogram (u v : V) :\n  (Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n     +R Inner.ip (R := R) (V := V)\n          (subV (R := R) (V := V) u v)\n          (subV (R := R) (V := V) u v))\n    = (((Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u)\n         +R (Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v))\n       +R ((Inner.ip (R := R) (V := V) u u +R Field.opp (Inner.ip (R := R) (V := V) v u))\n           +R ((Field.opp (Inner.ip (R := R) (V := V) u v))\n               +R Inner.ip (R := R) (V := V) v v))) := by\n  have H1 := ip_add_add (R := R) (V := V) u v\n  have H2 := ip_sub_sub (R := R) (V := V) u v\n  simp [H1, H2]"
+      },
+      "end Linear": {
+        "kind": "end",
+        "lines": [241, 241],
+        "content": "end Linear"
+      }
+    },
+    "coq": {
+      "Section Linear.": {
+        "kind": "Section",
+        "lines": [32, 32],
+        "content": "Section Linear."
+      },
+      "Context {F : Field}.": {
+        "kind": "Context",
+        "lines": [33, 33],
+        "content": "  Context {F : Field}."
+      },
+      "+R": {
+        "kind": "Notation",
+        "lines": [35, 35],
+        "content": "  Infix \"+R\" := addR (at level 65)."
+      },
+      "*R": {
+        "kind": "Notation",
+        "lines": [36, 36],
+        "content": "  Infix \"*R\" := mulR (at level 70)."
+      },
+      "-R x": {
+        "kind": "Notation",
+        "lines": [37, 37],
+        "content": "  Notation \"-R x\" := (oppR x) (at level 100)."
+      },
+      "VSpace": {
+        "kind": "Class",
+        "lines": [39, 57],
+        "content": "  Class VSpace := {\n    V0     : Type;\n    zeroV  : V0;\n    addV   : V0 -> V0 -> V0;\n    oppV   : V0 -> V0;\n    smul   : R0 -> V0 -> V0;\n\n    addV_comm  : forall u v, addV u v = addV v u;\n    addV_assoc : forall u v w, addV (addV u v) w = addV u (addV v w);\n    addV_zero  : forall u, addV u zeroV = u;\n    addV_opp   : forall u, addV u (oppV u) = zeroV;\n\n    smul_addV  : forall a u v, smul a (addV u v) = addV (smul a u) (smul a v);\n    addR_smul  : forall a b u, smul (a +R b) u = addV (smul a u) (smul b u);\n    mul_smul   : forall a b u, smul (a *R b) u = smul a (smul b u);\n    one_smul   : forall u, smul oneR u = u;\n    smul_zeroV : forall a, smul a zeroV = zeroV;\n    opp_smul_one : forall u, oppV u = smul (oppR oneR) u\n  }."
+      },
+      "Field": {
+        "kind": "Class",
+        "lines": [-1, -1],
+        "content": "Class Field := {\n  R0    : Type;\n  zeroR : R0;\n  oneR  : R0;\n  addR  : R0 -> R0 -> R0;\n  mulR  : R0 -> R0 -> R0;\n  oppR  : R0 -> R0;\n\n  addR_comm  : forall x y, addR x y = addR y x;\n  addR_assoc : forall x y z, addR (addR x y) z = addR x (addR y z);\n  addR_zero  : forall x, addR x zeroR = x;\n  zeroR_add  : forall x, addR zeroR x = x;\n  addR_opp   : forall x, addR x (oppR x) = zeroR;\n\n  mulR_comm  : forall x y, mulR x y = mulR y x;\n  mulR_assoc : forall x y z, mulR (mulR x y) z = mulR x (mulR y z);\n  mulR_one   : forall x, mulR x oneR = x;\n  distR_l    : forall x y z, mulR x (addR y z) = addR (mulR x y) (mulR x z);\n\n  oppR_add   : forall x y, oppR (addR x y) = addR (oppR x) (oppR y);\n  mulR_opp_one : forall x, mulR (oppR oneR) x = oppR x;\n  oppR_opp : forall x, oppR (oppR x) = x\n}."
+      },
+      "+V": {
+        "kind": "Notation",
+        "lines": [59, 59],
+        "content": "  Infix \"+V\" := addV (at level 65)."
+      },
+      "-V": {
+        "kind": "Notation",
+        "lines": [60, 60],
+        "content": "  Notation \"-V x\" := (oppV x) (at level 100)."
+      },
+      "•V": {
+        "kind": "Notation",
+        "lines": [61, 61],
+        "content": "  Notation \"a •V x\" := (smul a x) (at level 70)."
+      },
+      "subV": {
+        "kind": "Definition",
+        "lines": [62, 62],
+        "content": "  Definition subV {VS : VSpace} (u v : V0) := addV u (oppV v)."
+      },
+      "x -V y": {
+        "kind": "Notation",
+        "lines": [63, 63],
+        "content": "  Infix \"-V\" := subV (at level 65)."
+      },
+      "Inner": {
+        "kind": "Class",
+        "lines": [65, 75],
+        "content": "  Class Inner `{VS : VSpace} := {\n    ip : V0 -> V0 -> R0;\n\n    lin_left_add  : forall u v w, (ip (u +V v) w) = ((ip u w) +R (ip v w));\n    lin_left_smul : forall a u v, (ip (a •V u) v) = (a *R (ip u v));\n\n    lin_right_add  : forall u v w, (ip u (v +V w)) = ((ip u v) +R (ip u w));\n    lin_right_smul : forall a u v, (ip u (a •V v)) = (a *R (ip u v));\n\n    symm : forall u v, ip u v = ip v u\n  }."
+      },
+      "Context `{VS : VSpace} `{IN : Inner}.": {
+        "kind": "Context",
+        "lines": [77, 77],
+        "content": "    Context `{VS : VSpace} `{IN : Inner}."
+      },
+      "⟪,⟫": {
+        "kind": "Notation",
+        "lines": [79, 79],
+        "content": "    Notation \"⟪ x , y ⟫\" := (ip x y) (at level 80)."
+      },
+      "ip_neg_left": {
+        "kind": "Lemma",
+        "lines": [81, 88],
+        "content": "    Lemma ip_neg_left : forall u v, ⟪-V u, v⟫ = -R ⟪u, v⟫.\n    Proof.\n      intros u v.\n      rewrite opp_smul_one.\n      rewrite lin_left_smul.\n      now rewrite mulR_opp_one.\n    Qed."
+      },
+      "ip_neg_right": {
+        "kind": "Lemma",
+        "lines": [89, 96],
+        "content": "    Lemma ip_neg_right : forall u v, ⟪u, -V v⟫ = -R ⟪u, v⟫.\n    Proof.\n      intros u v.\n      rewrite opp_smul_one.\n      rewrite lin_right_smul.\n      now rewrite mulR_opp_one.\n    Qed."
+      },
+      "ip_add_add": {
+        "kind": "Lemma",
+        "lines": [97, 107],
+        "content": "    Lemma ip_add_add : forall u v,\n      ⟪u +V v, u +V v⟫ = ((⟪u,u⟫ +R ⟪v,u⟫) +R (⟪u,v⟫ +R ⟪v,v⟫)).\n    Proof.\n      intros u v.\n      pose proof (lin_right_add (u +V v) u v) as H.\n      pose proof (lin_left_add u v u) as H1.\n      pose proof (lin_left_add u v v) as H2.\n      rewrite H1, H2 in H.\n      exact H.\n    Qed."
+      },
+      "ip_sub_sub": {
+        "kind": "Lemma",
+        "lines": [108, 126],
+        "content": "    Lemma ip_sub_sub : forall u v,\n      ⟪u -V v, u -V v⟫ = ((⟪u,u⟫ +R (-R ⟪v,u⟫)) +R ((-R ⟪u,v⟫) +R ⟪v,v⟫)).\n    Proof.\n      intros u v.\n      unfold subV in *.\n      pose proof (lin_right_add (addV u (oppV v)) u (oppV v)) as H.\n      pose proof (lin_left_add u (oppV v) u) as H1.\n      pose proof (lin_left_add u (oppV v) (oppV v)) as H2.\n      rewrite H1, H2 in H.\n      (* Simplify the mixed terms *)\n      rewrite (ip_neg_left v u) in H.\n      rewrite (ip_neg_right u v) in H.\n      (* Simplify ⟪-v, -v⟫ to ⟪v,v⟫ using two negation lemmas *)\n      rewrite (ip_neg_right (oppV v) v) in H.\n      rewrite (ip_neg_left v v) in H.\n      rewrite oppR_opp in H.\n      exact H.\n    Qed."
+      },
+      "pythagoras": {
+        "kind": "Lemma",
+        "lines": [127, 139],
+        "content": "    Lemma pythagoras : forall u v,\n      ⟪u,v⟫ = zeroR ->\n      ⟪u +V v, u +V v⟫ = (⟪u,u⟫ +R ⟪v,v⟫).\n    Proof.\n      intros u v Huv.\n      pose proof (ip_add_add u v) as H.\n      assert (Hvu : ⟪v,u⟫ = zeroR) by (now rewrite <- symm).\n      rewrite Huv, Hvu in H.\n      rewrite addR_zero in H.\n      rewrite zeroR_add in H.\n      exact H.\n    Qed."
+      },
+      "parallelogram": {
+        "kind": "Lemma",
+        "lines": [140, 151],
+        "content": "    Lemma parallelogram : forall u v,\n      (⟪u +V v, u +V v⟫ +R ⟪u -V v, u -V v⟫)\n        = (((⟪u,u⟫ +R ⟪v,u⟫) +R (⟪u,v⟫ +R ⟪v,v⟫))\n           +R ((⟪u,u⟫ +R (-R ⟪v,u⟫)) +R ((-R ⟪u,v⟫) +R ⟪v,v⟫))).\n    Proof.\n      intros u v.\n      pose proof (ip_add_add u v) as H1.\n      pose proof (ip_sub_sub u v) as H2.\n      rewrite H1, H2.\n      reflexivity.\n    Qed."
+      },
+      "End Linear.": {
+        "kind": "End",
+        "lines": [152, 152],
+        "content": "End Linear."
+      },
+      "mulR_opp_one": {
+        "kind": "class_field",
+        "lines": [28, 28],
+        "content": "  mulR_opp_one : forall x, mulR (oppR oneR) x = oppR x"
+      },
+      "oppR_opp": {
+        "kind": "class_field",
+        "lines": [29, 29],
+        "content": "  ; oppR_opp : forall x, oppR (oppR x) = x"
+      },
+      "lin_left_add": {
+        "kind": "class_field",
+        "lines": [68, 68],
+        "content": "    lin_left_add  : forall u v w, (ip (u +V v) w) = ((ip u w) +R (ip v w));"
+      },
+      "lin_left_smul": {
+        "kind": "class_field",
+        "lines": [69, 69],
+        "content": "    lin_left_smul : forall a u v, (ip (a •V u) v) = (a *R (ip u v));"
+      },
+      "lin_right_add": {
+        "kind": "class_field",
+        "lines": [71, 71],
+        "content": "    lin_right_add  : forall u v w, (ip u (v +V w)) = ((ip u v) +R (ip u w));"
+      },
+      "lin_right_smul": {
+        "kind": "class_field",
+        "lines": [72, 72],
+        "content": "    lin_right_smul : forall a u v, (ip u (a •V v)) = (a *R (ip u v));"
+      },
+      "symm": {
+        "kind": "class_field",
+        "lines": [74, 74],
+        "content": "    symm : forall u v, ip u v = ip v u"
+      },
+      "opp_smul_one": {
+        "kind": "class_field",
+        "lines": [56, 56],
+        "content": "    opp_smul_one : forall u, oppV u = smul (oppR oneR) u"
+      },
+      "addR_zero": {
+        "kind": "class_field",
+        "lines": [18, 18],
+        "content": "  addR_zero  : forall x, addR x zeroR = x;"
+      },
+      "zeroR_add": {
+        "kind": "class_field",
+        "lines": [19, 19],
+        "content": "  zeroR_add  : forall x, addR zeroR x = x;"
+      }
+    },
+    "items": [
+      {
+        "name": "ip_neg_left",
+        "lean": {
+          "kind": "theorem",
+          "lines": [77, 80],
+          "statement": "theorem ip_neg_left (u v : V) :\n  Inner.ip (R := R) (V := V)\n    (VSpace.oppV (R := R) (V := V) u) v\n    = Field.opp (Inner.ip (R := R) (V := V) u v) := by",
+          "proof": "  have h := Inner.lin_left_smul (R := R) (V := V)\n    (a := Field.opp (Field.one)) u v\n  simpa [VSpace.opp_smul_one, Field.mul_opp_one] using h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Inner", "category": "class" }
+            ],
+            "proof": [
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [82, 88],
+          "statement": "    Lemma ip_neg_left : forall u v, ⟪-V u, v⟫ = -R ⟪u, v⟫.",
+          "proof": "Proof.\n      intros u v.\n      rewrite opp_smul_one.\n      rewrite lin_left_smul.\n      now rewrite mulR_opp_one.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "-V", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" },
+              { "symbol": "-R x", "category": "notation" },
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Inner", "category": "class" }
+            ],
+            "proof": []
+          }
+        }
+      },
+      {
+        "name": "ip_neg_right",
+        "lean": {
+          "kind": "theorem",
+          "lines": [85, 88],
+          "statement": "theorem ip_neg_right (u v : V) :\n  Inner.ip (R := R) (V := V) u\n    (VSpace.oppV (R := R) (V := V) v)\n    = Field.opp (Inner.ip (R := R) (V := V) u v) := by",
+          "proof": "  have h := Inner.lin_right_smul (R := R) (V := V)\n    (a := Field.opp (Field.one)) u v\n  simpa [VSpace.opp_smul_one, Field.mul_opp_one] using h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Inner", "category": "class" }
+            ],
+            "proof": []
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [90, 96],
+          "statement": "    Lemma ip_neg_right : forall u v, ⟪u, -V v⟫ = -R ⟪u, v⟫.",
+          "proof": "Proof.\n      intros u v.\n      rewrite opp_smul_one.\n      rewrite lin_right_smul.\n      now rewrite mulR_opp_one.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "-V", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" },
+              { "symbol": "-R x", "category": "notation" },
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Inner", "category": "class" }
+            ],
+            "proof": []
+          }
+        }
+      },
+      {
+        "name": "ip_add_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [95, 108],
+          "statement": "theorem ip_add_add (u v : V) :\n  Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n    = ((Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u)\n       +R (Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v)) := by",
+          "proof": "  have H := Inner.lin_right_add (R := R) (V := V)\n    (u := VSpace.addV (R := R) (V := V) u v) (v := u) (w := v)\n  have H1 :\n    Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v) u\n      = Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u :=\n    Inner.lin_left_add (R := R) (V := V) (u := u) (v := v) (w := u)\n  have H2 :\n    Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v) v\n      = Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v :=\n    Inner.lin_left_add (R := R) (V := V) (u := u) (v := v) (w := v)\n  simpa [H1, H2, Field.add_assoc] using H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+R", "category": "notation" }
+            ],
+            "proof": []
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [99, 107],
+          "statement": "    Lemma ip_add_add : forall u v,\n      ⟪u +V v, u +V v⟫ = ((⟪u,u⟫ +R ⟪v,u⟫) +R (⟪u,v⟫ +R ⟪v,v⟫)).",
+          "proof": "Proof.\n      intros u v.\n      pose proof (lin_right_add (u +V v) u v) as H.\n      pose proof (lin_left_add u v u) as H1.\n      pose proof (lin_left_add u v v) as H2.\n      rewrite H1, H2 in H.\n      exact H.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+V", "category": "notation" },
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" },
+              { "symbol": "Inner", "category": "class" }
+            ],
+            "proof": []
+          }
+        }
+      },
+      {
+        "name": "ip_sub_sub",
+        "lean": {
+          "kind": "theorem",
+          "lines": [115, 176],
+          "statement": "theorem ip_sub_sub (u v : V) :\n  Inner.ip (R := R) (V := V)\n      (subV (R := R) (V := V) u v)\n      (subV (R := R) (V := V) u v)\n    = ((Inner.ip (R := R) (V := V) u u +R Field.opp (Inner.ip (R := R) (V := V) v u))\n       +R (Field.opp (Inner.ip (R := R) (V := V) u v) +R Inner.ip (R := R) (V := V) v v)) := by",
+          "proof": "  have H := Inner.lin_right_add (R := R) (V := V)\n    (u := subV (R := R) (V := V) u v) (v := u)\n    (w := VSpace.oppV (R := R) (V := V) v)\n  have H1 :\n    Inner.ip (R := R) (V := V) (subV (R := R) (V := V) u v) u =\n      Inner.ip (R := R) (V := V) u u\n        +R Inner.ip (R := R) (V := V)\n              (VSpace.oppV (R := R) (V := V) v) u := by\n      simpa using\n        Inner.lin_left_add (R := R) (V := V)\n          (u := u)\n          (v := VSpace.oppV (R := R) (V := V) v)\n          (w := u)\n  have H2 :\n    Inner.ip (R := R) (V := V)\n        (subV (R := R) (V := V) u v)\n        (VSpace.oppV (R := R) (V := V) v)\n      = Inner.ip (R := R) (V := V) u (VSpace.oppV (R := R) (V := V) v)\n        +R Inner.ip (R := R) (V := V)\n              (VSpace.oppV (R := R) (V := V) v)\n              (VSpace.oppV (R := R) (V := V) v) := by\n      simpa using\n        Inner.lin_left_add (R := R) (V := V)\n          (u := u)\n          (v := VSpace.oppV (R := R) (V := V) v)\n          (w := VSpace.oppV (R := R) (V := V) v)\n  have Huv_neg :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v) u\n        = Field.opp (Inner.ip (R := R) (V := V) v u) :=\n    ip_neg_left (v := u) v\n  have Huu :\n      Inner.ip (R := R) (V := V) u (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Inner.ip (R := R) (V := V) u v) :=\n    ip_neg_right (u := u) v\n  have Hvv1 :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v)\n        (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Inner.ip (R := R) (V := V)\n                        (VSpace.oppV (R := R) (V := V) v) v) :=\n    ip_neg_right (u := VSpace.oppV (R := R) (V := V) v) v\n  have Hvv2 :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v) v\n        = Field.opp (Inner.ip (R := R) (V := V) v v) :=\n    ip_neg_left v v\n  have Hvv :\n      Inner.ip (R := R) (V := V)\n        (VSpace.oppV (R := R) (V := V) v)\n        (VSpace.oppV (R := R) (V := V) v)\n        = Inner.ip (R := R) (V := V) v v := by\n    have :\n        Inner.ip (R := R) (V := V)\n          (VSpace.oppV (R := R) (V := V) v)\n          (VSpace.oppV (R := R) (V := V) v)\n        = Field.opp (Field.opp (Inner.ip (R := R) (V := V) v v)) := by\n      simpa [Hvv2] using Hvv1\n    simpa [Field.opp_opp] using this\n  simpa [H1, H2, Huv_neg, Huu, Hvv, Field.add_assoc, Field.add_comm]\n    using H",
+          "dependencies": {
+            "statement": [
+              { "symbol": "subV", "category": "definition" },
+              { "symbol": "+R", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "ip_neg_left", "category": "theorem" },
+              { "symbol": "ip_neg_right", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [110, 126],
+          "statement": "    Lemma ip_sub_sub : forall u v,\n      ⟪u -V v, u -V v⟫ = ((⟪u,u⟫ +R (-R ⟪v,u⟫)) +R ((-R ⟪u,v⟫) +R ⟪v,v⟫)).",
+          "proof": "Proof.\n      intros u v.\n      unfold subV in *.\n      pose proof (lin_right_add (addV u (oppV v)) u (oppV v)) as H.\n      pose proof (lin_left_add u (oppV v) u) as H1.\n      pose proof (lin_left_add u (oppV v) (oppV v)) as H2.\n      rewrite H1, H2 in H.\n      (* Simplify the mixed terms *)\n      rewrite (ip_neg_left v u) in H.\n      rewrite (ip_neg_right u v) in H.\n      (* Simplify ⟪-v, -v⟫ to ⟪v,v⟫ using two negation lemmas *)\n      rewrite (ip_neg_right (oppV v) v) in H.\n      rewrite (ip_neg_left v v) in H.\n      rewrite oppR_opp in H.\n      exact H.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "-V", "category": "notation" },
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "-R x", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" },
+              { "symbol": "subV", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "ip_neg_left", "category": "lemma" },
+              { "symbol": "ip_neg_right", "category": "lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "pythagoras",
+        "lean": {
+          "kind": "theorem",
+          "lines": [183, 194],
+          "statement": "theorem pythagoras (u v : V)\n  (h : Inner.ip (R := R) (V := V) u v = Field.zero) :\n  Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n    = (Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v v) := by",
+          "proof": "  have H := ip_add_add (R := R) (V := V) u v\n  have hvu : Inner.ip (R := R) (V := V) v u = Field.zero := by\n    simpa [Inner.symm (R := R) (V := V) v u] using h\n  have :\n      Inner.ip (R := R) (V := V)\n        (VSpace.addV (R := R) (V := V) u v)\n        (VSpace.addV (R := R) (V := V) u v)\n        = ((Inner.ip (R := R) (V := V) u u +R Field.zero)\n            +R (Field.zero +R Inner.ip (R := R) (V := V) v v)) := by\n    simp [H, h, hvu]\n  simpa [Field.add_zero, Field.zero_add, Field.add_comm, Field.add_assoc] using this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+R", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "ip_add_add", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [130, 139],
+          "statement": "    Lemma pythagoras : forall u v,\n      ⟪u,v⟫ = zeroR ->\n      ⟪u +V v, u +V v⟫ = (⟪u,u⟫ +R ⟪v,v⟫).",
+          "proof": "Proof.\n      intros u v Huv.\n      pose proof (ip_add_add u v) as H.\n      assert (Hvu : ⟪v,u⟫ = zeroR) by (now rewrite <- symm).\n      rewrite Huv, Hvu in H.\n      rewrite addR_zero in H.\n      rewrite zeroR_add in H.\n      exact H.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "ip_add_add", "category": "lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "parallelogram",
+        "lean": {
+          "kind": "theorem",
+          "lines": [207, 210],
+          "statement": "theorem parallelogram (u v : V) :\n  (Inner.ip (R := R) (V := V)\n      (VSpace.addV (R := R) (V := V) u v)\n      (VSpace.addV (R := R) (V := V) u v)\n     +R Inner.ip (R := R) (V := V)\n          (subV (R := R) (V := V) u v)\n          (subV (R := R) (V := V) u v))\n    = (((Inner.ip (R := R) (V := V) u u +R Inner.ip (R := R) (V := V) v u)\n         +R (Inner.ip (R := R) (V := V) u v +R Inner.ip (R := R) (V := V) v v))\n       +R ((Inner.ip (R := R) (V := V) u u +R Field.opp (Inner.ip (R := R) (V := V) v u))\n           +R ((Field.opp (Inner.ip (R := R) (V := V) u v))\n               +R Inner.ip (R := R) (V := V) v v))) := by",
+          "proof": "  have H1 := ip_add_add (R := R) (V := V) u v\n  have H2 := ip_sub_sub (R := R) (V := V) u v\n  simp [H1, H2]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "subV", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "ip_add_add", "category": "theorem" },
+              { "symbol": "ip_sub_sub", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [144, 151],
+          "statement": "    Lemma parallelogram : forall u v,\n      (⟪u +V v, u +V v⟫ +R ⟪u -V v, u -V v⟫)\n        = (((⟪u,u⟫ +R ⟪v,u⟫) +R (⟪u,v⟫ +R ⟪v,v⟫))\n           +R ((⟪u,u⟫ +R (-R ⟪v,u⟫)) +R ((-R ⟪u,v⟫) +R ⟪v,v⟫))).",
+          "proof": "Proof.\n      intros u v.\n      pose proof (ip_add_add u v) as H1.\n      pose proof (ip_sub_sub u v) as H2.\n      rewrite H1, H2.\n      reflexivity.\n    Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "⟪,⟫", "category": "notation" },
+              { "symbol": "-V", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "ip_add_add", "category": "lemma" },
+              { "symbol": "ip_sub_sub", "category": "lemma" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  
