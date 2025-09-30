@@ -33,7 +33,7 @@
 \title{Babel-formal: Translation of Proofs between Lean and Rocq}
 
 \author{%
-  Théo Stoskomf \\
+  Théo Stoskopf \\
   \texttt{theo.stoskopf@inria.fr} \\
   \And
   Cyril Cohen \\
@@ -53,23 +53,25 @@ In this work, we investigate using proof terms (the low-level representation of 
 
 \section{Introduction}
 
-Formal mathematics is developed in proof assistants such as Rocq and
-Lean. Over time, these systems accumulate large libraries (for
+Proof assistans such as Rocq and Lean
+accumulate over time large libraries of formal mathematics (for
 example, MathComp~\cite{mathcomp} for Rocq and Mathlib~\cite{mathlib}
 for Lean), yet proofs are not reusable across systems, even in a
 strictly aligned context. We study two translation settings. The first
 is \emph{cross-assistant} translation between Lean and Rocq. The
 second is \emph{cross-tactic} translation inside Rocq, from the
-standard Rocq tactic language (called here \textit{vanilla Rocq}) to
+standard Rocq tactic language --- called here \textit{vanilla Rocq} --- to
 \textit{SSReflect}~\cite{ssreflect}, which is a compact, structured
-tactic language widely used with MathComp (see
-Appendix~\ref{app:ssreflect} for an example). 
+tactic language widely used with MathComp (see an example in
+Appendix~\ref{app:ssreflect}).
 
-We explore using pretty-printed \emph{proof terms}\footnote{The notion
-  of tactic script and proof term is exaplined in \cref{fig:basicprovers}.}, that is, the proof
-terms given by the proof assistant (e.g. using \texttt{\#print} in
-Lean), as a pivot language.
-This removes the need for an aligned training corpus of tactic scripts. At inference time, we only require strictly aligned statements (same theorem and premises) so that both systems elaborate comparable terms. The approach is related to decompilation in programming languages, where models map assembly to higher-level C programs~\cite{llm4decompile2024}.
+
+
+Both Rocq and Lean provide a way to pretty print \emph{proof terms} given by
+the proof assistant (see~\cref{fig:basicprovers}) in a way that omits
+details while keeping the structure of a proof.
+We thus explore using \emph{pretty-printed proof terms}, as a pivot language.
+This removes the need for an aligned training corpus of tactic scripts. At inference time, we only require strictly aligned statements --- i.e., same theorem and premises --- so that both systems elaborate comparable terms. The approach is related to decompilation in programming languages, where models map assembly to higher-level C programs~\cite{llm4decompile2024}.
 
 We compare two strategies:
 
