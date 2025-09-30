@@ -1,0 +1,56 @@
+Your task is to simulate the reasoning process of converting a lambda term into a sequence of tactics.
+
+For each tactic in the sequence, explain your thought process as if you were actively reasoning through the problem without knowing in advance that it would lead to the correct solution. Your explanation should reflect how you would explore the problem, reason through the lambda term’s structure, and decide on the next step. It must feel as though you are "thinking out loud," simulating your inner dialogue as you develop the proof step by step.
+
+Your output should follow this format:
+
+<think>#Explain thoroughly, and in the same language you do when you have inner dialogue, how lambda term translate to the first tactic</think>
+\box{{tactics}}
+
+Here is an example for a proof of one tactic:
+
+<think> Alright, let's start by understanding the goal here. We need to show that the cardinality of the set of m x n matrices over a finite type F is |F|^(m*n). The given lambda term uses a series of equalities to build up this result. Let me parse through each part.
+First, the outermost part is card_sub (matrix_subFinType F m n). The card_sub lemma states that the cardinality of a subFinType is equal to the cardinality of the predicate defining it. Since the matrix type is a subFinType of finite functions (with a trivial predicate 'true'), this step reduces the matrix cardinality to the cardinality of the finite function type. So the first tactic should be rewrite card_sub to apply this lemma.
+Next, after handling the subtype, the term uses card_ffun, which computes the cardinality of the finite function type ffun aT -> rT as |rT|^|aT|. Here, aT is the product type 'I_m * 'I_n. So applying card_ffun would express the cardinality as |F|^(|'I_m * 'I_n|). The next tactic is rewrite card_ffun to perform this step.
+Then, card_prod is used to compute the cardinality of the product type 'I_m * 'I_n as |'I_m| * |'I_n|. This reduces the exponent to m * n once we apply card_prod, so the tactic here is rewrite card_prod.
+Finally, card_ord gives the cardinality of the ordinal types: |'I_m| = m and |'I_n| = n. The ! in the tactic applies card_ord to both m and n in the exponent. Therefore, the last step is rewrite !card_ord, which simplifies the exponent's components to m and n, completing the proof.
+Each rewrite step corresponds to applying a lemma that transforms the cardinality expression into a simpler form, ultimately leading to the desired |F|^(m*n) result. The order of the tactics follows the structure of the lambda term, starting with the outermost cardinality lemma and progressively simplifying the inner components.
+</think>
+rewrite card_sub card_ffun card_prod !card_ord.
+
+and so on.
+Guidelines:
+
+In your <think> section, provide detailed reasoning behind why the next tactic is appropriate based on the lambda term's structure. Consider all possible approaches before selecting the tactic, as if discovering the proof in real time.
+Write each tactic in raw string format (no LaTeX or special syntax).
+Avoid shortcuts—your <think> sections must reflect genuine reasoning and exploration, not hindsight or pre-knowledge of the full sequence.
+Keep the explanations highly detailed and realistic, capturing the flow of ideas and logical decision-making.
+Don't forget, you should write everything in plain text, no latex, or any kind of special syntax.
+The lambda term is:
+
+{term}
+
+The sequence of tactics is:
+
+{steps}
+
+
+Some notation that could be helpful (if you use them, please explain it in your though process):
+
+{notations}
+
+
+Some constants that could be helpful (if you use them, please explain it in your though process):
+
+{constants}
+
+I need you to extract everything from your thoughts/inner dialogue, but rewrite it as if you didn't already know the answer.
+I want the exact same specific form of writing.
+I want your answer to be as long as necessary to explain every aspect of your choices.
+
+Constraints for the reasoning process:
+
+No prior knowledge of the tactic sequence: The reasoning must not reference, list, or reverse-engineer a pre-existing tactic sequence.
+Forward-driven analysis: Start from the lambda term’s structure (e.g., applications of eq_ind_r, lemmas like submxE, definitions like cokermx) and derive tactics incrementally.
+No justification of pre-known steps: Avoid phrases like "the next tactic is" or "the final steps are." Instead, simulate uncertainty (e.g., "This part of the term suggests...").
+Focus on term-to-tactic mapping: Explicitly tie each tactic to a specific component of the lambda term (e.g., "The use of eqnP here implies we need to apply /eqnP->").
