@@ -13,7 +13,7 @@ This document is a hands-on complement to the paper. It walks through the two tr
   - Lean: 500 Mathlib proofs after filtering.
   - Rocq (cross-assistant): 500 C-CoRN proofs.
   - Rocq (SSReflect): 1000 MathComp entries.
-- **Proof dumps.** `src/proof_dumps/` is the fastest way to recover proof terms and apply quick heuristics (length, token budget) before committing to the full extraction pipeline.
+- **Proof dumps.** `src/proof_dumps/` is the fastest way to recover proof terms and apply quick heuristics (length, token budget) before using the full extraction pipeline.
 - **Reasoning traces.** Backward chains produced with Gemini 2.5 Pro (`export/dataset/step_7`, `export_dataset_rocq`).
 
 ## 3. Lean data pipeline
@@ -26,14 +26,14 @@ If you only need proof-term statistics, stop at `src/proof_dumps/` and filter th
 | 3 | `step_3/exec.py` | Filter by term length / proof length, then select a diverse subset using BM25 round-robin. |
 | 4 | `step_4/exec.py` | Resolve fully-qualified names, store symbol metadata, and capture canonical proof terms (`#print`). |
 | 5 | `step_5/exec.py` | Re-run each proof with `lean_evaluate` to make sure the snippet is self-contained and still checks. |
-| 6 | `step_6/exec.py` | Stratified down-sampling by proof length; keeps symbol annotations only. |
+| 6 | `step_6/exec.py` | Sampling by proof length; keeps symbol annotations only. |
 | 7 | `step_7/exec.py` | Generate backward reasoning traces with Gemini 2.5 Pro using `prompt.txt` and `config.yaml`. |
 
 Each directory keeps the JSON export of the step so the pipeline is restartable. Use the `--output` flag to redirect intermediate files if you need a custom run.
 
 ## 4. Rocq data pipeline
 - **Extraction (`export_dataset_lean_rocq/merge.py`, `src/inference/generate_*`).** Collect Rocq statements, proof terms, and tactic scripts from MathComp or C-CoRN.
-- **Reasoning traces (`src/lean_rocq_translation/step_7_rocq/exec.py`).** Prompt Gemini with Rocq proof terms, native scripts, constants, and notations.
+- **Reasoning traces (`src/lean_rocq_translation/step_7_rocq/exec.py`).** Prompt Gemini with Rocq proof terms, scripts, constants, and notations.
 - **Packaging (`misc/step_8/exec.py`).** Same as Lean: convert traces into the training JSON layout.
 
 All Rocq exports land in `export_dataset_rocq/` by default.
