@@ -1,0 +1,4 @@
+{
+    "instruction": "You are given a proof term:\n\n{term}\n\nYour task is to derive a sequence of tactics that corresponds to this term.\n\nWhen you work through the problem, write down your reasoning in detail inside <think> ... </think> tags. This reasoning should reflect your natural thought process as you explore the structure of the term and figure out what tactics to apply. You should consider different possible approaches, reflect on why some might or might not work, and gradually converge on a tactic choice.\n\nAfter each reasoning block, provide the next (group of) tactic(s) enclosed in:\n\n\\box{{\n  <tactic>\n}}\n\nSome dependencies that could be helpful:\n\n{dependencies}"
+}
+  
