@@ -1,6 +1,6 @@
 # Babel-Formal
 
-**Paper** [here](paper/babel_formal.pdf), **model Babel-ssreflect** [here](https://huggingface.co/theostos/babel-ssreflect), and **model Babel-translate** [here]([https://huggingface.co/theostos/babel-ssreflect](https://huggingface.co/theostos/babel-translate).
+**Paper** [here](paper/babel_formal.pdf), **model Babel-ssreflect** [here](https://huggingface.co/theostos/babel-ssreflect), and **model Babel-translate** [here](https://huggingface.co/theostos/babel-translate).
 
 Babel-Formal explores proof term translation as a practical bridge across interactive theorem provers. We translate proofs between Lean and Rocq and across tactic sets by treating proof terms as a pivot language.
 
