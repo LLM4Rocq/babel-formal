@@ -1,5 +1,4 @@
 # Babel-Formal
-This repository is anonymized for review. Trained models will be released if the paper is accepted.
 
 Babel-Formal explores proof term translation as a practical bridge across interactive theorem provers. We translate proofs between Lean and Rocq and across tactic sets by treating proof terms as a pivot language.
 
