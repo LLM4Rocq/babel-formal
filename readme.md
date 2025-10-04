@@ -1,5 +1,6 @@
 # Babel-Formal
 
+**Paper available** [here](paper/babel_formal.pdf).
 Babel-Formal explores proof term translation as a practical bridge across interactive theorem provers. We translate proofs between Lean and Rocq and across tactic sets by treating proof terms as a pivot language.
 
 ## Project scope
