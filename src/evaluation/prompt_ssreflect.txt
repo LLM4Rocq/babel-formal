@@ -1,0 +1,138 @@
+You are a precise translator from Rocq (Coq) vanilla proof into SSReflect proof
+
+## INPUT
+
+<ROCQ_PROOF>
+{rocq_proof}
+</ROCQ_PROOF>
+
+<DEPENDENCIES>
+{dependencies}
+</DEPENDENCIES>
+
+## RULES
+1) Produce exactly two blocks, in order:
+   a) A thought process.
+   b) The final SSReflect proof delimited by the markers below.
+2) Use only results in <DEPENDENCIES>.
+3) Do not invent new lemmas/defs.
+4) Output must contain **only** the two blocks below, nothing else.
+5) The Script block must be copy pasteable directly after the given Lean statement.
+
+## SSReflect
+
+Here is a cheat sheet for SSReflect tactics
+
+### Tactics
+
+- `move` = moves hypotheses
+  - `move: E1 ... Em => H1 ... Hn` = moves E1, ..., Em back into the goal and introduces H1, ..., Hn
+  - E1, ..., Em can be expressions or hypotheses
+  - you can remove `:` if there is no hypotheses to put back into the goal and you can remove `=>` if there is no hypotheses to introduce
+  - if replacing a hypotheses to be introduced by `_`, it discards it
+
+- `elim` = performs an induction
+  - `elim: E1 E2 ... En => [...|...|...]` = performs an induction on E1, generalizes E2, ..., En and introduces new hypotheses
+  - the `...` introduces hypotheses for each case, in particular the induction hypotheses
+  - E1 can be an hypothesis or an expression
+  - if E1 is not specified, the `:` can be removed and the induction will be done on the next hypothesis
+
+- `case` = destructs
+  - `case E: E1 E2 ... En => [...|...|...]` = destructs E1, introduces an equality hypothesis named E, generalizes E2, ..., En and introduces new hypotheses
+  - the `...` introduces hypotheses for each case
+  - specifying E can be avoided
+  - E1 can be an hypothesis or an expression
+  - if E1 is not specified, the destruction will be done on the next hypothesis
+
+- `apply` = applies an hypothesis or a lemma
+  - `apply: T` = applies the hypothesis or the theorem T to the goal
+  - to specify arguments for T, write `apply: T a1 ... an`
+  - to specify partial arguments for T, write `apply: (T _ ... _)`
+
+- `rewrite` = rewrites the goal
+  - `rewrite H1 ... Hn` = rewrites the hypothesis H1, ..., Hn in this order in the goal
+  - to rewrite a hypothesis in the other direction, add `-` in front of it
+  - to rewrite a hypothesis everywhere possible in the goal, add `!` in front of it
+  - to rewrite a hypothesis at most once, add `?` in front of it
+  - to rewrite a hypothesis on only the n-th occurence, add `{{n}}` in front of it
+  - to rewrite a hypothesis on a particular pattern `t`, add `[t]` in front of it
+
+- `have` = introduces a local lemma that first need to be proven
+  - `have H := E` = introduces the expression E as a new hypothesis H
+  - `have H : T` = creates a new goal T to prove and when it's done, adds it as a hypothesis named H
+  - specifying a name H for the introduced hypothesis is not mandatory
+
+- `suff` = introduces a local lemma that is proven at the end
+  - `suff H : T` = adds a hypothesis for T named H and creates a new goal T to prove at the end
+  - specifying a name H for the introduced hypothesis is not mandatory
+
+- `set` = binds a term to a name
+  - `set x := t` = replaces all occurrences of the term t with x
+
+- `pose` = defines a local constant
+  - `pose x := t` = defines x as the term t
+  - `pose f x1 ... xn := t` = defixes a function f taking as arguments x1, ..., xn and returning t
+
+- `exact` = ends the proof
+  - `exact t` = ends the proof of the current goal if t as exactly the right type
+
+- `symmetry` = applies a symmetry on an equality
+
+- `transitivity t` = a goal `x = y` is now splitted in two goals `x = t` and `t = y`
+
+- `lock D` = locks the definition of D to prevent the reduction of an unlocked definition D
+
+- `unlock D` = unlocks the definition of D to enable the reduction of a locked definition D
+
+- `clear` = removes hypotheses from the context
+  - `clear G1 ... Gn` = removes the hypotheses G1, ..., Gn if they don't appear in the goal or other hypotheses
+  - `clear - G1 ... Gn` = removes all hypotheses that are not used by the goal and G1, ..., Gn
+
+- `done` = tries to solve a trivial goal
+
+- `congr` = proves an equality by proving equalities of components
+  - `congr f` = proves an equality `f a1 ... an = f b1 ... bn` by introducing the goals `a1 = b1`, ..., `an = bn`
+  - to specify components to consider, write `congr (f _ ... _)`
+
+- `exists` = provides witnesses for an existential goal
+  - `exists t1, ..., tn` = provides witnesses t1, ..., tn for an existential goal `exists x1 ... xn : G`
+
+
+- `split` = splits conjunctions or existentials in the goal
+
+### Hypotheses introduction replacement
+
+- `->` = rewrites with the hypothesis
+- `<-` = rewrites with the hypothesis in the other direction
+- `/=` = simplifies the obtained goal
+- `//` = tries to solve the goal
+- `[H1 ... Hn]` = pattern matches on the hypothesis
+- `/view_lemma_name` = applies a view lemma to the goal
+
+### View lemmas
+
+After the tactics move, elim, case, apply, rewrite, have and suff, a view lemma can be applied directly to the goal by writing `/view_lemma_name` just after the tactic keyword
+
+### Proof manipulations
+
+- `do n T` = applies the tactic T n times
+- `? T` = tries applying the tactic T, silently skip if it fails
+- `by T` = applies the tactic T and try automatically proving the remaining goal
+- `by []` = tries to automatically solve the goal
+- `first T` = applies the tactic T to the first subgoal created
+- `last T` = applies the tactic T to the last subgoal created
+
+### Context manipulations
+
+- `* T` = clear the context, remove unused hypothesis in the goal and in T, before applying T
+
+## OUTPUT FORMAT (STRICT)
+<BEGIN_RATIONALE>
+[Thought process.]
+</END_RATIONALE>
+
+<BEGIN_ROCQ_PROOF>
+[Place only the SSReflect Rocq script here, do not rewrite the statement]
+</END_ROCQ_PROOF>
+
+Now produce the output for the given input.

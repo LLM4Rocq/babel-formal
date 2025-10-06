@@ -1,55 +1,59 @@
 # Babel-Formal
 
-The goal of this repository is to translate proofs between Rocq and Lean by leveraging proof terms.
+**Paper** [here](paper/babel_formal.pdf), **model Babel-ssreflect** [here](https://huggingface.co/theostos/babel-ssreflect), and **model Babel-translate** [here](https://huggingface.co/theostos/babel-translate).
 
-More precisely, given two formal statements, one proved (source), one to be proved (target), and a list of matching premises, translate the proof from source to target.
+Babel-Formal explores proof term translation as a practical bridge across interactive theorem provers. We translate proofs between Lean and Rocq and across tactic sets by treating proof terms as a pivot language.
 
-Due to the difficulty of getting matching premises, a first task we consider is style transfer: converting Rocq proofs to **MathComp** style (i.e. leveraging the **SSReflect** set of tactics).
+## Project scope
+- Translate Lean scripts into Rocq and Rocq scripts into Lean using aligned proof terms instead of parallel scripts.
+- Transfer Rocq proofs written with vanilla tactics into SSReflect style, again using proof terms as the interface.
+- Release the aligned benchmark (14 files, 117 lemmas), training traces, reasoning prompts.
+- Release two models, a first one to translate between Lean and Rocq, and a second one to go from vanilla Rocq to SSReflect.
 
-We experiment around the following questions:
-* Train a **transformer model** to translate proof terms (from Lean or Rocq) into a sequence of tactics in the same language (*decompilation*).
-* Train a **transformer model** to translate proofs from **vanilla Rocq** to **SSReflect**, based on proof terms (*style transfer*).
-* Obtain a model capable of **translating tactics from one language to another** by leveraging proof terms from **one language** to generate a sequence of tactics **in another** (e.g., Lean to Rocq).
+## Approach at a glance
+- **Proof subset selection.** Sample diverse Mathlib, C-CoRN, and MathComp proofs (1k entries per setup) after filtering by length.
+- **Proof term extraction.** Use `coqpyt` to recover statements, local context, terms, and notation blocks.
+- **Proof dumps for prefiltering.** `src/proof_dumps/` provides the fastest way to recover proof terms and apply quick length/token filters before running the full pipeline.
+- **Backward reasoning traces.** Ask Gemini 2.5 Pro to simulate step-by-step reasoning that recreates each target script from its proof term.
+- **Fine-tuning.** Train two variants of `Qwen2.5-Coder-32B-Instruct`: `Babel-translate` (Lean↔Rocq) and `Babel-ssreflect` (Rocq→SSReflect). We sample up to 128 candidates per goal at inference.
+- **Direct translators.** Prompt GPT‑5 for script-to-script translation with interactive repair. Combining GPT‑5 and Babel gives the strongest results.
 
-Our project leverages proof terms as an intermediate representation to translate proofs between Rocq and Lean.
-To do so, we will fine-tune an LLM on this specific task.
+## Benchmarks & results
+| Setup | Lean → Rocq | Rocq → Lean | Rocq → SSReflect |
+| --- | --- | --- | --- |
+| GPT‑5 (4 feedback rounds) | **82.9 %** | **67.5 %** | 16.6 % |
+| Babel-translate (128 samples) | 68.3 % | 40.2 % | – |
+| Babel-ssreflect (128 samples) | – | – | **33.2 %** |
+| Babel w/o reasoning | – | – | 21.8 % |
+| GPT‑5 + Babel (union) | 89.7 % | 83.7 % | 34 % |
 
-**For more details, please read [this](doc/details.md).**
+## Repository map
+- `src/proof_dumps/`: quick proof-term dumps for prefiltering (length, tokens) without running the full extraction pipeline.
+- `src/lean_rocq_translation/step_*`: end-to-end pipeline for Lean↔Rocq extraction, filtering, prompting, and model inference.
+- `src/evaluation/`: Lean and Rocq evaluators, configs, and prompt templates.
+- `src/training_nemo/`: training jobs built on NVIDIA NeMo; tweak hyperparameters in `config/training/nemo.yaml` and launch with the SLURM scripts in `config/training/training_h100.slurm` (train) and `config/training/eval_h100.slurm` (eval).
+- `dataset/`: aligned Lean/Rocq benchmark, SSReflect variants, and auxiliary corpora.
+- `paper/`: full NeurIPS workshop submission.
+- `doc/`: detailed pipeline notes (see `doc/details.md`).
 
-
-## Implementation
-
-This repository consists of several components:
-
-* An extension of CoqProof class from **CoqPyt**, which drops some features to make computation tractable on large files and also recovers proof term, constants and notations.
-* A (small) extension to LeanDojo to recover proof terms and notations (**WIP**).
-* A set of experimentation scripts, used to generate various figures, and to provide a glimpse of some features of the dataset.
-* A set of steps to generate the final datasets, see [Fine tuning of LLM section](doc/details.md#fine-tuning-of-llm) for details.
-* An evaluation script to compute performance (pass@k) of models.
-
-## Dependencies
-
-You should set up a virtual environment first, e.g., using miniconda and install the repository dependencies.
-
-```console
-conda create -n $ENV_NAME python==3.10
-conda activate $ENV_NAME
+## Getting started
+```bash
+conda create -n babel python==3.10
+conda activate babel
 pip install -r requirements.txt
 pip install -e coqpyt
 ```
+Install [Pytanque](https://github.com/LLM4Rocq/pytanque) for Rocq evaluation and repair loops.
 
-Additionally, this repository requires the installation of [Pytanque](https://github.com/LLM4Rocq/pytanque) and Petanque (see [Pytanque repo](https://github.com/LLM4Rocq/pytanque)).
+## Running the pipelines
+1. (Optional) Prefilter proofs by length with the scripts in `src/proof_dumps/` to shortlist the ones you want to process.
+2. Extract Lean terms: `python src/lean_rocq_translation/step_1/exec.py --project /path/to/mathlib`.
+3. Align terms with proofs and down-select: steps 2–4 in `src/lean_rocq_translation`.
+4. Generate reasoning traces (step 5) and prompts for Babel fine-tuning (step 6).
+5. Launch model sampling with `src/lean_rocq_translation/step_7/exec.py` or `src/lean_rocq_translation/step_7_rocq/exec.py`.
+6. Evaluate candidates with `src/evaluation/lean_evaluate.py` and `src/evaluation/rocq_evaluate.py`.
 
-## Usage
+Full step-by-step notes, command flags, and expected outputs are [here](doc/details.md).
 
-### Experimentation
-
-See [here](/src/experiments/experiments.md).
-
-### Dataset generation
-
-See [here](/src/steps/dataset_generation.md) to use the code, or download directly the dataset [here](https://drive.proton.me/urls/MDAERQJD0C#D3DFuDCDXmNU).
-
-### Training & Evaluation
-
-See [here](/src/training/training_eval.md).
+## Data, models, and figures
+Aligned Lean/Rocq pairs: `dataset/repo/rocq/*.v` and matching Lean files under `dataset/`.

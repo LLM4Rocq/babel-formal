@@ -1,0 +1,500 @@
+{
+    "source": "graph_paths",
+    "lean": {
+      "universe": {
+        "kind": "universe",
+        "lines": [8, 8],
+        "content": "universe u"
+      },
+      "GraphPath": {
+        "kind": "namespace",
+        "lines": [10, 10],
+        "content": "namespace GraphPath"
+      },
+      "V": {
+        "kind": "variable",
+        "lines": [12, 12],
+        "content": "variable {V : Type u}"
+      },
+      "Edge": {
+        "kind": "def",
+        "lines": [14, 14],
+        "content": "def Edge (V : Type u) := V → V → Prop"
+      },
+      "Path": {
+        "kind": "inductive",
+        "lines": [16, 18],
+        "content": "inductive Path (E : Edge V) : V → V → Prop\n| nil  : ∀ v, Path E v v\n| step : ∀ {u v w}, Path E u v → E v w → Path E u w"
+      },
+      "Path.nil": {
+        "kind": "constructor",
+        "lines": [17, 17],
+        "content": "| nil  : ∀ v, Path E v v"
+      },
+      "Path.step": {
+        "kind": "constructor",
+        "lines": [18, 18],
+        "content": "| step : ∀ {u v w}, Path E u v → E v w → Path E u w"
+      },
+      "E": {
+        "kind": "variable",
+        "lines": [21, 21],
+        "content": "variable {E : Edge V}"
+      },
+      "refl": {
+        "kind": "theorem",
+        "lines": [23, 23],
+        "content": "theorem refl (v : V) : Path (E:=E) v v := Path.nil v"
+      },
+      "trans": {
+        "kind": "theorem",
+        "lines": [25, 29],
+        "content": "theorem trans {u v w : V} : Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) u w :=\nby\n  intro p1 p2; induction p2 with\n  | nil => simpa using p1\n  | step p2' evw ih => exact Path.step ih evw"
+      },
+      "Erev": {
+        "kind": "def",
+        "lines": [32, 32],
+        "content": "def Erev (E : Edge V) : Edge V := fun x y => E y x"
+      },
+      "undirected": {
+        "kind": "def",
+        "lines": [35, 35],
+        "content": "def undirected (E : Edge V) : Prop := ∀ x y, E x y → E y x"
+      },
+      "reverse_path": {
+        "kind": "theorem",
+        "lines": [37, 45],
+        "content": "theorem reverse_path {u v : V} (hE : undirected E) :\n  Path (E:=E) u v → Path (E:=E) v u :=\nby\n  intro p; induction p with\n  | nil => exact Path.nil _\n  | step p' evw ih =>\n      -- reverse step: u →* v and edge v→w implies w →* u\n      have hwv : Path (E:=E) _ _ := Path.step (E:=E) (Path.nil _) (hE _ _ evw)\n      exact trans (E:=E) hwv ih"
+      },
+      "concat_edge_right": {
+        "kind": "theorem",
+        "lines": [48, 50],
+        "content": "theorem concat_edge_right {u v w : V} :\n  Path (E:=E) u v → E v w → Path (E:=E) u w :=\nby intro p evw; exact Path.step p evw"
+      },
+      "concat": {
+        "kind": "theorem",
+        "lines": [53, 55],
+        "content": "theorem concat {u v w : V} :\n  Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) u w :=\nby intro p q; exact trans p q"
+      },
+      "edge_path": {
+        "kind": "theorem",
+        "lines": [58, 59],
+        "content": "theorem edge_path {u v : V} : E u v → Path (E:=E) u v :=\nby intro euv; exact Path.step (Path.nil u) euv"
+      },
+      "concat_edge_left": {
+        "kind": "theorem",
+        "lines": [62, 64],
+        "content": "theorem concat_edge_left {u v w : V} :\n  E u v → Path (E:=E) v w → Path (E:=E) u w :=\nby intro euv pvw; exact trans (edge_path (E:=E) euv) pvw"
+      },
+      "concat3": {
+        "kind": "theorem",
+        "lines": [67, 69],
+        "content": "theorem concat3 {u v w t : V} :\n  Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) w t → Path (E:=E) u t :=\nby intro puv pvw pwt; exact trans (trans puv pvw) pwt"
+      },
+      "reverse_in_Erev": {
+        "kind": "theorem",
+        "lines": [72, 80],
+        "content": "theorem reverse_in_Erev {u v : V} :\n  Path (E:=E) u v → Path (E:=Erev E) v u :=\nby\n  intro p; induction p with\n  | nil => exact Path.nil _\n  | step p' evw ih =>\n      -- in Erev, an E-edge v→w becomes edge w→v\n      have hwv : Path (E:=Erev E) _ _ := Path.step (Path.nil _) evw\n      exact trans hwv ih"
+      },
+      "cycle_refl": {
+        "kind": "theorem",
+        "lines": [83, 85],
+        "content": "theorem cycle_refl {v w : V} :\n  Path (E:=E) v w → Path (E:=E) w v → Path (E:=E) v v :=\nby intro pvw pwv; exact trans pvw pwv"
+      },
+      "end GraphPath": {
+        "kind": "end",
+        "lines": [87, 87],
+        "content": "end GraphPath"
+      }
+    },
+    "coq": {
+      "Section Graph.": {
+        "kind": "Section",
+        "lines": [4, 4],
+        "content": "Section Graph."
+      },
+      "V": {
+        "kind": "Variable",
+        "lines": [5, 5],
+        "content": "  Variable V : Type."
+      },
+      "Edge": {
+        "kind": "Definition",
+        "lines": [6, 6],
+        "content": "  Definition Edge := V -> V -> Prop."
+      },
+      "Path": {
+        "kind": "Inductive",
+        "lines": [8, 10],
+        "content": "  Inductive Path (E : Edge) : V -> V -> Prop :=\n  | Pnil  : forall v, Path E v v\n  | Pstep : forall u v w, Path E u v -> E v w -> Path E u w."
+      },
+      "Pnil": {
+        "kind": "constructor",
+        "lines": [9, 9],
+        "content": "  | Pnil  : forall v, Path E v v"
+      },
+      "Pstep": {
+        "kind": "constructor",
+        "lines": [10, 10],
+        "content": "  | Pstep : forall u v w, Path E u v -> E v w -> Path E u w."
+      },
+      "path_refl": {
+        "kind": "Lemma",
+        "lines": [12, 13],
+        "content": "  Lemma path_refl (E : Edge) (v : V) : Path E v v.\n  Proof. apply Pnil. Qed."
+      },
+      "append_right": {
+        "kind": "Fixpoint",
+        "lines": [15, 20],
+        "content": "  Fixpoint append_right (E : Edge) (v w : V) (p2 : Path E v w)\n           {struct p2} : forall u : V, Path E u v -> Path E u w :=\n    match p2 with\n    | @Pnil _ v0 => fun _ p1 => p1\n    | @Pstep _ v0 y z pv Eyz => fun u p1 => Pstep E u y z (append_right E v0 y pv u p1) Eyz\n    end."
+      },
+      "trans": {
+        "kind": "Lemma",
+        "lines": [22, 24],
+        "content": "  Lemma trans (E : Edge) (u v w : V) :\n    Path E u v -> Path E v w -> Path E u w.\n  Proof. intros p1 p2; exact (append_right E v w p2 u p1). Qed."
+      },
+      "undirected": {
+        "kind": "Definition",
+        "lines": [26, 26],
+        "content": "  Definition undirected (E : Edge) : Prop := forall x y, E x y -> E y x."
+      },
+      "concat_edge_right": {
+        "kind": "Lemma",
+        "lines": [31, 33],
+        "content": "  Lemma concat_edge_right (E : Edge) (u v w : V) :\n    Path E u v -> E v w -> Path E u w.\n  Proof. intros p evw; now apply (Pstep _ _ _ _ p evw). Qed."
+      },
+      "concat": {
+        "kind": "Lemma",
+        "lines": [35, 37],
+        "content": "  Lemma concat (E : Edge) (u v w : V) :\n    Path E u v -> Path E v w -> Path E u w.\n  Proof. intros; eapply trans; eauto. Qed."
+      },
+      "edge_path": {
+        "kind": "Lemma",
+        "lines": [40, 45],
+        "content": "  Lemma edge_path (E : Edge) (u v : V) : E u v -> Path E u v.\n  Proof.\n    intro euv.\n    refine (Pstep E u u v _ euv).\n    apply Pnil.\n  Qed."
+      },
+      "concat_edge_left": {
+        "kind": "Lemma",
+        "lines": [47, 52],
+        "content": "  Lemma concat_edge_left (E : Edge) (u v w : V) :\n    E u v -> Path E v w -> Path E u w.\n  Proof.\n    intros euv pvw.\n    eapply trans; [apply edge_path; exact euv|exact pvw].\n  Qed."
+      },
+      "concat3": {
+        "kind": "Lemma",
+        "lines": [54, 59],
+        "content": "  Lemma concat3 (E : Edge) (u v w t : V) :\n    Path E u v -> Path E v w -> Path E w t -> Path E u t.\n  Proof.\n    intros puv pvw pwt.\n    eapply trans; [eapply trans; eauto|assumption].\n  Qed."
+      },
+      "Erev": {
+        "kind": "Definition",
+        "lines": [61, 61],
+        "content": "  Definition Erev (E : Edge) : Edge := fun x y => E y x."
+      },
+      "reverse_in_Erev": {
+        "kind": "Lemma",
+        "lines": [63, 70],
+        "content": "  Lemma reverse_in_Erev (E : Edge) (u v : V) :\n    Path E u v -> Path (Erev E) v u.\n  Proof.\n    intro p; induction p.\n    - apply Pnil.\n    - eapply trans; [|apply IHp].\n      eapply Pstep; [apply Pnil|assumption].\n  Qed."
+      },
+      "cycle_refl": {
+        "kind": "Lemma",
+        "lines": [72, 74],
+        "content": "  Lemma cycle_refl (E : Edge) (v w : V) :\n    Path E v w -> Path E w v -> Path E v v.\n  Proof. intros pvw pwv; eapply trans; eauto. Qed."
+      },
+      "End Graph.": {
+        "kind": "End",
+        "lines": [76, 76],
+        "content": "End Graph."
+      }
+    },
+    "items": [
+      {
+        "name": "trans",
+        "lean": {
+          "kind": "theorem",
+          "lines": [19, 22],
+          "statement": "theorem trans {u v w : V} : Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) u w := by",
+          "proof": "  intro p1 p2; induction p2 with\n  | nil => simpa using p1\n  | step p2' evw ih => exact Path.step ih evw",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "Path.step", "category": "constructor" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [24, 25],
+          "statement": "Lemma trans (E : Edge) (u v w : V) :\n    Path E u v -> Path E v w -> Path E u w.",
+          "proof": "Proof. intros p1 p2; exact (append_right E v w p2 u p1). Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "append_right", "category": "Fixpoint" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "concat_edge_right",
+        "lean": {
+          "kind": "theorem",
+          "lines": [38, 39],
+          "statement": "theorem concat_edge_right {u v w : V} :\n  Path (E:=E) u v → E v w → Path (E:=E) u w := by",
+          "proof": "  intro p evw; exact Path.step p evw",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "Path.step", "category": "constructor" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [33, 34],
+          "statement": "Lemma concat_edge_right (E : Edge) (u v w : V) :\n    Path E u v -> E v w -> Path E u w.",
+          "proof": "Proof. intros p evw; now apply (Pstep _ _ _ _ p evw). Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "Pstep", "category": "constructor" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "concat",
+        "lean": {
+          "kind": "theorem",
+          "lines": [42, 43],
+          "statement": "theorem concat {u v w : V} :\n  Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) u w := by",
+          "proof": "  intro p q; exact trans p q",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [37, 38],
+          "statement": "Lemma concat (E : Edge) (u v w : V) :\n    Path E u v -> Path E v w -> Path E u w.",
+          "proof": "Proof. intros; eapply trans; eauto. Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "edge_path",
+        "lean": {
+          "kind": "theorem",
+          "lines": [45, 46],
+          "statement": "theorem edge_path {u v : V} : E u v → Path (E:=E) u v := by",
+          "proof": "  intro euv; exact Path.step (Path.nil u) euv",
+          "dependencies": {
+            "statement": [
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "Path.nil", "category": "constructor" },
+              { "symbol": "Path.step", "category": "constructor" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [41, 46],
+          "statement": "Lemma edge_path (E : Edge) (u v : V) : E u v -> Path E u v.",
+          "proof": "Proof.\n    intro euv.\n    refine (Pstep E u u v _ euv).\n    apply Pnil.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "Pnil", "category": "constructor" },
+              { "symbol": "Pstep", "category": "constructor" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "concat_edge_left",
+        "lean": {
+          "kind": "theorem",
+          "lines": [49, 50],
+          "statement": "theorem concat_edge_left {u v w : V} :\n  E u v → Path (E:=E) v w → Path (E:=E) u w := by",
+          "proof": "  intro euv pvw; exact trans (edge_path (E:=E) euv) pvw",
+          "dependencies": {
+            "statement": [
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "edge_path", "category": "theorem" },
+              { "symbol": "trans", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [49, 53],
+          "statement": "Lemma concat_edge_left (E : Edge) (u v w : V) :\n    E u v -> Path E v w -> Path E u w.",
+          "proof": "Proof.\n    intros euv pvw.\n    eapply trans; [apply edge_path; exact euv|exact pvw].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "Lemma" },
+              { "symbol": "edge_path", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "concat3",
+        "lean": {
+          "kind": "theorem",
+          "lines": [53, 54],
+          "statement": "theorem concat3 {u v w t : V} :\n  Path (E:=E) u v → Path (E:=E) v w → Path (E:=E) w t → Path (E:=E) u t := by",
+          "proof": "  intro puv pvw pwt; exact trans (trans puv pvw) pwt",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [56, 60],
+          "statement": "Lemma concat3 (E : Edge) (u v w t : V) :\n    Path E u v -> Path E v w -> Path E w t -> Path E u t.",
+          "proof": "Proof.\n    intros puv pvw pwt.\n    eapply trans; [eapply trans; eauto|assumption].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "reverse_in_Erev",
+        "lean": {
+          "kind": "theorem",
+          "lines": [57, 62],
+          "statement": "theorem reverse_in_Erev {u v : V} :\n  Path (E:=E) u v → Path (E:=Erev E) v u := by",
+          "proof": "  intro p; induction p with\n  | nil => exact Path.nil _\n  | step p' evw ih =>\n      have hwv : Path (E:=Erev E) _ _ := Path.step (Path.nil _) evw\n      exact trans hwv ih",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" },
+              { "symbol": "Erev", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "Path.nil", "category": "constructor" },
+              { "symbol": "Path.step", "category": "constructor" },
+              { "symbol": "trans", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [65, 71],
+          "statement": "Lemma reverse_in_Erev (E : Edge) (u v : V) :\n    Path E u v -> Path (Erev E) v u.",
+          "proof": "Proof.\n    intro p; induction p.\n    - apply Pnil.\n    - eapply trans; [|apply IHp].\n      eapply Pstep; [apply Pnil|assumption].\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" },
+              { "symbol": "Erev", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "Pnil", "category": "constructor" },
+              { "symbol": "Pstep", "category": "constructor" },
+              { "symbol": "trans", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "cycle_refl",
+        "lean": {
+          "kind": "theorem",
+          "lines": [65, 66],
+          "statement": "theorem cycle_refl {v w : V} :\n  Path (E:=E) v w → Path (E:=E) w v → Path (E:=E) v v := by",
+          "proof": "  intro pvw pwv; exact trans pvw pwv",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "inductive" },
+              { "symbol": "E", "category": "variable" },
+              { "symbol": "V", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [74, 75],
+          "statement": "Lemma cycle_refl (E : Edge) (v w : V) :\n    Path E v w -> Path E w v -> Path E v v.",
+          "proof": "Proof. intros pvw pwv; eapply trans; eauto. Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Path", "category": "Inductive" },
+              { "symbol": "Edge", "category": "Definition" },
+              { "symbol": "V", "category": "Variable" }
+            ],
+            "proof": [
+              { "symbol": "trans", "category": "Lemma" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

@@ -1,0 +1,205 @@
+{
+    "source": "ideals",
+    "lean": {
+      "CRing": {
+        "kind": "class",
+        "lines": [9, 25],
+        "content": "class CRing (R : Type) where\n  zero  : R\n  one   : R\n  add   : R → R → R\n  mul   : R → R → R\n  opp   : R → R\n\n  add_comm  : ∀ x y, add x y = add y x\n  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)\n  add_zero  : ∀ x, add x zero = x\n  add_opp   : ∀ x, add x (opp x) = zero\n\n  mul_comm  : ∀ x y, mul x y = mul y x\n  mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)\n  mul_one   : ∀ x, mul x one = x\n  dist_l    : ∀ a x y, mul a (add x y) = add (mul a x) (mul a y)\n  opp_add   : ∀ x y, opp (add x y) = add (opp x) (opp y)"
+      },
+      "zero": { "kind": "class_field", "lines": [10, 10], "content": "  zero  : R" },
+      "one": { "kind": "class_field", "lines": [11, 11], "content": "  one   : R" },
+      "add": { "kind": "class_field", "lines": [12, 12], "content": "  add   : R → R → R" },
+      "mul": { "kind": "class_field", "lines": [13, 13], "content": "  mul   : R → R → R" },
+      "opp": { "kind": "class_field", "lines": [14, 14], "content": "  opp   : R → R" },
+      "add_comm": { "kind": "class_field", "lines": [16, 16], "content": "  add_comm  : ∀ x y, add x y = add y x" },
+      "add_assoc": { "kind": "class_field", "lines": [17, 17], "content": "  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+      "add_zero": { "kind": "class_field", "lines": [18, 18], "content": "  add_zero  : ∀ x, add x zero = x" },
+      "add_opp": { "kind": "class_field", "lines": [19, 19], "content": "  add_opp   : ∀ x, add x (opp x) = zero" },
+      "mul_comm": { "kind": "class_field", "lines": [21, 21], "content": "  mul_comm  : ∀ x y, mul x y = mul y x" },
+      "mul_assoc": { "kind": "class_field", "lines": [22, 22], "content": "  mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)" },
+      "mul_one": { "kind": "class_field", "lines": [23, 23], "content": "  mul_one   : ∀ x, mul x one = x" },
+      "dist_l": { "kind": "class_field", "lines": [24, 24], "content": "  dist_l    : ∀ a x y, mul a (add x y) = add (mul a x) (mul a y)" },
+      "opp_add": { "kind": "class_field", "lines": [25, 25], "content": "  opp_add   : ∀ x y, opp (add x y) = add (opp x) (opp y)" },
+      "R": { "kind": "variable", "lines": [29, 29], "content": "variable {R : Type} [CR : CRing R]" },
+      "open CRing": { "kind": "open", "lines": [30, 30], "content": "open CRing" },
+      "+R": { "kind": "notation", "lines": [32, 32], "content": "infixl:65 \"+R\" => CRing.add" },
+      "*R": { "kind": "notation", "lines": [33, 33], "content": "infixl:70 \"*R\" => CRing.mul" },
+      "-R": { "kind": "notation", "lines": [34, 34], "content": "prefix:100 \"-R\" => CRing.opp" },
+      "IsIdeal": {
+        "kind": "def",
+        "lines": [36, 40],
+        "content": "def IsIdeal (I : R → Prop) : Prop :=\n  (I CR.zero) ∧\n  (∀ x y, I x → I y → I (x +R y)) ∧\n  (∀ x, I x → I (-R x)) ∧\n  (∀ a x, I x → I (a *R x))"
+      },
+      "Inter": {
+        "kind": "def",
+        "lines": [43, 44],
+        "content": "def Inter {ι : Type} (F : ι → (R → Prop)) : R → Prop :=\n  fun x => ∀ i, F i x"
+      },
+      "inter_isIdeal": {
+        "kind": "theorem",
+        "lines": [46, 57],
+        "content": "theorem inter_isIdeal {ι : Type} (F : ι → (R → Prop))\n  (h : ∀ i, IsIdeal (F i)) : IsIdeal (Inter F) :=\nby\n  unfold IsIdeal Inter at *\n  constructor\n  · intro i; exact (h i).1\n  constructor\n  · intro x y hx hy i\n    exact (h i).2.1 x y (hx i) (hy i)\n  constructor\n  · intro x hx i; exact (h i).2.2.1 x (hx i)\n  · intro a x hx i; exact (h i).2.2.2 a x (hx i)"
+      },
+      "sum": {
+        "kind": "def",
+        "lines": [60, 61],
+        "content": "def sum (I J : R → Prop) : R → Prop :=\n  fun x => ∃ a b, I a ∧ J b ∧ x = a +R b"
+      },
+      "sum_isIdeal": {
+        "kind": "theorem",
+        "lines": [63, 111],
+        "content": "theorem sum_isIdeal (I J : R → Prop) (hI : IsIdeal I) (hJ : IsIdeal J) :\n  IsIdeal (sum I J) :=\nby\n  unfold IsIdeal sum at *\n  constructor\n  · exists CR.zero, CR.zero\n    constructor\n    · exact hI.1\n    constructor\n    · exact hJ.1\n    · simp [CR.add_zero]\n  constructor\n  · intro x y hx hy\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    rcases hy with ⟨a', b', ha', hb', rfl⟩\n    -- reassociate (a+b)+(a'+b') = (a+a')+(b+b')\n    have hadd : (a +R b) +R (a' +R b') = (a +R a') +R (b +R b') := by\n      -- Stepwise associativity and commutativity\n      -- ((a + b) + a') + b' = a + (b + a') + b' = a + (a' + b) + b' = (a + a') + (b + b')\n      have := by\n        calc\n          (a +R b) +R (a' +R b')\n              = ((a +R b) +R a') +R b' := by simp [CR.add_assoc]\n          _   = (a +R (b +R a')) +R b' := by simp [CR.add_assoc]\n          _   = (a +R (a' +R b)) +R b' := by simp [CR.add_comm]\n          _   = ((a +R a') +R b) +R b' := by simp [CR.add_assoc]\n          _   = (a +R a') +R (b +R b') := by simp [CR.add_assoc]\n      exact this\n    -- use ideal closure\n    have hsumA : I (a +R a') := hI.2.1 a a' ha ha'\n    have hsumB : J (b +R b') := hJ.2.1 b b' hb hb'\n    exact ⟨a +R a', b +R b', hsumA, hsumB, hadd⟩\n  constructor\n  · intro x hx\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    -- -(a+b) = (-a) + (-b)\n    have : -R (a +R b) = (-R a) +R (-R b) := CR.opp_add a b\n    -- closures\n    have ha' : I (-R a) := hI.2.2.1 a ha\n    have hb' : J (-R b) := hJ.2.2.1 b hb\n    exact ⟨-R a, -R b, ha', hb', this⟩\n  · intro c x hx\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    -- c*(a+b) = c*a + c*b\n    have : c *R (a +R b) = (c *R a) +R (c *R b) := CR.dist_l c a b\n    have ha' : I (c *R a) := hI.2.2.2 c a ha\n    have hb' : J (c *R b) := hJ.2.2.2 c b hb\n    exact ⟨c *R a, c *R b, ha', hb', this⟩"
+      },
+      "end Ideals": { "kind": "end", "lines": [112, 112], "content": "end Ideals" }
+    },
+    "coq": {
+      "Require Import Coq.Init.Logic.": {
+        "kind": "require",
+        "lines": [9, 9],
+        "content": "Require Import Coq.Init.Logic."
+      },
+      "CRing": {
+        "kind": "Class",
+        "lines": [11, 30],
+        "content": "Class CRing := {\n  R     : Type;\n  zero  : R;\n  one   : R;\n  add   : R -> R -> R;\n  mul   : R -> R -> R;\n  opp   : R -> R;\n\n  add_comm  : forall x y, add x y = add y x;\n  add_assoc : forall x y z, add (add x y) z = add x (add y z);\n  add_zero  : forall x, add x zero = x;\n  zero_add  : forall x, add zero x = x;\n  add_opp   : forall x, add x (opp x) = zero;\n\n  mul_comm  : forall x y, mul x y = mul y x;\n  mul_assoc : forall x y z, mul (mul x y) z = mul x (mul y z);\n  mul_one   : forall x, mul x one = x;\n  dist_l    : forall a x y, mul a (add x y) = add (mul a x) (mul a y);\n  opp_add   : forall x y, opp (add x y) = add (opp x) (opp y)\n}."
+      },
+      "R": { "kind": "class_field", "lines": [12, 12], "content": "  R     : Type;" },
+      "zero": { "kind": "class_field", "lines": [13, 13], "content": "  zero  : R;" },
+      "one": { "kind": "class_field", "lines": [14, 14], "content": "  one   : R;" },
+      "add": { "kind": "class_field", "lines": [15, 15], "content": "  add   : R -> R -> R;" },
+      "mul": { "kind": "class_field", "lines": [16, 16], "content": "  mul   : R -> R -> R;" },
+      "opp": { "kind": "class_field", "lines": [17, 17], "content": "  opp   : R -> R;" },
+      "add_comm": { "kind": "class_field", "lines": [19, 19], "content": "  add_comm  : forall x y, add x y = add y x;" },
+      "add_assoc": { "kind": "class_field", "lines": [20, 20], "content": "  add_assoc : forall x y z, add (add x y) z = add x (add y z);" },
+      "add_zero": { "kind": "class_field", "lines": [21, 21], "content": "  add_zero  : forall x, add x zero = x;" },
+      "zero_add": { "kind": "class_field", "lines": [22, 22], "content": "  zero_add  : forall x, add zero x = x;" },
+      "add_opp": { "kind": "class_field", "lines": [23, 23], "content": "  add_opp   : forall x, add x (opp x) = zero;" },
+      "mul_comm": { "kind": "class_field", "lines": [25, 25], "content": "  mul_comm  : forall x y, mul x y = mul y x;" },
+      "mul_assoc": { "kind": "class_field", "lines": [26, 26], "content": "  mul_assoc : forall x y z, mul (mul x y) z = mul x (mul y z);" },
+      "mul_one": { "kind": "class_field", "lines": [27, 27], "content": "  mul_one   : forall x, mul x one = x;" },
+      "dist_l": { "kind": "class_field", "lines": [28, 28], "content": "  dist_l    : forall a x y, mul a (add x y) = add (mul a x) (mul a y);" },
+      "opp_add": { "kind": "class_field", "lines": [29, 29], "content": "  opp_add   : forall x y, opp (add x y) = add (opp x) (opp y)" },
+      "Section Ideals.": { "kind": "Section", "lines": [32, 32], "content": "Section Ideals." },
+      "Context {K : CRing}.": { "kind": "Context", "lines": [33, 33], "content": "  Context {K : CRing}." },
+      "+R": { "kind": "Infix", "lines": [35, 35], "content": "  Infix \"+R\" := add (at level 65)." },
+      "*R": { "kind": "Infix", "lines": [36, 36], "content": "  Infix \"*R\" := mul (at level 70)." },
+      "-R": { "kind": "Notation", "lines": [37, 37], "content": "  Notation \"-R x\" := (opp x) (at level 100)." },
+      "IsIdeal": {
+        "kind": "Record",
+        "lines": [39, 46],
+        "content": "  Record IsIdeal (I : R -> Prop) : Prop := {\n    ideal_zero : I zero;\n    ideal_add  : forall x y, I x -> I y -> I (x +R y);\n    ideal_opp  : forall x, I x -> I (-R x);\n    ideal_mul  : forall a x, I x -> I (a *R x)\n  }."
+      },
+      "Inter": {
+        "kind": "Definition",
+        "lines": [47, 48],
+        "content": "  Definition Inter {I : Type} (F : I -> R -> Prop) : R -> Prop :=\n    fun x => forall i, F i x."
+      },
+      "inter_isIdeal": {
+        "kind": "Lemma",
+        "lines": [50, 58],
+        "content": "  Lemma inter_isIdeal {I : Type} (F : I -> R -> Prop)\n    (h : forall i, IsIdeal (F i)) : IsIdeal (Inter F).\n  Proof.\n    constructor; unfold Inter.\n    - intro i; exact (ideal_zero (F i) (h i)).\n    - intros x y hx hy i; exact (ideal_add (F i) (h i) x y (hx i) (hy i)).\n    - intros x hx i; exact (ideal_opp (F i) (h i) x (hx i)).\n    - intros a x hx i; exact (ideal_mul (F i) (h i) a x (hx i)).\n  Qed."
+      },
+      "sum": {
+        "kind": "Definition",
+        "lines": [61, 62],
+        "content": "  Definition sum (I J : R -> Prop) : R -> Prop :=\n    fun x => exists a b, I a /\\ J b /\\ (a +R b) = x."
+      },
+      "sum_isIdeal": {
+        "kind": "Lemma",
+        "lines": [64, 96],
+        "content": "  Lemma sum_isIdeal (I J : R -> Prop)\n    (hI : IsIdeal I) (hJ : IsIdeal J) : IsIdeal (sum I J).\n  Proof.\n    unfold sum.\n    constructor.\n    - exists zero, zero; repeat split.\n      + exact (ideal_zero I hI).\n      + exact (ideal_zero J hJ).\n      + rewrite add_zero. reflexivity.\n    - intros x y [a [b [Ha [Hb Hx]]]] [a' [b' [Ha' [Hb' Hy]]]].\n      subst x; subst y.\n      assert (Hreassoc : (a +R b) +R (a' +R b') = (a +R a') +R (b +R b')).\n      { rewrite add_assoc.\n        rewrite <- add_assoc with (x:=b) (y:=a') (z:=b').\n        rewrite add_comm with (x:=b) (y:=a').\n        rewrite add_assoc.\n        rewrite <- add_assoc with (x:=a) (y:=a') (z:=(b +R b')).\n        reflexivity. }\n      pose proof (ideal_add I hI a a' Ha Ha') as HA.\n      pose proof (ideal_add J hJ b b' Hb Hb') as HB.\n      exists (a +R a'), (b +R b'); repeat split; try tauto.\n      now rewrite <- Hreassoc.\n    - intros x [a [b [Ha [Hb Hx]]]]; subst x.\n      pose proof (ideal_opp I hI a Ha) as Ha'.\n      pose proof (ideal_opp J hJ b Hb) as Hb'.\n      exists (-R a), (-R b). repeat split; try tauto.\n      now rewrite opp_add.\n    - intros c x [a [b [Ha [Hb Hx]]]]; subst x.\n      rewrite dist_l.\n      pose proof (ideal_mul I hI c a Ha) as Ha'.\n      pose proof (ideal_mul J hJ c b Hb) as Hb'.\n      now exists (c *R a), (c *R b).\n  Qed."
+      },
+      "End Ideals.": { "kind": "End", "lines": [98, 98], "content": "End Ideals." }
+    },
+    "items": [
+      {
+        "name": "inter_isIdeal",
+        "lean": {
+          "kind": "theorem",
+          "lines": [39, 48],
+          "statement": "theorem inter_isIdeal {ι : Type} (F : ι → (R → Prop)) (h : ∀ i, IsIdeal (F i)) : IsIdeal (Inter F) := by",
+          "proof": "  unfold IsIdeal Inter at *\n  constructor\n  · intro i; exact (h i).1\n  constructor\n  · intro x y hx hy i\n    exact (h i).2.1 x y (hx i) (hy i)\n  constructor\n  · intro x hx i; exact (h i).2.2.1 x (hx i)\n  · intro a x hx i; exact (h i).2.2.2 a x (hx i)",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsIdeal", "category": "definition" },
+              { "symbol": "Inter", "category": "definition" },
+              { "symbol": "CRing", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "IsIdeal", "category": "definition" },
+              { "symbol": "Inter", "category": "definition" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "CRing", "category": "class" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [52, 59],
+          "statement": "  Lemma inter_isIdeal {I : Type} (F : I -> R -> Prop) (h : forall i, IsIdeal (F i)) : IsIdeal (Inter F).",
+          "proof": "Proof.\n    constructor; unfold Inter.\n    - intro i; exact (ideal_zero (F i) (h i)).\n    - intros x y hx hy i; exact (ideal_add (F i) (h i) x y (hx i) (hy i)).\n    - intros x hx i; exact (ideal_opp (F i) (h i) x (hx i)).\n    - intros a x hx i; exact (ideal_mul (F i) (h i) a x (hx i)).\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsIdeal", "category": "Record" },
+              { "symbol": "Inter", "category": "Definition" },
+              { "symbol": "CRing", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "Inter", "category": "Definition" },
+              { "symbol": "IsIdeal", "category": "Record" },
+              { "symbol": "CRing", "category": "Class" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "sum_isIdeal",
+        "lean": {
+          "kind": "theorem",
+          "lines": [55, 93],
+          "statement": "theorem sum_isIdeal (I J : R → Prop) (hI : IsIdeal I) (hJ : IsIdeal J) : IsIdeal (sum I J) := by",
+          "proof": "  unfold IsIdeal sum at *\n  constructor\n  · exists CR.zero, CR.zero\n    constructor\n    · exact hI.1\n    constructor\n    · exact hJ.1\n    · simp [CR.add_zero]\n  constructor\n  · intro x y hx hy\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    rcases hy with ⟨a', b', ha', hb', rfl⟩\n    have hadd : (a +R b) +R (a' +R b') = (a +R a') +R (b +R b') := by\n      have := by\n        calc\n          (a +R b) +R (a' +R b')\n              = ((a +R b) +R a') +R b' := by simp [CR.add_assoc]\n          _   = (a +R (b +R a')) +R b' := by simp [CR.add_assoc]\n          _   = (a +R (a' +R b)) +R b' := by simp [CR.add_comm]\n          _   = ((a +R a') +R b) +R b' := by simp [CR.add_assoc]\n          _   = (a +R a') +R (b +R b') := by simp [CR.add_assoc]\n      exact this\n    have hsumA : I (a +R a') := hI.2.1 a a' ha ha'\n    have hsumB : J (b +R b') := hJ.2.1 b b' hb hb'\n    exact ⟨a +R a', b +R b', hsumA, hsumB, hadd⟩\n  constructor\n  · intro x hx\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    have : -R (a +R b) = (-R a) +R (-R b) := CR.opp_add a b\n    have ha' : I (-R a) := hI.2.2.1 a ha\n    have hb' : J (-R b) := hJ.2.2.1 b hb\n    exact ⟨-R a, -R b, ha', hb', this⟩\n  · intro c x hx\n    rcases hx with ⟨a, b, ha, hb, rfl⟩\n    have : c *R (a +R b) = (c *R a) +R (c *R b) := CR.dist_l c a b\n    have ha' : I (c *R a) := hI.2.2.2 c a ha\n    have hb' : J (c *R b) := hJ.2.2.2 c b hb\n    exact ⟨c *R a, c *R b, ha', hb', this⟩",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsIdeal", "category": "definition" },
+              { "symbol": "sum", "category": "definition" },
+              { "symbol": "CRing", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "sum", "category": "definition" },
+              { "symbol": "IsIdeal", "category": "definition" },
+              { "symbol": "+R", "category": "notation" },
+              { "symbol": "*R", "category": "notation" },
+              { "symbol": "-R", "category": "notation" },
+              { "symbol": "CRing", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [66, 97],
+          "statement": "  Lemma sum_isIdeal (I J : R -> Prop) (hI : IsIdeal I) (hJ : IsIdeal J) : IsIdeal (sum I J).",
+          "proof": "Proof.\n    unfold sum.\n    constructor.\n    - exists zero, zero; repeat split.\n      + exact (ideal_zero I hI).\n      + exact (ideal_zero J hJ).\n      + rewrite add_zero. reflexivity.\n    - intros x y [a [b [Ha [Hb Hx]]]] [a' [b' [Ha' [Hb' Hy]]]].\n      subst x; subst y.\n      assert (Hreassoc : (a +R b) +R (a' +R b') = (a +R a') +R (b +R b')).\n      { rewrite add_assoc.\n        rewrite <- add_assoc with (x:=b) (y:=a') (z:=b').\n        rewrite add_comm with (x:=b) (y:=a').\n        rewrite add_assoc.\n        rewrite <- add_assoc with (x:=a) (y:=a') (z:=(b +R b')).\n        reflexivity. }\n      pose proof (ideal_add I hI a a' Ha Ha') as HA.\n      pose proof (ideal_add J hJ b b' Hb Hb') as HB.\n      exists (a +R a'), (b +R b'); repeat split; try tauto.\n      now rewrite <- Hreassoc.\n    - intros x [a [b [Ha [Hb Hx]]]]; subst x.\n      pose proof (ideal_opp I hI a Ha) as Ha'.\n      pose proof (ideal_opp J hJ b Hb) as Hb'.\n      exists (-R a), (-R b). repeat split; try tauto.\n      now rewrite opp_add.\n    - intros c x [a [b [Ha [Hb Hx]]]]; subst x.\n      rewrite dist_l.\n      pose proof (ideal_mul I hI c a Ha) as Ha'.\n      pose proof (ideal_mul J hJ c b Hb) as Hb'.\n      now exists (c *R a), (c *R b).\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsIdeal", "category": "Record" },
+              { "symbol": "sum", "category": "Definition" },
+              { "symbol": "CRing", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "sum", "category": "Definition" },
+              { "symbol": "IsIdeal", "category": "Record" },
+              { "symbol": "+R", "category": "Infix" },
+              { "symbol": "*R", "category": "Infix" },
+              { "symbol": "-R", "category": "Notation" },
+              { "symbol": "CRing", "category": "Class" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

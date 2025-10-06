@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Data generation
+Mathlib/
+misc/
+src/extract_term/proofs-dump/mathlib_proofs_by_theorem
+
 # Term extraction
 runs/
 test/

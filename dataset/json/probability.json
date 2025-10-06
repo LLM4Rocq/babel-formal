@@ -1,0 +1,2191 @@
+{
+  "source": "probability",
+  "items": [
+    {
+      "name": "prob_union_comm",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          170,
+          178
+        ],
+        "statement": "theorem prob_union_comm (A B : event \u03a9) :\n  prob (ev_union A B) = prob (ev_union B A) := by",
+        "proof": "  have h₁ := prob_union (prob := prob) A B\n  have h₂ := prob_union (prob := prob) B A\n  have hcap : prob (ev_inter A B) = prob (ev_inter B A) := by\n    have := prob_ext (prob := prob) (A := ev_inter A B) (B := ev_inter B A) (ev_inter_comm A B)\n    exact this\n  have hunion : prob (ev_union A B) = prob (ev_union B A) := by\n    exact prob_ext (prob := prob) (A := ev_union A B) (B := ev_union B A) (ev_union_comm A B)\n  exact hunion",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          110,
+          114
+        ],
+        "statement": "  Lemma prob_union_comm A B :\n    prob (ev_union A B) = prob (ev_union B A).",
+        "proof": "  Proof.\n    apply prob_ext; intro w; split; intro HU; destruct HU as [HA|HB];\n    [right|left|right|left]; assumption.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "prob_union_idem",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          181,
+          194
+        ],
+        "statement": "theorem prob_union_idem (A : event \u03a9) :\n  prob (ev_union A A) = prob A := by",
+        "proof": "  have h := prob_union (prob := prob) A A\n  -- (A ∧ A) ↔ A, written as a pure term (no `by`)\n  have hAA : ∀ ω, ev_inter A A ω ↔ A ω :=\n    fun ω => Iff.intro (fun h => h.left) (fun h => And.intro h h)\n  have hcap : prob (ev_inter A A) = prob A :=\n    prob_ext (prob := prob) (A := ev_inter A A) (B := A) hAA\n  have h2 : rR.add (prob A) (rR.opp (prob A)) = rR.zero := rR.add_opp (prob A)\n  have h3 : rR.add (prob A) (rR.add (prob A) (rR.opp (prob A))) = rR.add (prob A) rR.zero := by simp [h2]\n  have h4 : rR.add (prob A) rR.zero = prob A := rR.add_zero (prob A)\n  have : prob (ev_union A A) = rR.add (prob A) (rR.add (prob A) (rR.opp (prob A))) := by\n    simpa [hcap]\n    using h\n  simpa [h3, h4]",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          116,
+          123
+        ],
+        "statement": "  Lemma prob_union_idem A : prob (ev_union A A) = prob A.",
+        "proof": "  Proof.\n    specialize (prob_union A A). intro HU.\n    assert (Heq : prob (ev_inter A A) = prob A).\n    { apply prob_ext; intro w; split; intro HX; [exact (proj1 HX)|split; [exact HX|exact HX]]. }\n    rewrite HU. rewrite Heq.\n    rewrite add_opp. rewrite add_zero. reflexivity.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "prob_diff",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          201,
+          251
+        ],
+        "statement": "theorem prob_diff (A B : event \u03a9) :\n  prob (ev_diff A B) = prob A -R prob (ev_inter A B) := by",
+        "proof": "  have hpart : ∀ ω, (A ω) ↔ (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) ω := by\n    intro ω; constructor\n    · intro hA\n      have hb := em (B ω)\n      cases hb with\n      | inl hB => exact Or.inl ⟨hA, hB⟩\n      | inr hB => exact Or.inr ⟨hA, hB⟩\n    · intro hU; cases hU with\n      | inl hAB => exact hAB.left\n      | inr hAcB => exact hAcB.left\n  have hcap_disj : ∀ ω, (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ω ↔ False := by\n    intro ω; constructor <;> intro h\n    · rcases h with ⟨hAB, hAcB⟩; exact hAcB.right hAB.right\n    · cases h\n  have hAeq := prob_ext (prob := prob) (A := A) (B := ev_union (ev_inter A B) (ev_inter A (ev_compl B))) hpart\n  have hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = rR.zero := by\n    have := prob_ext (prob := prob) (A := ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) (B := ev_false) hcap_disj\n    simpa [prob_false] using this\n  have h := prob_union (prob := prob) (ev_inter A B) (ev_inter A (ev_compl B))\n  have hsumA : prob A = rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) := by\n    have : prob A = prob (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) := by\n      simpa using hAeq\n    have hU := h\n    have hzero_opp : rR.opp (prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B)))) = rR.opp rR.zero := by\n      simp [hcap0]\n    have hopp0 : rR.opp rR.zero = rR.zero := opp_zero\n    simpa [this, hzero_opp, hopp0, rR.add_assoc, rR.add_zero]\n      using hU\n  have heq_diff : prob (ev_diff A B) = prob (ev_inter A (ev_compl B)) := by\n    exact prob_ext (prob := prob) (A := ev_diff A B) (B := ev_inter A (ev_compl B)) (by intro ω; constructor <;> intro h; exact h; exact h)\n  have hsub : rR.add (prob A) (rR.opp (prob (ev_inter A B)))\n              = prob (ev_inter A (ev_compl B)) := by\n    calc\n      rR.add (prob A) (rR.opp (prob (ev_inter A B)))\n          = rR.add (rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B)))) (rR.opp (prob (ev_inter A B))) := by\n              simp [hsumA]\n      _ = rR.add (prob (ev_inter A B)) (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))) := by\n              simpa using (rR.add_assoc (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B))))\n      _ = rR.add (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))) (prob (ev_inter A B)) := by\n              simpa using (rR.add_comm (prob (ev_inter A B)) (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))))\n      _ = rR.add (prob (ev_inter A (ev_compl B))) (rR.add (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B))) := by\n              simpa using (rR.add_assoc (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B)))\n      _ = rR.add (prob (ev_inter A (ev_compl B))) (rR.add (prob (ev_inter A B)) (rR.opp (prob (ev_inter A B)))) := by\n              have := rR.add_comm (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B))\n              simpa using congrArg (fun t => rR.add (prob (ev_inter A (ev_compl B))) t) this\n      _ = rR.add (prob (ev_inter A (ev_compl B))) rR.zero := by\n              simp [rR.add_opp]\n      _ = prob (ev_inter A (ev_compl B)) := by\n              simp [rR.add_zero]\n  simpa [heq_diff] using hsub.symm",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "x -R y",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            },
+            {
+              "symbol": "em",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_zero",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          125,
+          150
+        ],
+        "statement": "  Lemma prob_diff A B : prob (ev_diff A B) = prob A -R prob (ev_inter A B).",
+        "proof": "    assert (Hpart : forall w, A w <-> (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) w).\n    { intro w. split.\n      - intro hA. destruct (classic (B w)) as [hB|hNB].\n        + left. split; assumption.\n        + right. split; assumption.\n      - intros [ [hA _] | [hA _] ]; exact hA. }\n    assert (Hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = zero).\n    { rewrite (prob_ext (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ev_false).\n      - apply prob_false.\n      - intro w. split; intro Hcap; [destruct Hcap as [[? ?] [? Hnb]]; contradiction| contradiction]. }\n    pose proof (prob_union (ev_inter A B) (ev_inter A (ev_compl B))) as Hunion.\n    (* Replace prob A by the union decomposition *)\n    rewrite (prob_ext A (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) Hpart).\n    (* Expand prob (union) and simplify empty intersection *)\n    rewrite Hunion. rewrite Hcap0. rewrite opp_zero.\n    (* Now RHS is (pAB + (pA¬B + 0)) - pAB = pA¬B *)\n    rewrite add_zero.\n    (* Rearrange to cancel pAB *)\n    rewrite add_comm with (x:=prob (ev_inter A B)) (y:=prob (ev_inter A (ev_compl B))).\n    rewrite add_assoc.\n    rewrite add_opp. rewrite add_zero.\n    (* Replace diff by intersection with complement *)\n    unfold ev_diff. apply prob_ext. intro w. split; intro HX; exact HX.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "x -R y",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            },
+            {
+              "symbol": "classic",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_zero",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "bayes_symm",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          254,
+          260
+        ],
+        "statement": "theorem bayes_symm (A B : event \u03a9) :\n  rR.mul (cprob A B) (prob B) = rR.mul (cprob B A) (prob A) := by",
+        "proof": "  calc\n    rR.mul (cprob A B) (prob B) = prob (ev_inter A B) := by simpa using (cprob_mul (prob := prob) A B).symm\n    _ = prob (ev_inter B A) := by\n          have := prob_ext (prob := prob) (A := ev_inter A B) (B := ev_inter B A) (ev_inter_comm A B)\n          simpa using this\n    _ = rR.mul (cprob B A) (prob A) := by simpa using (cprob_mul (prob := prob) B A)",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "cprob",
+              "category": "axiom"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "cprob",
+              "category": "axiom"
+            },
+            {
+              "symbol": "cprob_mul",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          152,
+          157
+        ],
+        "statement": "  Lemma bayes_symm A B : cprob A B *R prob B = cprob B A *R prob A.",
+        "proof": "  Proof.\n    rewrite <- cprob_mul. apply eq_trans with (y:=prob (ev_inter B A)).\n    - apply prob_ext; intro w; split; intro HBA; destruct HBA as [h1 h2]; [split; [exact h2|exact h1]|split; [exact h2|exact h1]].\n    - apply cprob_mul.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "cprob",
+              "category": "variable"
+            },
+            {
+              "symbol": "x *R y",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "cprob_mul",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "law_total_prob",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          263,
+          290
+        ],
+        "statement": "theorem law_total_prob (A B : event \u03a9) :\n  prob A = rR.add (rR.mul (cprob A B) (prob B)) (rR.mul (cprob A (ev_compl B)) (prob (ev_compl B))) := by",
+        "proof": "  have hpart : ∀ ω, (A ω) ↔ (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) ω := by\n    intro ω; constructor\n    · intro hA; cases em (B ω) with\n      | inl hB => exact Or.inl ⟨hA, hB⟩\n      | inr hB => exact Or.inr ⟨hA, hB⟩\n    · intro hU; cases hU with\n      | inl hAB  => exact hAB.left\n      | inr hAcB => exact hAcB.left\n  have hAeq := prob_ext (prob := prob) (A := A) (B := ev_union (ev_inter A B) (ev_inter A (ev_compl B))) hpart\n  have hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = rR.zero := by\n    have : ∀ ω, (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ω ↔ False := by\n      intro ω; constructor <;> intro h\n      · rcases h with ⟨hAB, hAcB⟩; exact hAcB.right hAB.right\n      · cases h\n    have := prob_ext (prob := prob) (A := ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) (B := ev_false) this\n    simpa [prob_false] using this\n  have h := prob_union (prob := prob) (ev_inter A B) (ev_inter A (ev_compl B))\n  have hsumA : prob A = rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) := by\n    have : prob A = prob (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) := by\n      simpa using hAeq\n    have hU := h\n    have hzero_opp : rR.opp (prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B)))) = rR.opp rR.zero := by\n      simp [hcap0]\n    have hopp0 : rR.opp rR.zero = rR.zero := opp_zero\n    simpa [this, hzero_opp, hopp0, rR.add_assoc, rR.add_zero]\n      using hU\n  simp [hsumA, cprob_mul (prob := prob) A B, cprob_mul (prob := prob) A (ev_compl B)]",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "cprob",
+              "category": "axiom"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            },
+            {
+              "symbol": "em",
+              "category": "axiom"
+            },
+            {
+              "symbol": "cprob_mul",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_zero",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          160,
+          177
+        ],
+        "statement": "  Lemma law_total_prob A B :\n    prob A = cprob A B *R prob B +R cprob A (ev_compl B) *R prob (ev_compl B).",
+        "proof": "  Proof.\n    pose proof (prob_union (ev_inter A B) (ev_inter A (ev_compl B))) as Hunion.\n    assert (Hpart : forall w, A w <-> (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) w).\n    { intro w. split.\n      - intro hA. destruct (classic (B w)) as [hB|hNB].\n        + left. split; assumption.\n        + right. split; assumption.\n      - intros [ [hA _] | [hA _] ]; exact hA. }\n    rewrite (prob_ext A (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) Hpart).\n    rewrite Hunion.\n    assert (Hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = zero).\n    { rewrite (prob_ext (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ev_false).\n      - apply prob_false.\n      - intro w. split; intro Hcap; [destruct Hcap as [[? ?] [? Hnb]]; contradiction| contradiction]. }\n    rewrite Hcap0. rewrite opp_zero. rewrite add_zero.\n    rewrite cprob_mul. rewrite cprob_mul. reflexivity.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "cprob",
+              "category": "variable"
+            },
+            {
+              "symbol": "x +R y",
+              "category": "notation"
+            },
+            {
+              "symbol": "x *R y",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            },
+            {
+              "symbol": "classic",
+              "category": "axiom"
+            },
+            {
+              "symbol": "cprob_mul",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_zero",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "prob_union_indep",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          294,
+          298
+        ],
+        "statement": "theorem prob_union_indep (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192\n  prob (ev_union A B) = rR.add (prob A) (rR.add (prob B) (rR.opp (rR.mul (prob A) (prob B)))) := by",
+        "proof": "  intro hI\n  have hU := prob_union (prob := prob) A B\n  have hIeq : prob (ev_inter A B) = rR.mul (prob A) (prob B) := hI\n  simpa [hIeq] using hU",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          180,
+          181
+        ],
+        "statement": "  Lemma prob_union_indep A B : indep A B ->\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob A *R prob B)).",
+        "proof": "  Proof. intro Hin. unfold indep in Hin. rewrite prob_union. now rewrite Hin. Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            },
+            {
+              "symbol": "x +R y",
+              "category": "notation"
+            },
+            {
+              "symbol": "x -R y",
+              "category": "notation"
+            },
+            {
+              "symbol": "x *R y",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "indep",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_union",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "indep_compl_right",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          301,
+          324
+        ],
+        "statement": "theorem indep_compl_right (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) A (ev_compl B) := by",
+        "proof": "  intro hI\n  have hdiff := prob_diff (prob := prob) A B\n  have heq_diff : prob (ev_inter A (ev_compl B)) = rR.add (prob A) (rR.opp (prob (ev_inter A B))) := by\n    have hset : prob (ev_diff A B) = prob (ev_inter A (ev_compl B)) :=\n      prob_ext (prob := prob) (A := ev_diff A B) (B := ev_inter A (ev_compl B))\n        (by intro ω; constructor <;> intro h <;> exact h)\n    simpa [hset] using hdiff\n  have hIeq : prob (ev_inter A B) = rR.mul (prob A) (prob B) := hI\n  have hlhs : prob (ev_inter A (ev_compl B)) = rR.add (prob A) (rR.opp (rR.mul (prob A) (prob B))) := by\n    simpa [hIeq]\n      using heq_diff\n  have hdist : rR.add (rR.mul (prob A) rR.one) (rR.mul (prob A) (rR.opp (prob B)))\n                = rR.mul (prob A) (rR.add rR.one (rR.opp (prob B))) := by\n    simpa using (rR.dist_l (prob A) rR.one (rR.opp (prob B))).symm\n  have hmul1 : rR.mul (prob A) rR.one = prob A := rR.mul_one (prob A)\n  have hmul2 : rR.mul (prob A) (rR.opp (prob B)) = rR.opp (rR.mul (prob A) (prob B)) := by\n    simpa using (opp_mul_right (prob A) (prob B))\n  have halg : rR.add (prob A) (rR.opp (rR.mul (prob A) (prob B)))\n              = rR.mul (prob A) (rR.add rR.one (rR.opp (prob B))) := by\n    simpa [hmul1, hmul2] using hdist\n  have : prob (ev_inter A (ev_compl B)) = rR.mul (prob A) (prob (ev_compl B)) := by\n    simpa [prob_compl (prob := prob) B, halg] using hlhs\n  exact this",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_compl",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_mul_right",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          191,
+          202
+        ],
+        "statement": "  Lemma indep_compl_right A B : indep A B -> indep A (ev_compl B).",
+        "proof": "  Proof.\n    intro Hin. unfold indep.\n    (* Convert intersection with complement to set difference *)\n    assert (HeqID : prob (ev_inter A (ev_compl B)) = prob (ev_diff A B)).\n    { apply prob_ext. intro w. split; intro Hw; exact Hw. }\n    rewrite HeqID.\n    (* Use difference identity and independence *)\n    rewrite prob_diff. rewrite Hin.\n    (* Compute complement probability and distribute *)\n    rewrite prob_compl. rewrite dist_l. rewrite mul_one. rewrite opp_mul_right. reflexivity.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_diff",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_compl",
+              "category": "axiom"
+            },
+            {
+              "symbol": "opp_mul_right",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "indep_symm",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          327,
+          339
+        ],
+        "statement": "theorem indep_symm (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) B A := by",
+        "proof": "  intro hI\n  unfold indep at hI\n  unfold indep\n  have hcap : prob (ev_inter B A) = prob (ev_inter A B) := by\n    have := prob_ext (prob := prob) (A := ev_inter B A) (B := ev_inter A B) (ev_inter_comm B A)\n    simpa using this\n  have hmul : rR.mul (prob A) (prob B) = rR.mul (prob B) (prob A) := by\n    simpa using (rR.mul_comm (prob A) (prob B))\n  calc\n    prob (ev_inter B A) = prob (ev_inter A B) := hcap\n    _ = rR.mul (prob A) (prob B) := hI\n    _ = rR.mul (prob B) (prob A) := by simpa using hmul",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          183,
+          189
+        ],
+        "statement": "  Lemma indep_symm A B : indep A B -> indep B A.",
+        "proof": "  Proof.\n    intro Hin. unfold indep in *.\n    rewrite (prob_ext (ev_inter B A) (ev_inter A B)).\n    - rewrite mul_comm. exact Hin.\n    - intro w. split; intro Hba; destruct Hba as [h1 h2]; [split; [exact h2|exact h1]|split; [exact h2|exact h1]].\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_inter",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "indep_compl_left",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          342,
+          347
+        ],
+        "statement": "theorem indep_compl_left (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) (ev_compl A) B := by",
+        "proof": "  intro hI\n  have hBA : indep (prob := prob) B A := indep_symm (prob := prob) A B hI\n  have hBnotA : indep (prob := prob) B (ev_compl A) :=\n    indep_compl_right (prob := prob) B A hBA\n  exact indep_symm (prob := prob) B (ev_compl A) hBnotA",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          204,
+          205
+        ],
+        "statement": "  Lemma indep_compl_left A B : indep A B -> indep (ev_compl A) B.",
+        "proof": "  Proof. intro Hin. apply indep_symm. apply indep_symm in Hin. now apply indep_compl_right. Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ev_compl",
+              "category": "definition"
+            },
+            {
+              "symbol": "indep",
+              "category": "definition"
+            }
+          ],
+          "proof": []
+        }
+      }
+    },
+    {
+      "name": "prob_bigUnion_disjoint",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          356,
+          394
+        ],
+        "statement": "theorem prob_bigUnion_disjoint\n  (xs : mylist (event Ω))\n  (hp : pairwise_disjoint xs) :\n  prob (bigUnion xs)\n    = mylist.fold_add rR.add rR.zero (mylist.mapL prob xs) := by",
+        "proof": "  revert hp\n  induction xs with\n  | nilL =>\n      intro _\n      simp [bigUnion, mylist.fold_add, mylist.mapL, prob_false]\n  | consL A xs ih =>\n      intro hp\n      cases xs with\n      | nilL =>\n          have hunionA : prob (ev_union A ev_false) = prob A :=\n            prob_ext (prob := prob) (A := ev_union A ev_false) (B := A)\n              (by\n                intro ω; constructor\n                · intro h; cases h with\n                  | inl hA => exact hA\n                  | inr hf => exact False.elim hf\n                · intro hA; exact Or.inl hA)\n          simp [bigUnion, mylist.fold_add, mylist.mapL, rR.add_zero, hunionA]\n      | consL B xs' =>\n          rcases hp with ⟨hAB, hrest, hpw⟩\n          have hAdisj : disjoint A (bigUnion (B ::L xs')) :=\n            disjoint_head_tail A (B ::L xs') (by\n              exact And.intro hAB (And.intro hrest hpw))\n          have hU' :\n              prob (bigUnion (A ::L (B ::L xs'))) =\n              rR.add (prob A) (prob (bigUnion (B ::L xs'))) := by\n            simpa [bigUnion] using\n              (prob_union_disjoint (prob := prob) A (bigUnion (B ::L xs')) hAdisj)\n          have htail :\n              prob (bigUnion (B ::L xs')) =\n              mylist.fold_add rR.add rR.zero (mylist.mapL prob (B ::L xs')) :=\n            ih hpw\n          have hsum :\n              prob (bigUnion (A ::L (B ::L xs'))) =\n              rR.add (prob A)\n                (mylist.fold_add rR.add rR.zero (mylist.mapL prob (B ::L xs'))) := by\n            simpa [htail] using hU'\n          simpa [bigUnion, mylist.mapL, mylist.fold_add, rR.add_assoc] using hsum",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "pairwise_disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "definition"
+            },
+            {
+              "symbol": "mapL",
+              "category": "definition"
+            },
+            {
+              "symbol": "fold_add",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union_disjoint",
+              "category": "axiom"
+            },
+            {
+              "symbol": "disjoint_head_tail",
+              "category": "axiom"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "definition"
+            },
+            {
+              "symbol": "mapL",
+              "category": "definition"
+            },
+            {
+              "symbol": "fold_add",
+              "category": "definition"
+            },
+            {
+              "symbol": "prob_union_disjoint",
+              "category": "axiom"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          216,
+          235
+        ],
+        "statement": "  Lemma prob_bigUnion_disjoint : forall xs,\n    pairwise_disjoint xs -> prob (bigUnion xs) = fold_add (mapL prob xs).",
+        "proof": "  Proof.\n    intros xs HPD.\n    induction HPD as [\n      | A\n      | A B xs Hdisj Hrest HPW IH\n    ].\n    - simpl. apply prob_false.\n    - simpl.\n      assert (Hun : prob (ev_union A ev_false) = prob A).\n      { apply prob_ext. intro w. split; intro HU;\n        [destruct HU as [hA|hF]; [assumption|contradiction] | now left]. }\n      simpl. rewrite Hun. rewrite add_zero. reflexivity.\n    -\n      assert (HAd : disjoint A (bigUnion (B ::L xs))).\n      { apply disjoint_head_tail. constructor; assumption. }\n      change (prob (ev_union A (bigUnion (B ::L xs))) = prob A +R fold_add (mapL prob (B ::L xs))).\n      rewrite (prob_union_disjoint A (bigUnion (B ::L xs)) HAd).\n      rewrite IH. reflexivity.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "pairwise_disjoint",
+              "category": "inductive"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "mapL",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "fold_add",
+              "category": "fixpoint"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "mapL",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "fold_add",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union_disjoint",
+              "category": "axiom"
+            },
+            {
+              "symbol": "disjoint_head_tail",
+              "category": "axiom"
+            },
+            {
+              "symbol": "x +R y",
+              "category": "notation"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "prob_bigUnion_disjoint_zero",
+      "lean": {
+        "kind": "theorem",
+        "lines": [
+          400,
+          442
+        ],
+        "statement": "theorem prob_bigUnion_disjoint_zero\n  (xs : mylist (event Ω))\n  (hp : pairwise_disjoint xs)\n  (hzero : ∀ A, InL A xs → prob A = rR.zero) :\n  prob (bigUnion xs) = rR.zero := by",
+        "proof": "  revert hp hzero\n  induction xs with\n  | nilL =>\n      intro _ _\n      simp [bigUnion, prob_false]\n  | consL A xs ih =>\n      intro hp hzero\n      cases xs with\n      | nilL =>\n          have hA0 : prob A = ring.zero := hzero A (InL.In_head _)\n          have hunionA : prob (ev_union A ev_false) = prob A :=\n            prob_ext (prob := prob) (A := ev_union A ev_false) (B := A)\n              (by\n                intro ω; constructor\n                · intro h; cases h with\n                  | inl hA => exact hA\n                  | inr hf => exact False.elim hf\n                · intro hA; exact Or.inl hA)\n          simp [bigUnion, hunionA, hA0]\n      | consL B xs' =>\n          rcases hp with ⟨hAB, hrest, hpw⟩\n          have hAdisj : disjoint A (bigUnion (B ::L xs')) :=\n            disjoint_head_tail A (B ::L xs') (by exact And.intro hAB (And.intro hrest hpw))\n          have hA0 : prob A = rR.zero := hzero A (InL.In_head _)\n          have htail0 : ∀ C, InL C (B ::L xs') → prob C = rR.zero := by\n            intro C hC; exact hzero C (InL.In_tail (y := A) (xs := B ::L xs') hC)\n          have htail : prob (bigUnion (B ::L xs')) = rR.zero := ih hpw htail0\n          have hU :\n            prob (bigUnion (A ::L (B ::L xs'))) =\n            rR.add (prob A) (prob (bigUnion (B ::L xs'))) := by\n            simpa [bigUnion] using\n              (prob_union_disjoint (prob := prob) A (bigUnion (B ::L xs')) hAdisj)\n          have hsum00 :\n            rR.add (prob A) (prob (bigUnion (B ::L xs'))) =\n            rR.add rR.zero rR.zero := by\n            simp [hA0, htail]\n          have : prob (bigUnion (A ::L (B ::L xs'))) =\n                rR.add rR.zero rR.zero := by\n            simpa [hsum00] using hU\n          have hz : rR.add rR.zero rR.zero = rR.zero := by\n            simp [rR.add_zero]\n          simp [this, hz]",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "pairwise_disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "definition"
+            },
+            {
+              "symbol": "InL",
+              "category": "inductive"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "disjoint_head_tail",
+              "category": "axiom"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "definition"
+            },
+            {
+              "symbol": "InL",
+              "category": "inductive"
+            },
+            {
+              "symbol": "prob_union_disjoint",
+              "category": "axiom"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ]
+        }
+      },
+      "coq": {
+        "kind": "Lemma",
+        "lines": [
+          238,
+          263
+        ],
+        "statement": "  Lemma prob_bigUnion_disjoint_zero : forall xs,\n    pairwise_disjoint xs -> (forall A, InL A xs -> prob A = zero) -> prob (bigUnion xs) = zero.",
+        "proof": "  Proof.\n    intros xs HPD HZ.\n    induction HPD as [\n      | A\n      | A B xs Hdisj Hrest HPW IH\n    ].\n    - simpl. apply prob_false.\n    - simpl.\n      assert (Hun : prob (ev_union A ev_false) = prob A).\n      { apply prob_ext. intro w. split; intro HU;\n        [destruct HU as [hA|hF]; [assumption|contradiction] | now left]. }\n      rewrite Hun. apply HZ. constructor.\n    -\n      assert (HAd : disjoint A (bigUnion (B ::L xs))).\n      { apply disjoint_head_tail. constructor; assumption. }\n      change (prob (ev_union A (bigUnion (B ::L xs))) = zero).\n      rewrite (prob_union_disjoint A (bigUnion (B ::L xs)) HAd).\n      (* prob A = 0 from HZ on head *)\n      rewrite (HZ A (@In_head event A (B ::L xs))).\n      (* reduce 0 + prob (bigUnion tail) *)\n      rewrite add_comm with (x:=zero) (y:=prob (bigUnion (B ::L xs))).\n      rewrite add_zero.\n      (* now use IH for the tail with restricted hypothesis *)\n      apply IH. intros C Hin. apply HZ. apply In_tail; assumption.\n  Qed.",
+        "dependencies": {
+          "statement": [
+            {
+              "symbol": "pairwise_disjoint",
+              "category": "inductive"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "InL",
+              "category": "inductive"
+            }
+          ],
+          "proof": [
+            {
+              "symbol": "ring",
+              "category": "class"
+            },
+            {
+              "symbol": "event",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_false",
+              "category": "definition"
+            },
+            {
+              "symbol": "ev_union",
+              "category": "definition"
+            },
+            {
+              "symbol": "disjoint",
+              "category": "definition"
+            },
+            {
+              "symbol": "bigUnion",
+              "category": "fixpoint"
+            },
+            {
+              "symbol": "prob_ext",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_false",
+              "category": "axiom"
+            },
+            {
+              "symbol": "prob_union_disjoint",
+              "category": "axiom"
+            },
+            {
+              "symbol": "disjoint_head_tail",
+              "category": "axiom"
+            },
+            {
+              "symbol": "::L",
+              "category": "notation"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "lean": {
+    "mynat": {
+      "kind": "inductive",
+      "lines": [
+        0,
+        3
+      ],
+      "content": "inductive mynat : Type\n| O  : mynat\n| S  : mynat \u2192 mynat\nderiving DecidableEq"
+    },
+    "open mynat": {
+      "kind": "open",
+      "lines": [
+        5,
+        5
+      ],
+      "content": "open mynat"
+    },
+    "mynat_add": {
+      "kind": "def",
+      "lines": [
+        7,
+        9
+      ],
+      "content": "def mynat_add : mynat \u2192 mynat \u2192 mynat\n| O,        m => m\n| (S n'),   m => S (mynat_add n' m)"
+    },
+    "mynat_add_O_left": {
+      "kind": "theorem",
+      "lines": [
+        11,
+        12
+      ],
+      "content": "theorem mynat_add_O_left (m : mynat) :\n  mynat_add O m = m := rfl"
+    },
+    "mynat_add_S_left": {
+      "kind": "theorem",
+      "lines": [
+        14,
+        15
+      ],
+      "content": "theorem mynat_add_S_left (n m : mynat) :\n  mynat_add (S n) m = S (mynat_add n m) := rfl"
+    },
+    "mylist": {
+      "kind": "inductive",
+      "lines": [
+        17,
+        19
+      ],
+      "content": "inductive mylist (A : Type) : Type\n| nilL  : mylist A\n| consL : A \u2192 mylist A \u2192 mylist A"
+    },
+    "namespace mylist": {
+      "kind": "namespace",
+      "lines": [
+        21,
+        21
+      ],
+      "content": "namespace mylist"
+    },
+    "::L": {
+      "kind": "notation",
+      "lines": [
+        23,
+        23
+      ],
+      "content": "notation h \"::L\" t => mylist.consL h t"
+    },
+    "mapL": {
+      "kind": "def",
+      "lines": [
+        25,
+        27
+      ],
+      "content": "def mapL {A B : Type} (f : A \u2192 B) : mylist A \u2192 mylist B\n| mylist.nilL    => mylist.nilL\n| (x ::L xs)     => f x ::L mapL f xs"
+    },
+    "fold_add": {
+      "kind": "def",
+      "lines": [
+        29,
+        31
+      ],
+      "content": "def fold_add {R : Type} (add : R \u2192 R \u2192 R) (z : R) : mylist R \u2192 R\n| mylist.nilL    => z\n| (x ::L xs)     => add x (fold_add add z xs)"
+    },
+    "end mylist": {
+      "kind": "end",
+      "lines": [
+        33,
+        33
+      ],
+      "content": "end mylist"
+    },
+    "open mylist": {
+      "kind": "open",
+      "lines": [
+        35,
+        35
+      ],
+      "content": "open mylist"
+    },
+    "InL": {
+      "kind": "inductive",
+      "lines": [
+        37,
+        39
+      ],
+      "content": "inductive InL {A : Type} (x : A) : mylist A \u2192 Prop\n| In_head : \u2200 xs, InL x (x ::L xs)\n| In_tail : \u2200 y xs, InL (x := x) xs \u2192 InL (x := x) (y ::L xs)"
+    },
+    "NoDupL": {
+      "kind": "inductive",
+      "lines": [
+        41,
+        43
+      ],
+      "content": "inductive NoDupL {A : Type} : mylist A \u2192 Prop\n| ND_nil  : NoDupL mylist.nilL\n| ND_cons : \u2200 x xs, (\u00ac InL x xs) \u2192 NoDupL xs \u2192 NoDupL (x ::L xs)"
+    },
+    "ring": {
+      "kind": "class",
+      "lines": [
+        45,
+        50
+      ],
+      "content": "class ring (R : Type) where\n  (zero      : R)\n  (opp       : R → R)\n  (one       : R)\n  (add       : R → R → R)\n  (mul       : R → R → R)\n\n  (one_neq_zero  : one ≠ zero)\n\n  (add_comm  : ∀ x y,    add x y = add y x)\n  (add_assoc : ∀ x y z,  add (add x y) z = add x (add y z))\n  (add_zero  : ∀ x,      add x zero = x)\n  (add_opp   : ∀ x,      add x (opp x) = zero)\n\n  (mul_comm  : ∀ x y,    mul x y = mul y x)\n  (mul_assoc : ∀ x y z,  mul (mul x y) z = mul x (mul y z))\n  (mul_one   : ∀ x,      mul x one = x)\n  (dist_l    : ∀ x y z,  mul x (add y z) = add (mul x y) (mul x z))\n  (mul_zero  : ∀ x,      mul x zero = zero)\n\n  (no_zero_div :\n    ∀ x y, mul x y = zero → x = zero ∨ y = zero)"
+    },
+    "-R x": {
+      "kind": "notation",
+      "lines": [
+        68,
+        68
+      ],
+      "content": "notation:35 \"-R \" x   => ring.opp x"
+    },
+    "section Probability": {
+      "kind": "section",
+      "lines": [
+        70,
+        70
+      ],
+      "content": "section Probability"
+    },
+    "variable R ring": {
+      "kind": "variable",
+      "lines": [
+        72,
+        72
+      ],
+      "content": "variable {R : Type} [rR : ring R]"
+    },
+    "variable \u03a9": {
+      "kind": "variable",
+      "lines": [
+        73,
+        73
+      ],
+      "content": "variable {\u03a9 : Type}"
+    },
+    "event": {
+      "kind": "def",
+      "lines": [
+        76,
+        76
+      ],
+      "content": "def event (\u03a9 : Type) := \u03a9 \u2192 Prop"
+    },
+    "ev_false": {
+      "kind": "def",
+      "lines": [
+        78,
+        79
+      ],
+      "content": "def ev_false : event \u03a9 := fun _ => False\ndef ev_true  : event \u03a9 := fun _ => True"
+    },
+    "ev_true": {
+      "kind": "def",
+      "lines": [
+        79,
+        79
+      ],
+      "content": "def ev_true  : event \u03a9 := fun _ => True"
+    },
+    "ev_inter": {
+      "kind": "def",
+      "lines": [
+        81,
+        84
+      ],
+      "content": "def ev_inter (A B : event \u03a9) : event \u03a9 := fun \u03c9 => A \u03c9 \u2227 B \u03c9\ndef ev_union (A B : event \u03a9) : event \u03a9 := fun \u03c9 => A \u03c9 \u2228 B \u03c9\ndef ev_compl (A : event \u03a9)   : event \u03a9 := fun \u03c9 => \u00ac A \u03c9\ndef ev_diff (A B : event \u03a9)  : event \u03a9 := fun \u03c9 => A \u03c9 \u2227 \u00ac B \u03c9"
+    },
+    "ev_union": {
+      "kind": "def",
+      "lines": [
+        82,
+        84
+      ],
+      "content": "def ev_union (A B : event \u03a9) : event \u03a9 := fun \u03c9 => A \u03c9 \u2228 B \u03c9\ndef ev_compl (A : event \u03a9)   : event \u03a9 := fun \u03c9 => \u00ac A \u03c9\ndef ev_diff (A B : event \u03a9)  : event \u03a9 := fun \u03c9 => A \u03c9 \u2227 \u00ac B \u03c9"
+    },
+    "ev_compl": {
+      "kind": "def",
+      "lines": [
+        83,
+        84
+      ],
+      "content": "def ev_compl (A : event \u03a9)   : event \u03a9 := fun \u03c9 => \u00ac A \u03c9\ndef ev_diff (A B : event \u03a9)  : event \u03a9 := fun \u03c9 => A \u03c9 \u2227 \u00ac B \u03c9"
+    },
+    "ev_diff": {
+      "kind": "def",
+      "lines": [
+        84,
+        84
+      ],
+      "content": "def ev_diff (A B : event \u03a9)  : event \u03a9 := fun \u03c9 => A \u03c9 \u2227 \u00ac B \u03c9"
+    },
+    "ev_inter_comm": {
+      "kind": "theorem",
+      "lines": [
+        87,
+        90
+      ],
+      "content": "theorem ev_inter_comm (A B : event \u03a9) : \u2200 \u03c9, (ev_inter A B) \u03c9 \u2194 (ev_inter B A) \u03c9 := by\n  intro \u03c9; constructor <;> intro h\n  \u00b7 exact And.intro h.right h.left\n  \u00b7 exact And.intro h.right h.left"
+    },
+    "ev_union_comm": {
+      "kind": "theorem",
+      "lines": [
+        92,
+        99
+      ],
+      "content": "theorem ev_union_comm (A B : event \u03a9) : \u2200 \u03c9, (ev_union A B) \u03c9 \u2194 (ev_union B A) \u03c9 := by\n  intro \u03c9; constructor <;> intro h\n  \u00b7 cases h with\n    | inl hA => exact Or.inr hA\n    | inr hB => exact Or.inl hB\n  \u00b7 cases h with\n    | inl hB => exact Or.inr hB\n    | inr hA => exact Or.inl hA"
+    },
+    "ev_inter_assoc": {
+      "kind": "theorem",
+      "lines": [
+        101,
+        105
+      ],
+      "content": "theorem ev_inter_assoc (A B C : event \u03a9) : \u2200 \u03c9,\n  (ev_inter (ev_inter A B) C) \u03c9 \u2194 (ev_inter A (ev_inter B C)) \u03c9 := by\n  intro \u03c9; constructor <;> intro h\n  \u00b7 rcases h with \u27e8hAB, hC\u27e9; rcases hAB with \u27e8hA, hB\u27e9; exact \u27e8hA, \u27e8hB, hC\u27e9\u27e9\n  \u00b7 rcases h with \u27e8hA, hBC\u27e9; rcases hBC with \u27e8hB, hC\u27e9; exact \u27e8\u27e8hA, hB\u27e9, hC\u27e9"
+    },
+    "ev_union_assoc": {
+      "kind": "theorem",
+      "lines": [
+        107,
+        119
+      ],
+      "content": "theorem ev_union_assoc (A B C : event \u03a9) : \u2200 \u03c9,\n  (ev_union (ev_union A B) C) \u03c9 \u2194 (ev_union A (ev_union B C)) \u03c9 := by\n  intro \u03c9; constructor <;> intro h\n  \u00b7 rcases h with h | h\n    \u00b7 rcases h with hA | hB\n      \u00b7 exact Or.inl hA\n      \u00b7 exact Or.inr (Or.inl hB)\n    \u00b7 exact Or.inr (Or.inr h)\n  \u00b7 rcases h with hA | hBC\n    \u00b7 exact Or.inl (Or.inl hA)\n    \u00b7 rcases hBC with hB | hC\n      \u00b7 exact Or.inl (Or.inr hB)\n      \u00b7 exact Or.inr hC"
+    },
+    "ev_inter_distrib_left": {
+      "kind": "theorem",
+      "lines": [
+        121,
+        129
+      ],
+      "content": "theorem ev_inter_distrib_left (A B C : event \u03a9) : \u2200 \u03c9,\n  (ev_inter A (ev_union B C)) \u03c9 \u2194 (ev_union (ev_inter A B) (ev_inter A C)) \u03c9 := by\n  intro \u03c9; constructor <;> intro h\n  \u00b7 rcases h with \u27e8hA, hBC\u27e9; rcases hBC with hB | hC\n    \u00b7 exact Or.inl \u27e8hA, hB\u27e9\n    \u00b7 exact Or.inr \u27e8hA, hC\u27e9\n  \u00b7 rcases h with hAB | hAC\n    \u00b7 rcases hAB with \u27e8hA, hB\u27e9; exact \u27e8hA, Or.inl hB\u27e9\n    \u00b7 rcases hAC with \u27e8hA, hC\u27e9; exact \u27e8hA, Or.inr hC\u27e9"
+    },
+    "disjoint": {
+      "kind": "def",
+      "lines": [
+        131,
+        131
+      ],
+      "content": "def disjoint (A B : event \u03a9) : Prop := \u2200 \u03c9, \u00ac ((ev_inter A B) \u03c9)"
+    },
+    "pairwise_disjoint": {
+      "kind": "def",
+      "lines": [
+        133,
+        136
+      ],
+      "content": "def pairwise_disjoint : mylist (event \u03a9) \u2192 Prop\n| mylist.nilL      => True\n| (A ::L mylist.nilL) => True\n| (A ::L (B ::L xs))  => disjoint A B \u2227 (\u2200 C, InL C (B ::L xs) \u2192 disjoint A C) \u2227 pairwise_disjoint (B ::L xs)"
+    },
+    "bigUnion": {
+      "kind": "def",
+      "lines": [
+        138,
+        140
+      ],
+      "content": "def bigUnion : mylist (event \u03a9) \u2192 event \u03a9\n| mylist.nilL      => ev_false\n| (A ::L xs)       => ev_union A (bigUnion xs)"
+    },
+    "variable prob": {
+      "kind": "variable",
+      "lines": [
+        142,
+        142
+      ],
+      "content": "variable (prob : event \u03a9 \u2192 R)"
+    },
+    "prob_ext": {
+      "kind": "axiom",
+      "lines": [
+        145,
+        147
+      ],
+      "content": "axiom prob_ext : \u2200 {A B : event \u03a9}, (\u2200 \u03c9, A \u03c9 \u2194 B \u03c9) \u2192 prob A = prob B\naxiom prob_false : prob ev_false = rR.zero\naxiom prob_true  : prob ev_true  = rR.one"
+    },
+    "prob_false": {
+      "kind": "axiom",
+      "lines": [
+        146,
+        147
+      ],
+      "content": "axiom prob_false : prob ev_false = rR.zero\naxiom prob_true  : prob ev_true  = rR.one"
+    },
+    "prob_true": {
+      "kind": "axiom",
+      "lines": [
+        147,
+        147
+      ],
+      "content": "axiom prob_true  : prob ev_true  = rR.one"
+    },
+    "prob_union": {
+      "kind": "axiom",
+      "lines": [
+        150,
+        151
+      ],
+      "content": "axiom prob_union : \u2200 (A B : event \u03a9),\n  prob (ev_union A B) = rR.add (prob A) (rR.add (prob B) (rR.opp (prob (ev_inter A B))))"
+    },
+    "prob_compl": {
+      "kind": "axiom",
+      "lines": [
+        154,
+        154
+      ],
+      "content": "axiom prob_compl : \u2200 (A : event \u03a9), prob (ev_compl A) = rR.add rR.one (rR.opp (prob A))"
+    },
+    "em": {
+      "kind": "axiom",
+      "lines": [
+        157,
+        157
+      ],
+      "content": "axiom em : \u2200 p : Prop, p \u2228 \u00ac p"
+    },
+    "cprob": {
+      "kind": "axiom",
+      "lines": [
+        160,
+        161
+      ],
+      "content": "axiom cprob : event \u03a9 \u2192 event \u03a9 \u2192 R\naxiom cprob_mul : \u2200 A B, prob (ev_inter A B) = rR.mul (cprob A B) (prob B)"
+    },
+    "cprob_mul": {
+      "kind": "axiom",
+      "lines": [
+        161,
+        161
+      ],
+      "content": "axiom cprob_mul : \u2200 A B, prob (ev_inter A B) = rR.mul (cprob A B) (prob B)"
+    },
+    "opp_zero": {
+      "kind": "axiom",
+      "lines": [
+        170,
+        173
+      ],
+      "content": "axiom opp_zero  : rR.opp rR.zero = rR.zero\naxiom opp_opp   : \u2200 x, rR.opp (rR.opp x) = x\naxiom opp_mul_right : \u2200 x y, rR.mul x (rR.opp y) = rR.opp (rR.mul x y)\naxiom opp_mul_left  : \u2200 x y, rR.mul (rR.opp x) y = rR.opp (rR.mul x y)"
+    },
+    "opp_opp": {
+      "kind": "axiom",
+      "lines": [
+        171,
+        173
+      ],
+      "content": "axiom opp_opp   : \u2200 x, rR.opp (rR.opp x) = x\naxiom opp_mul_right : \u2200 x y, rR.mul x (rR.opp y) = rR.opp (rR.mul x y)\naxiom opp_mul_left  : \u2200 x y, rR.mul (rR.opp x) y = rR.opp (rR.mul x y)"
+    },
+    "opp_mul_right": {
+      "kind": "axiom",
+      "lines": [
+        172,
+        173
+      ],
+      "content": "axiom opp_mul_right : \u2200 x y, rR.mul x (rR.opp y) = rR.opp (rR.mul x y)\naxiom opp_mul_left  : \u2200 x y, rR.mul (rR.opp x) y = rR.opp (rR.mul x y)"
+    },
+    "opp_mul_left": {
+      "kind": "axiom",
+      "lines": [
+        173,
+        173
+      ],
+      "content": "axiom opp_mul_left  : \u2200 x y, rR.mul (rR.opp x) y = rR.opp (rR.mul x y)"
+    },
+    "prob_union_disjoint": {
+      "kind": "axiom",
+      "lines": [
+        176,
+        177
+      ],
+      "content": "axiom prob_union_disjoint : \u2200 (A B : event \u03a9), disjoint A B \u2192 prob (ev_union A B) = rR.add (prob A) (prob B)\naxiom disjoint_head_tail : \u2200 (A : event \u03a9) (xs : mylist (event \u03a9)), pairwise_disjoint (A ::L xs) \u2192 disjoint A (bigUnion xs)"
+    },
+    "disjoint_head_tail": {
+      "kind": "axiom",
+      "lines": [
+        177,
+        177
+      ],
+      "content": "axiom disjoint_head_tail : \u2200 (A : event \u03a9) (xs : mylist (event \u03a9)), pairwise_disjoint (A ::L xs) \u2192 disjoint A (bigUnion xs)"
+    },
+    "indep_compl_both": {
+      "kind": "axiom",
+      "lines": [
+        400,
+        401
+      ],
+      "content": "axiom indep_compl_both (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) (ev_compl A) (ev_compl B)"
+    },
+    "inclusion_exclusion_three": {
+      "kind": "axiom",
+      "lines": [
+        470,
+        478
+      ],
+      "content": "axiom inclusion_exclusion_three (A B C : event \u03a9) :\n  prob (ev_union (ev_union A B) C)\n    = rR.add (prob A)\n      (rR.add (prob B)\n        (rR.add (prob C)\n          (rR.opp (rR.add (prob (ev_inter A B))\n                 (rR.add (prob (ev_inter A C))\n                         (rR.add (prob (ev_inter B C))\n                                 (rR.opp (prob (ev_inter (ev_inter A B) C)))))))))"
+    },
+    "indep": {
+      "kind": "def",
+      "lines": [
+        164,
+        164
+      ],
+      "content": "def indep (A B : event \u03a9) : Prop := prob (ev_inter A B) = rR.mul (prob A) (prob B)"
+    },
+    "x -R y": {
+      "kind": "notation",
+      "lines": [
+        167,
+        167
+      ],
+      "content": "local notation:55 x \" -R \" y => rR.add x (rR.opp y)"
+    },
+    "prob_union_comm": {
+      "kind": "theorem",
+      "lines": [
+        180,
+        197
+      ],
+      "content": "theorem prob_union_comm (A B : event \u03a9) :\n  prob (ev_union A B) = prob (ev_union B A) := by\n  have h\u2081 := prob_union (prob := prob) A B\n  have h\u2082 := prob_union (prob := prob) B A\n  -- Use commutativity of add and symmetry of intersection\n  have hcap : prob (ev_inter A B) = prob (ev_inter B A) := by\n    have := prob_ext (prob := prob) (A := ev_inter A B) (B := ev_inter B A) (ev_inter_comm A B)\n    exact this\n  -- rewrite RHS using commutativity of add and hcap\n  -- Explicit rearrangement using ring axioms\n  -- LHS and RHS are equal since union is symmetric\n  -- We can show by rewriting h\u2082 with commutativity\n  -- Use the fact ev_union A B \u2261 ev_union B A by logic\n  have hunion : prob (ev_union A B) = prob (ev_union B A) := by\n    exact prob_ext (prob := prob) (A := ev_union A B) (B := ev_union B A) (ev_union_comm A B)\n  exact hunion\n\n-- Idempotence: P(A \u222a A) = P(A)"
+    },
+    "prob_union_idem": {
+      "kind": "theorem",
+      "lines": [
+        198,
+        221
+      ],
+      "content": "theorem prob_union_idem (A : event \u03a9) :\n  prob (ev_union A A) = prob A := by\n  -- P(A \u222a A) = P(A) + P(A) - P(A\u2229A) and A\u2229A \u2261 A\n  have h := prob_union (prob := prob) A A\n  have hcap : prob (ev_inter A A) = prob A := by\n    have : prob (ev_inter A A) = prob A :=\n      prob_ext (prob := prob) (A := ev_inter A A) (B := A)\n        (by\n          intro \u03c9; constructor\n          \u00b7 intro h; exact h.left\n          \u00b7 intro h; exact And.intro h h)\n    simpa using this\n  -- Simplify: P(A)+P(A) - P(A) = P(A)\n  have h2 : rR.add (prob A) (rR.opp (prob A)) = rR.zero := rR.add_opp (prob A)\n  have h3 : rR.add (prob A) (rR.add (prob A) (rR.opp (prob A)))\n           = rR.add (prob A) rR.zero := by simpa [h2]\n  have h4 : rR.add (prob A) rR.zero = prob A := rR.add_zero (prob A)\n  -- rewrite h using hcap then simplify\n  have : prob (ev_union A A) = rR.add (prob A) (rR.add (prob A) (rR.opp (prob A))) := by\n    simpa [hcap]\n      using h\n  simpa [h3, h4]\n\n-- Difference: P(A \\ B) = P(A) - P(A \u2229 B)"
+    },
+    "prob_diff": {
+      "kind": "theorem",
+      "lines": [
+        222,
+        285
+      ],
+      "content": "theorem prob_diff (A B : event \u03a9) :\n  prob (ev_diff A B) = prob A -R prob (ev_inter A B) := by\n  -- A = (A\u2229B) \u222a (A\u2229B^c), disjoint union\n  have hpart : \u2200 \u03c9, (A \u03c9) \u2194 (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) \u03c9 := by\n    intro \u03c9; constructor\n    \u00b7 intro hA\n      have hb := em (B \u03c9)\n      cases hb with\n      | inl hB => exact Or.inl \u27e8hA, hB\u27e9\n      | inr hB => exact Or.inr \u27e8hA, hB\u27e9\n    \u00b7 intro hU; cases hU with\n      | inl hAB => exact hAB.left\n      | inr hAcB => exact hAcB.left\n  have hcap_disj : \u2200 \u03c9, (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) \u03c9 \u2194 False := by\n    intro \u03c9; constructor <;> intro h\n    \u00b7 rcases h with \u27e8hAB, hAcB\u27e9; exact hAcB.right hAB.right\n    \u00b7 cases h\n  have hAeq := prob_ext (prob := prob) (A := A) (B := ev_union (ev_inter A B) (ev_inter A (ev_compl B))) hpart\n  have hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = rR.zero := by\n    have := prob_ext (prob := prob) (A := ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) (B := ev_false) hcap_disj\n    simpa [prob_false] using this\n  -- Apply union formula then move terms\n  have h := prob_union (prob := prob) (ev_inter A B) (ev_inter A (ev_compl B))\n  -- prob(A) = prob(interAB) + prob(interA\u00acB) - prob(\u2205) = sum\n  have hsumA : prob A = rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) := by\n    -- rewrite prob A to prob of the union\n    have : prob A = prob (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) := by\n      simpa using hAeq\n    -- expand prob of the union and simplify the empty intersection\n    have hU := h\n    have hzero_opp : rR.opp (prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B)))) = rR.opp rR.zero := by\n      simpa [hcap0]\n    have hopp0 : rR.opp rR.zero = rR.zero := opp_zero\n    -- Assemble\n    simpa [this, hzero_opp, hopp0, rR.add_assoc, rR.add_zero]\n      using hU\n  -- prob(A\\B) = prob(A \u2229 \u00acB)\n  have heq_diff : prob (ev_diff A B) = prob (ev_inter A (ev_compl B)) := by\n    exact prob_ext (prob := prob) (A := ev_diff A B) (B := ev_inter A (ev_compl B)) (by intro \u03c9; constructor <;> intro h; exact h; exact h)\n  -- Compute prob A - prob (A\u2229B)\n  have hsub : rR.add (prob A) (rR.opp (prob (ev_inter A B)))\n              = prob (ev_inter A (ev_compl B)) := by\n    calc\n      rR.add (prob A) (rR.opp (prob (ev_inter A B)))\n          = rR.add (rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B)))) (rR.opp (prob (ev_inter A B))) := by\n              simpa [hsumA]\n      _ = rR.add (prob (ev_inter A B)) (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))) := by\n              simpa using (rR.add_assoc (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B))))\n      _ = rR.add (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))) (prob (ev_inter A B)) := by\n              -- swap outer sum: x + (y+z) = (y+z) + x\n              simpa using (rR.add_comm (prob (ev_inter A B)) (rR.add (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B)))))\n      _ = rR.add (prob (ev_inter A (ev_compl B))) (rR.add (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B))) := by\n              simpa using (rR.add_assoc (prob (ev_inter A (ev_compl B))) (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B)))\n      _ = rR.add (prob (ev_inter A (ev_compl B))) (rR.add (prob (ev_inter A B)) (rR.opp (prob (ev_inter A B)))) := by\n              -- commute inner: -x + x = x + -x\n              have := rR.add_comm (rR.opp (prob (ev_inter A B))) (prob (ev_inter A B))\n              simpa using congrArg (fun t => rR.add (prob (ev_inter A (ev_compl B))) t) this\n      _ = rR.add (prob (ev_inter A (ev_compl B))) rR.zero := by\n              simpa [rR.add_opp]\n      _ = prob (ev_inter A (ev_compl B)) := by\n              simpa [rR.add_zero]\n  simpa [heq_diff] using hsub.symm\n\n-- Bayes identity (symmetric form)"
+    },
+    "bayes_symm": {
+      "kind": "theorem",
+      "lines": [
+        286,
+        296
+      ],
+      "content": "theorem bayes_symm (A B : event \u03a9) :\n  rR.mul (cprob A B) (prob B) = rR.mul (cprob B A) (prob A) := by\n  -- both equal P(A \u2229 B)\n  calc\n    rR.mul (cprob A B) (prob B) = prob (ev_inter A B) := by simpa using (cprob_mul (prob := prob) A B).symm\n    _ = prob (ev_inter B A) := by\n          have := prob_ext (prob := prob) (A := ev_inter A B) (B := ev_inter B A) (ev_inter_comm A B)\n          simpa using this\n    _ = rR.mul (cprob B A) (prob A) := by simpa using (cprob_mul (prob := prob) B A)\n\n-- Law of total probability for a binary partition (B, \u00acB)"
+    },
+    "law_total_prob": {
+      "kind": "theorem",
+      "lines": [
+        297,
+        334
+      ],
+      "content": "theorem law_total_prob (A B : event \u03a9) :\n  prob A = rR.add (rR.mul (cprob A B) (prob B)) (rR.mul (cprob A (ev_compl B)) (prob (ev_compl B))) := by\n  -- A = (A\u2229B) \u222a (A\u2229\u00acB), disjoint union -> additive\n  -- From prob_diff proof we already established prob A = P(A\u2229B) + P(A\u2229\u00acB)\n  -- Now replace with conditional form\n  -- Reuse the equality derived there\n  have hpart : \u2200 \u03c9, (A \u03c9) \u2194 (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) \u03c9 := by\n    intro \u03c9; constructor\n    \u00b7 intro hA; cases em (B \u03c9) with\n      | inl hB => exact Or.inl \u27e8hA, hB\u27e9\n      | inr hB => exact Or.inr \u27e8hA, hB\u27e9\n    \u00b7 intro hU; cases hU with\n      | inl hAB  => exact hAB.left\n      | inr hAcB => exact hAcB.left\n  have hAeq := prob_ext (prob := prob) (A := A) (B := ev_union (ev_inter A B) (ev_inter A (ev_compl B))) hpart\n  have hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = rR.zero := by\n    have : \u2200 \u03c9, (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) \u03c9 \u2194 False := by\n      intro \u03c9; constructor <;> intro h\n      \u00b7 rcases h with \u27e8hAB, hAcB\u27e9; exact hAcB.right hAB.right\n      \u00b7 cases h\n    have := prob_ext (prob := prob) (A := ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) (B := ev_false) this\n    simpa [prob_false] using this\n  have h := prob_union (prob := prob) (ev_inter A B) (ev_inter A (ev_compl B))\n  -- As in prob_diff, this yields P(A) = P(A\u2229B)+P(A\u2229\u00acB)\n  have hsumA : prob A = rR.add (prob (ev_inter A B)) (prob (ev_inter A (ev_compl B))) := by\n    -- as in prob_diff\n    have : prob A = prob (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) := by\n      simpa using hAeq\n    have hU := h\n    have hzero_opp : rR.opp (prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B)))) = rR.opp rR.zero := by\n      simpa [hcap0]\n    have hopp0 : rR.opp rR.zero = rR.zero := opp_zero\n    simpa [this, hzero_opp, hopp0, rR.add_assoc, rR.add_zero]\n      using hU\n  -- replace intersections with conditional products\n  simpa [hsumA, cprob_mul (prob := prob) A B, cprob_mul (prob := prob) A (ev_compl B)]\n\n-- Union with independence"
+    },
+    "prob_union_indep": {
+      "kind": "theorem",
+      "lines": [
+        335,
+        343
+      ],
+      "content": "theorem prob_union_indep (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192\n  prob (ev_union A B) = rR.add (prob A) (rR.add (prob B) (rR.opp (rR.mul (prob A) (prob B)))) := by\n  intro hI\n  have hU := prob_union (prob := prob) A B\n  have hIeq : prob (ev_inter A B) = rR.mul (prob A) (prob B) := hI\n  simpa [hIeq] using hU\n\n-- Independence and complements"
+    },
+    "indep_compl_right": {
+      "kind": "theorem",
+      "lines": [
+        344,
+        374
+      ],
+      "content": "theorem indep_compl_right (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) A (ev_compl B) := by\n  intro hI\n  -- P(A \u2229 \u00acB) = P(A) - P(A\u2229B) = P(A) - P(A)P(B) = P(A) * (1 - P(B))\n  -- From prob_diff: P(A\u2229\u00acB) = P(A) - P(A\u2229B)\n  have hdiff := prob_diff (prob := prob) A B\n  have heq_diff : prob (ev_inter A (ev_compl B)) = rR.add (prob A) (rR.opp (prob (ev_inter A B))) := by\n    -- ev_diff A B \u2261 ev_inter A (\u00acB)\n    have hset : prob (ev_diff A B) = prob (ev_inter A (ev_compl B)) :=\n      prob_ext (prob := prob) (A := ev_diff A B) (B := ev_inter A (ev_compl B))\n        (by intro \u03c9; constructor <;> intro h <;> exact h)\n    simpa [hset] using hdiff\n  -- Use independence to substitute P(A\u2229B) = P(A)P(B)\n  have hIeq : prob (ev_inter A B) = rR.mul (prob A) (prob B) := hI\n  have hlhs : prob (ev_inter A (ev_compl B)) = rR.add (prob A) (rR.opp (rR.mul (prob A) (prob B))) := by\n    simpa [hIeq]\n      using heq_diff\n  -- Algebra: x + - (x*y) = x*(1 + -y)\n  have hdist : rR.add (rR.mul (prob A) rR.one) (rR.mul (prob A) (rR.opp (prob B)))\n                = rR.mul (prob A) (rR.add rR.one (rR.opp (prob B))) := by\n    simpa using (rR.dist_l (prob A) rR.one (rR.opp (prob B))).symm\n  have hmul1 : rR.mul (prob A) rR.one = prob A := rR.mul_one (prob A)\n  have hmul2 : rR.mul (prob A) (rR.opp (prob B)) = rR.opp (rR.mul (prob A) (prob B)) := by\n    simpa using (opp_mul_right (prob A) (prob B))\n  have halg : rR.add (prob A) (rR.opp (rR.mul (prob A) (prob B)))\n              = rR.mul (prob A) (rR.add rR.one (rR.opp (prob B))) := by\n    simpa [hmul1, hmul2] using hdist\n  -- Replace prob (\u00acB)\n  have : prob (ev_inter A (ev_compl B)) = rR.mul (prob A) (prob (ev_compl B)) := by\n    simpa [prob_compl (prob := prob) B, halg] using hlhs\n  exact this"
+    },
+    "indep_symm": {
+      "kind": "theorem",
+      "lines": [
+        376,
+        389
+      ],
+      "content": "theorem indep_symm (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) B A := by\n  intro hI\n  unfold indep at hI\n  unfold indep\n  have hcap : prob (ev_inter B A) = prob (ev_inter A B) := by\n    have := prob_ext (prob := prob) (A := ev_inter B A) (B := ev_inter A B) (ev_inter_comm B A)\n    simpa using this\n  have hmul : rR.mul (prob A) (prob B) = rR.mul (prob B) (prob A) := by\n    simpa using (rR.mul_comm (prob A) (prob B))\n  calc\n    prob (ev_inter B A) = prob (ev_inter A B) := hcap\n    _ = rR.mul (prob A) (prob B) := hI\n    _ = rR.mul (prob B) (prob A) := by simpa using hmul"
+    },
+    "indep_compl_left": {
+      "kind": "theorem",
+      "lines": [
+        391,
+        398
+      ],
+      "content": "theorem indep_compl_left (A B : event \u03a9) :\n  indep (prob := prob) A B \u2192 indep (prob := prob) (ev_compl A) B := by\n  intro hI\n  -- Use symmetry twice\n  have hBA : indep (prob := prob) B A := indep_symm (prob := prob) A B hI\n  have hBnotA : indep (prob := prob) B (ev_compl A) :=\n    indep_compl_right (prob := prob) B A hBA\n  exact indep_symm (prob := prob) B (ev_compl A) hBnotA"
+    },
+    "prob_bigUnion_disjoint": {
+      "kind": "theorem",
+      "lines": [
+        404,
+        433
+      ],
+      "content": "theorem prob_bigUnion_disjoint :\n  \u2200 (xs : mylist (event \u03a9)), pairwise_disjoint xs \u2192\n    prob (bigUnion xs) = mylist.fold_add rR.add rR.zero (mylist.mapL prob xs)\n| mylist.nilL, _ => by simpa [bigUnion, mylist.fold_add, mylist.mapL, prob_false]\n| (A ::L mylist.nilL), _ => by\n    -- bigUnion [A] \u2261 A\n    have hunionA : prob (ev_union A ev_false) = prob A :=\n      prob_ext (prob := prob) (A := ev_union A ev_false) (B := A)\n        (by\n          intro \u03c9; constructor\n          \u00b7 intro h; cases h with\n            | inl hA => exact hA\n            | inr hf => exact False.elim hf\n          \u00b7 intro hA; exact Or.inl hA)\n    simpa [bigUnion, mylist.fold_add, mylist.mapL, prob_false, rR.add_zero, hunionA]\n| (A ::L (B ::L xs)), hpair => by\n    rcases hpair with \u27e8hAB, hrest, hpw\u27e9\n    -- A is disjoint from bigUnion of tail (axiom)\n    have hAdisj : disjoint A (bigUnion (B ::L xs)) :=\n      disjoint_head_tail A (B ::L xs) (by exact And.intro hAB (And.intro hrest hpw))\n    -- Use disjoint union additivity axiom and IH on tail\n    have hU' : prob (bigUnion (A ::L (B ::L xs))) = rR.add (prob A) (prob (bigUnion (B ::L xs))) := by\n      simpa [bigUnion] using (prob_union_disjoint (prob := prob) A (bigUnion (B ::L xs)) hAdisj)\n    have htail := prob_bigUnion_disjoint (B ::L xs) hpw\n    have hsum : prob (bigUnion (A ::L (B ::L xs)))\n              = rR.add (prob A) (mylist.fold_add rR.add rR.zero (mylist.mapL prob (B ::L xs))) := by\n      simpa [htail] using hU'\n    simpa [bigUnion, mylist.mapL, mylist.fold_add, rR.add_assoc] using hsum\n\n-- Zero on disjoint union of zero-probability events"
+    },
+    "prob_bigUnion_disjoint_zero": {
+      "kind": "theorem",
+      "lines": [
+        434,
+        469
+      ],
+      "content": "theorem prob_bigUnion_disjoint_zero :\n  \u2200 (xs : mylist (event \u03a9)), pairwise_disjoint xs \u2192\n    (\u2200 A, InL A xs \u2192 prob A = rR.zero) \u2192 prob (bigUnion xs) = rR.zero\n| mylist.nilL, _, _ => by simpa [bigUnion, prob_false]\n| (A ::L mylist.nilL), hp, hzero => by\n    have hA0 : prob A = rR.zero := hzero A (InL.In_head mylist.nilL)\n    -- bigUnion [A] \u2261 A\n    have hunionA : prob (ev_union A ev_false) = prob A :=\n      prob_ext (prob := prob) (A := ev_union A ev_false) (B := A)\n        (by\n          intro \u03c9; constructor\n          \u00b7 intro h; cases h with\n            | inl hA => exact hA\n            | inr hf => exact False.elim hf\n          \u00b7 intro hA; exact Or.inl hA)\n    simpa [bigUnion, hunionA, hA0, rR.add_zero, prob_false]\n| (A ::L (B ::L xs)), hp, hzero => by\n    -- decompose pairwise info\n    rcases hp with \u27e8hAB, hrest, hpw\u27e9\n    -- A is disjoint from bigUnion tail\n    have hAdisj : disjoint A (bigUnion (B ::L xs)) := disjoint_head_tail A (B ::L xs) (by exact And.intro hAB (And.intro hrest hpw))\n    have hA0 : prob A = rR.zero := hzero A (InL.In_head _)\n    have htail0 : (\u2200 C, InL C (B ::L xs) \u2192 prob C = rR.zero) := by\n      intro C hC; exact hzero C (InL.In_tail (y := A) (xs := B ::L xs) hC)\n    have htail := prob_bigUnion_disjoint_zero (B ::L xs) hpw htail0\n    have hU : prob (bigUnion (A ::L (B ::L xs))) = rR.add (prob A) (prob (bigUnion (B ::L xs))) := by\n      simpa [bigUnion] using (prob_union_disjoint (prob := prob) A (bigUnion (B ::L xs)) hAdisj)\n    -- RHS becomes 0 + 0 = 0\n    have hsum00 : rR.add (prob A) (prob (bigUnion (B ::L xs))) = rR.add rR.zero rR.zero := by\n      simpa [hA0, htail]\n    have : prob (bigUnion (A ::L (B ::L xs))) = rR.add rR.zero rR.zero := by\n      simpa [hsum00] using hU\n    have hz : rR.add rR.zero rR.zero = rR.zero := by simpa [rR.add_zero]\n    simpa [this, hz]\n\n-- Inclusion\u2013exclusion for three events"
+    }
+  },
+  "coq": {
+    "mynat": {
+      "kind": "Inductive",
+      "lines": [
+        0,
+        2
+      ],
+      "content": "Inductive mynat : Type :=\n| O : mynat\n| S : mynat -> mynat."
+    },
+    "mylist": {
+      "kind": "Inductive",
+      "lines": [
+        4,
+        6
+      ],
+      "content": "Inductive mylist (A : Type) : Type :=\n| nilL  : mylist A\n| consL : A -> mylist A -> mylist A."
+    },
+    "Arguments nilL": {
+      "kind": "Arguments",
+      "lines": [
+        8,
+        8
+      ],
+      "content": "Arguments nilL  {A}."
+    },
+    "Arguments consL": {
+      "kind": "Arguments",
+      "lines": [
+        9,
+        9
+      ],
+      "content": "Arguments consL {A} _ _."
+    },
+    "::L": {
+      "kind": "Notation",
+      "lines": [
+        10,
+        10
+      ],
+      "content": "Infix \"::L\" := consL (at level 60, right associativity)."
+    },
+    "InL": {
+      "kind": "Inductive",
+      "lines": [
+        12,
+        14
+      ],
+      "content": "Inductive InL {A : Type} (x : A) : mylist A -> Prop :=\n| In_head : forall xs,      InL x (x ::L xs)\n| In_tail : forall y xs, InL x xs -> InL x (y ::L xs)."
+    },
+    "NoDupL": {
+      "kind": "Inductive",
+      "lines": [
+        16,
+        18
+      ],
+      "content": "Inductive NoDupL {A : Type} : mylist A -> Prop :=\n| ND_nil  : NoDupL nilL\n| ND_cons : forall x xs, (~ InL x xs) -> NoDupL xs -> NoDupL (x ::L xs)."
+    },
+    "mapL": {
+      "kind": "Fixpoint",
+      "lines": [
+        20,
+        24
+      ],
+      "content": "Fixpoint mapL {A B} (f : A -> B) (xs : mylist A) : mylist B :=\n  match xs with\n  | nilL => nilL\n  | consL x xs => consL (f x) (mapL f xs)\n  end."
+    },
+    "ring": {
+      "kind": "Class",
+      "lines": [
+        26,
+        31
+      ],
+      "content": "Class ring (R : Type) := {\n  zero      : R;\n  opp       : R -> R;\n  one       : R;\n  add       : R -> R -> R;\n  mul       : R -> R -> R;\n\n  one_neq_zero  : one <> zero;\n\n  add_comm  : forall x y,    add x y = add y x;\n  add_assoc : forall x y z,  add (add x y) z = add x (add y z);\n  add_zero  : forall x,      add x zero = x;\n  add_opp   : forall x,      add x (opp x) = zero;\n\n  mul_comm  : forall x y,    mul x y = mul y x;\n  mul_assoc : forall x y z,  mul (mul x y) z = mul x (mul y z);\n  mul_one   : forall x,      mul x one = x;\n  dist_l    : forall x y z,  mul x (add y z) = add (mul x y) (mul x z);\n  mul_zero  : forall x,      mul x zero = zero;\n\n  no_zero_div : forall x y, mul x y = zero -> x = zero \\/ y = zero\n}."
+    },
+    "x +R y": {
+      "kind": "Notation",
+      "lines": [
+        49,
+        49
+      ],
+      "content": "Notation \"x +R y\" := (add x y) (at level 50, left associativity)."
+    },
+    "-R x": {
+      "kind": "Notation",
+      "lines": [
+        50,
+        50
+      ],
+      "content": "Notation \"-R x\"    := (opp x)    (at level 35)."
+    },
+    "x -R y": {
+      "kind": "Notation",
+      "lines": [
+        51,
+        51
+      ],
+      "content": "Notation \"x -R y\"  := (add x (opp y)) (at level 55)."
+    },
+    "x *R y": {
+      "kind": "Notation",
+      "lines": [
+        52,
+        52
+      ],
+      "content": "Notation \"x *R y\"  := (mul x y)  (at level 40)."
+    },
+    "Section Probability.": {
+      "kind": "Section",
+      "lines": [
+        54,
+        54
+      ],
+      "content": "Section Probability."
+    },
+    "Context {R : Type} `{ring R}.": {
+      "kind": "Context",
+      "lines": [
+        55,
+        55
+      ],
+      "content": "  Context {R : Type} `{ring R}."
+    },
+    "Variable Omega": {
+      "kind": "Variable",
+      "lines": [
+        56,
+        56
+      ],
+      "content": "  Variable Omega : Type."
+    },
+    "event": {
+      "kind": "Definition",
+      "lines": [
+        58,
+        64
+      ],
+      "content": "  Definition event := Omega -> Prop.\n  Definition ev_false : event := fun _ => False.\n  Definition ev_true  : event := fun _ => True.\n  Definition ev_inter (A B : event) : event := fun w => A w /\\ B w.\n  Definition ev_union (A B : event) : event := fun w => A w \\/ B w.\n  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_false": {
+      "kind": "Definition",
+      "lines": [
+        59,
+        64
+      ],
+      "content": "  Definition ev_false : event := fun _ => False.\n  Definition ev_true  : event := fun _ => True.\n  Definition ev_inter (A B : event) : event := fun w => A w /\\ B w.\n  Definition ev_union (A B : event) : event := fun w => A w \\/ B w.\n  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_true": {
+      "kind": "Definition",
+      "lines": [
+        60,
+        64
+      ],
+      "content": "  Definition ev_true  : event := fun _ => True.\n  Definition ev_inter (A B : event) : event := fun w => A w /\\ B w.\n  Definition ev_union (A B : event) : event := fun w => A w \\/ B w.\n  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_inter": {
+      "kind": "Definition",
+      "lines": [
+        61,
+        64
+      ],
+      "content": "  Definition ev_inter (A B : event) : event := fun w => A w /\\ B w.\n  Definition ev_union (A B : event) : event := fun w => A w \\/ B w.\n  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_union": {
+      "kind": "Definition",
+      "lines": [
+        62,
+        64
+      ],
+      "content": "  Definition ev_union (A B : event) : event := fun w => A w \\/ B w.\n  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_compl": {
+      "kind": "Definition",
+      "lines": [
+        63,
+        64
+      ],
+      "content": "  Definition ev_compl (A : event)   : event := fun w => ~ A w.\n  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "ev_diff": {
+      "kind": "Definition",
+      "lines": [
+        64,
+        64
+      ],
+      "content": "  Definition ev_diff  (A B : event) : event := fun w => A w /\\ ~ B w."
+    },
+    "disjoint": {
+      "kind": "Definition",
+      "lines": [
+        66,
+        66
+      ],
+      "content": "  Definition disjoint (A B : event) : Prop := forall w, ~ (A w /\\ B w)."
+    },
+    "pairwise_disjoint": {
+      "kind": "Inductive",
+      "lines": [
+        68,
+        74
+      ],
+      "content": "  Inductive pairwise_disjoint : mylist event -> Prop :=\n  | pd_nil  : pairwise_disjoint nilL\n  | pd_one  : forall A, pairwise_disjoint (A ::L nilL)\n  | pd_cons : forall A B xs,\n      disjoint A B -> (forall C, InL C (B ::L xs) -> disjoint A C) ->\n      pairwise_disjoint (B ::L xs) ->\n      pairwise_disjoint (A ::L B ::L xs)."
+    },
+    "bigUnion": {
+      "kind": "Fixpoint",
+      "lines": [
+        76,
+        80
+      ],
+      "content": "  Fixpoint bigUnion (xs : mylist event) : event :=\n    match xs with\n    | nilL        => ev_false\n    | consL A xs' => ev_union A (bigUnion xs')\n    end."
+    },
+    "Variable prob": {
+      "kind": "Variable",
+      "lines": [
+        82,
+        82
+      ],
+      "content": "  Variable prob : event -> R."
+    },
+    "prob_ext": {
+      "kind": "Axiom",
+      "lines": [
+        84,
+        91
+      ],
+      "content": "  Axiom prob_ext : forall A B, (forall w, A w <-> B w) -> prob A = prob B.\n  Axiom prob_false : prob ev_false = zero.\n  Axiom prob_true  : prob ev_true  = one.\n  Axiom prob_union : forall A B,\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob (ev_inter A B))).\n  Axiom prob_compl : forall A, prob (ev_compl A) = one +R -R (prob A).\n  (* Classical excluded middle for event case splits *)\n  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "prob_false": {
+      "kind": "Axiom",
+      "lines": [
+        85,
+        91
+      ],
+      "content": "  Axiom prob_false : prob ev_false = zero.\n  Axiom prob_true  : prob ev_true  = one.\n  Axiom prob_union : forall A B,\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob (ev_inter A B))).\n  Axiom prob_compl : forall A, prob (ev_compl A) = one +R -R (prob A).\n  (* Classical excluded middle for event case splits *)\n  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "prob_true": {
+      "kind": "Axiom",
+      "lines": [
+        86,
+        91
+      ],
+      "content": "  Axiom prob_true  : prob ev_true  = one.\n  Axiom prob_union : forall A B,\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob (ev_inter A B))).\n  Axiom prob_compl : forall A, prob (ev_compl A) = one +R -R (prob A).\n  (* Classical excluded middle for event case splits *)\n  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "prob_union": {
+      "kind": "Axiom",
+      "lines": [
+        87,
+        91
+      ],
+      "content": "  Axiom prob_union : forall A B,\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob (ev_inter A B))).\n  Axiom prob_compl : forall A, prob (ev_compl A) = one +R -R (prob A).\n  (* Classical excluded middle for event case splits *)\n  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "prob_compl": {
+      "kind": "Axiom",
+      "lines": [
+        89,
+        91
+      ],
+      "content": "  Axiom prob_compl : forall A, prob (ev_compl A) = one +R -R (prob A).\n  (* Classical excluded middle for event case splits *)\n  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "classic": {
+      "kind": "Axiom",
+      "lines": [
+        91,
+        91
+      ],
+      "content": "  Axiom classic : forall P:Prop, P \\/ ~ P."
+    },
+    "cprob": {
+      "kind": "Variable",
+      "lines": [
+        93,
+        93
+      ],
+      "content": "  Variable cprob : event -> event -> R."
+    },
+    "cprob_mul": {
+      "kind": "Axiom",
+      "lines": [
+        94,
+        94
+      ],
+      "content": "  Axiom cprob_mul : forall A B, prob (ev_inter A B) = cprob A B *R prob B."
+    },
+    "indep": {
+      "kind": "Definition",
+      "lines": [
+        96,
+        97
+      ],
+      "content": "  Definition indep (A B : event) : Prop :=\n    prob (ev_inter A B) = prob A *R prob B."
+    },
+    "opp_zero": {
+      "kind": "Axiom",
+      "lines": [
+        100,
+        103
+      ],
+      "content": "  Axiom opp_zero  : opp zero = zero.\n  Axiom opp_opp   : forall x, opp (opp x) = x.\n  Axiom opp_mul_right : forall x y, x *R (opp y) = opp (x *R y).\n  Axiom opp_mul_left  : forall x y, (opp x) *R y = opp (x *R y)."
+    },
+    "opp_opp": {
+      "kind": "Axiom",
+      "lines": [
+        101,
+        103
+      ],
+      "content": "  Axiom opp_opp   : forall x, opp (opp x) = x.\n  Axiom opp_mul_right : forall x y, x *R (opp y) = opp (x *R y).\n  Axiom opp_mul_left  : forall x y, (opp x) *R y = opp (x *R y)."
+    },
+    "opp_mul_right": {
+      "kind": "Axiom",
+      "lines": [
+        102,
+        103
+      ],
+      "content": "  Axiom opp_mul_right : forall x y, x *R (opp y) = opp (x *R y).\n  Axiom opp_mul_left  : forall x y, (opp x) *R y = opp (x *R y)."
+    },
+    "opp_mul_left": {
+      "kind": "Axiom",
+      "lines": [
+        103,
+        103
+      ],
+      "content": "  Axiom opp_mul_left  : forall x y, (opp x) *R y = opp (x *R y)."
+    },
+    "prob_union_disjoint": {
+      "kind": "Axiom",
+      "lines": [
+        105,
+        106
+      ],
+      "content": "  Axiom prob_union_disjoint : forall A B, disjoint A B -> prob (ev_union A B) = prob A +R prob B.\n  Axiom disjoint_head_tail : forall A xs, pairwise_disjoint (A ::L xs) -> disjoint A (bigUnion xs)."
+    },
+    "disjoint_head_tail": {
+      "kind": "Axiom",
+      "lines": [
+        106,
+        106
+      ],
+      "content": "  Axiom disjoint_head_tail : forall A xs, pairwise_disjoint (A ::L xs) -> disjoint A (bigUnion xs)."
+    },
+    "fold_add": {
+      "kind": "Fixpoint",
+      "lines": [
+        208,
+        212
+      ],
+      "content": "  Fixpoint fold_add (xs : mylist R) : R :=\n    match xs with\n    | nilL => zero\n    | consL x xs' => x +R fold_add xs'\n    end."
+    },
+    "prob_union_comm": {
+      "kind": "Lemma",
+      "lines": [
+        108,
+        113
+      ],
+      "content": "  Lemma prob_union_comm A B :\n    prob (ev_union A B) = prob (ev_union B A).\n  Proof.\n    apply prob_ext; intro w; split; intro HU; destruct HU as [HA|HB];\n    [right|left|right|left]; assumption.\n  Qed."
+    },
+    "prob_union_idem": {
+      "kind": "Lemma",
+      "lines": [
+        115,
+        122
+      ],
+      "content": "  Lemma prob_union_idem A : prob (ev_union A A) = prob A.\n  Proof.\n    specialize (prob_union A A). intro HU.\n    assert (Heq : prob (ev_inter A A) = prob A).\n    { apply prob_ext; intro w; split; intro HX; [exact (proj1 HX)|split; [exact HX|exact HX]]. }\n    rewrite HU. rewrite Heq.\n    rewrite add_opp. rewrite add_zero. reflexivity.\n  Qed."
+    },
+    "prob_diff": {
+      "kind": "Lemma",
+      "lines": [
+        124,
+        149
+      ],
+      "content": "  Lemma prob_diff A B : prob (ev_diff A B) = prob A -R prob (ev_inter A B).\n  Proof.\n    assert (Hpart : forall w, A w <-> (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) w).\n    { intro w. split.\n      - intro hA. destruct (classic (B w)) as [hB|hNB].\n        + left. split; assumption.\n        + right. split; assumption.\n      - intros [ [hA _] | [hA _] ]; exact hA. }\n    assert (Hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = zero).\n    { rewrite (prob_ext (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ev_false).\n      - apply prob_false.\n      - intro w. split; intro Hcap; [destruct Hcap as [[? ?] [? Hnb]]; contradiction| contradiction]. }\n    pose proof (prob_union (ev_inter A B) (ev_inter A (ev_compl B))) as Hunion.\n    (* Replace prob A by the union decomposition *)\n    rewrite (prob_ext A (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) Hpart).\n    (* Expand prob (union) and simplify empty intersection *)\n    rewrite Hunion. rewrite Hcap0. rewrite opp_zero.\n    (* Now RHS is (pAB + (pA\u00acB + 0)) - pAB = pA\u00acB *)\n    rewrite add_zero.\n    (* Rearrange to cancel pAB *)\n    rewrite add_comm with (x:=prob (ev_inter A B)) (y:=prob (ev_inter A (ev_compl B))).\n    rewrite add_assoc.\n    rewrite add_opp. rewrite add_zero.\n    (* Replace diff by intersection with complement *)\n    unfold ev_diff. apply prob_ext. intro w. split; intro HX; exact HX.\n  Qed."
+    },
+    "bayes_symm": {
+      "kind": "Lemma",
+      "lines": [
+        151,
+        156
+      ],
+      "content": "  Lemma bayes_symm A B : cprob A B *R prob B = cprob B A *R prob A.\n  Proof.\n    rewrite <- cprob_mul. apply eq_trans with (y:=prob (ev_inter B A)).\n    - apply prob_ext; intro w; split; intro HBA; destruct HBA as [h1 h2]; [split; [exact h2|exact h1]|split; [exact h2|exact h1]].\n    - apply cprob_mul.\n  Qed."
+    },
+    "law_total_prob": {
+      "kind": "Lemma",
+      "lines": [
+        158,
+        176
+      ],
+      "content": "  Lemma law_total_prob A B :\n    prob A = cprob A B *R prob B +R cprob A (ev_compl B) *R prob (ev_compl B).\n  Proof.\n    pose proof (prob_union (ev_inter A B) (ev_inter A (ev_compl B))) as Hunion.\n    assert (Hpart : forall w, A w <-> (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) w).\n    { intro w. split.\n      - intro hA. destruct (classic (B w)) as [hB|hNB].\n        + left. split; assumption.\n        + right. split; assumption.\n      - intros [ [hA _] | [hA _] ]; exact hA. }\n    rewrite (prob_ext A (ev_union (ev_inter A B) (ev_inter A (ev_compl B))) Hpart).\n    rewrite Hunion.\n    assert (Hcap0 : prob (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) = zero).\n    { rewrite (prob_ext (ev_inter (ev_inter A B) (ev_inter A (ev_compl B))) ev_false).\n      - apply prob_false.\n      - intro w. split; intro Hcap; [destruct Hcap as [[? ?] [? Hnb]]; contradiction| contradiction]. }\n    rewrite Hcap0. rewrite opp_zero. rewrite add_zero.\n    rewrite cprob_mul. rewrite cprob_mul. reflexivity.\n  Qed."
+    },
+    "prob_union_indep": {
+      "kind": "Lemma",
+      "lines": [
+        178,
+        180
+      ],
+      "content": "  Lemma prob_union_indep A B : indep A B ->\n    prob (ev_union A B) = prob A +R (prob B +R -R (prob A *R prob B)).\n  Proof. intro Hin. unfold indep in Hin. rewrite prob_union. now rewrite Hin. Qed."
+    },
+    "indep_symm": {
+      "kind": "Lemma",
+      "lines": [
+        182,
+        188
+      ],
+      "content": "  Lemma indep_symm A B : indep A B -> indep B A.\n  Proof.\n    intro Hin. unfold indep in *.\n    rewrite (prob_ext (ev_inter B A) (ev_inter A B)).\n    - rewrite mul_comm. exact Hin.\n    - intro w. split; intro Hba; destruct Hba as [h1 h2]; [split; [exact h2|exact h1]|split; [exact h2|exact h1]].\n  Qed."
+    },
+    "indep_compl_right": {
+      "kind": "Lemma",
+      "lines": [
+        190,
+        201
+      ],
+      "content": "  Lemma indep_compl_right A B : indep A B -> indep A (ev_compl B).\n  Proof.\n    intro Hin. unfold indep.\n    (* Convert intersection with complement to set difference *)\n    assert (HeqID : prob (ev_inter A (ev_compl B)) = prob (ev_diff A B)).\n    { apply prob_ext. intro w. split; intro Hw; exact Hw. }\n    rewrite HeqID.\n    (* Use difference identity and independence *)\n    rewrite prob_diff. rewrite Hin.\n    (* Compute complement probability and distribute *)\n    rewrite prob_compl. rewrite dist_l. rewrite mul_one. rewrite opp_mul_right. reflexivity.\n  Qed."
+    },
+    "indep_compl_left": {
+      "kind": "Lemma",
+      "lines": [
+        203,
+        204
+      ],
+      "content": "  Lemma indep_compl_left A B : indep A B -> indep (ev_compl A) B.\n  Proof. intro Hin. apply indep_symm. apply indep_symm in Hin. now apply indep_compl_right. Qed."
+    },
+    "prob_bigUnion_disjoint": {
+      "kind": "Lemma",
+      "lines": [
+        214,
+        234
+      ],
+      "content": "  Lemma prob_bigUnion_disjoint : forall xs,\n    pairwise_disjoint xs -> prob (bigUnion xs) = fold_add (mapL prob xs).\n  Proof.\n    intros xs HPD.\n    induction HPD as [\n      | A\n      | A B xs Hdisj Hrest HPW IH\n    ].\n    - simpl. apply prob_false.\n    - simpl.\n      assert (Hun : prob (ev_union A ev_false) = prob A).\n      { apply prob_ext. intro w. split; intro HU;\n        [destruct HU as [hA|hF]; [assumption|contradiction] | now left]. }\n      simpl. rewrite Hun. rewrite add_zero. reflexivity.\n    -\n      assert (HAd : disjoint A (bigUnion (B ::L xs))).\n      { apply disjoint_head_tail. constructor; assumption. }\n      change (prob (ev_union A (bigUnion (B ::L xs))) = prob A +R fold_add (mapL prob (B ::L xs))).\n      rewrite (prob_union_disjoint A (bigUnion (B ::L xs)) HAd).\n      rewrite IH. reflexivity.\n  Qed."
+    },
+    "prob_bigUnion_disjoint_zero": {
+      "kind": "Lemma",
+      "lines": [
+        236,
+        262
+      ],
+      "content": "  Lemma prob_bigUnion_disjoint_zero : forall xs,\n    pairwise_disjoint xs -> (forall A, InL A xs -> prob A = zero) -> prob (bigUnion xs) = zero.\n  Proof.\n    intros xs HPD HZ.\n    induction HPD as [\n      | A\n      | A B xs Hdisj Hrest HPW IH\n    ].\n    - simpl. apply prob_false.\n    - simpl.\n      assert (Hun : prob (ev_union A ev_false) = prob A).\n      { apply prob_ext. intro w. split; intro HU;\n        [destruct HU as [hA|hF]; [assumption|contradiction] | now left]. }\n      rewrite Hun. apply HZ. constructor.\n    -\n      assert (HAd : disjoint A (bigUnion (B ::L xs))).\n      { apply disjoint_head_tail. constructor; assumption. }\n      change (prob (ev_union A (bigUnion (B ::L xs))) = zero).\n      rewrite (prob_union_disjoint A (bigUnion (B ::L xs)) HAd).\n      (* prob A = 0 from HZ on head *)\n      rewrite (HZ A (@In_head event A (B ::L xs))).\n      (* reduce 0 + prob (bigUnion tail) *)\n      rewrite add_comm with (x:=zero) (y:=prob (bigUnion (B ::L xs))).\n      rewrite add_zero.\n      (* now use IH for the tail with restricted hypothesis *)\n      apply IH. intros C Hin. apply HZ. apply In_tail; assumption.\n  Qed."
+    },
+    "inclusion_exclusion_three": {
+      "kind": "Axiom",
+      "lines": [
+        264,
+        266
+      ],
+      "content": "  Axiom inclusion_exclusion_three : forall A B C,\n    prob (ev_union (ev_union A B) C)\n      = prob A +R (prob B +R (prob C +R -R (prob (ev_inter A B) +R (prob (ev_inter A C) +R (prob (ev_inter B C) +R -R (prob (ev_inter (ev_inter A B) C)))))))."
+    },
+    "End Probability.": {
+      "kind": "End",
+      "lines": [
+        268,
+        268
+      ],
+      "content": "End Probability."
+    }
+  }
+}

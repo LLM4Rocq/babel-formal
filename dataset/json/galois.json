@@ -1,0 +1,1046 @@
+{
+    "source": "galois",
+    "lean": {
+      "Field": {
+        "kind": "class",
+        "lines": [0, 21],
+        "content": "class Field (F : Type) where\n  zero_F    : F\n  one_F     : F\n  add_F     : F → F → F\n  mul_F     : F → F → F\n  opp_F     : F → F\n  inv_F     : F → F\n\n  add_comm    : ∀ x y, add_F x y = add_F y x\n  add_assoc   : ∀ x y z, add_F (add_F x y) z = add_F x (add_F y z)\n  add_zero    : ∀ x, add_F x zero_F = x\n  add_inv_l   : ∀ x, add_F (opp_F x) x = zero_F\n\n  mul_comm    : ∀ x y, mul_F x y = mul_F y x\n  mul_assoc   : ∀ x y z, mul_F (mul_F x y) z = mul_F x (mul_F y z)\n  mul_one_l   : ∀ x, mul_F one_F x = x\n  mul_inv_l   : ∀ x, x ≠ zero_F → mul_F (inv_F x) x = one_F\n\n  distrib_l   : ∀ x y z, mul_F x (add_F y z) = add_F (mul_F x y) (mul_F x z)\n\n  zero_neq_one : zero_F ≠ one_F\n  inv_nonzero  : ∀ x, x ≠ zero_F → inv_F x ≠ zero_F\n"
+      },
+      "FieldProperties": {
+        "kind": "namespace",
+        "lines": [23, 23],
+        "content": "namespace FieldProperties"
+      },
+      "F": {
+        "kind": "variable",
+        "lines": [24, 24],
+        "content": "variable {F : Type} [HF : Field F]"
+      },
+      "HF": {
+        "kind": "variable",
+        "lines": [24, 24],
+        "content": "variable {F : Type} [HF : Field F]"
+      },
+      "open Field": {
+        "kind": "open",
+        "lines": [25, 25],
+        "content": "open Field"
+      },
+      "+": {
+        "kind": "notation",
+        "lines": [27, 27],
+        "content": "infixl:65 \"+\" => add_F"
+      },
+      "*": {
+        "kind": "notation",
+        "lines": [28, 28],
+        "content": "infixl:70 \"*\" => mul_F"
+      },
+      "-": {
+        "kind": "notation",
+        "lines": [29, 29],
+        "content": "prefix:100 \"-\" => opp_F"
+      },
+      "/": {
+        "kind": "notation",
+        "lines": [30, 30],
+        "content": "prefix:100 \"/\" => inv_F"
+      },
+      "add_cancel_l": {
+        "kind": "theorem",
+        "lines": [32, 44],
+        "content": "theorem add_cancel_l (x y z : F) : x + y = x + z → y = z := by\n  intro H\n  have H₁ := congrArg (fun w => -x + w) H\n  change -x + (x+y) = -x + (x+z) at H₁\n  rw [← add_assoc]       at H₁\n  rw [add_inv_l]         at H₁\n  rw [add_comm]          at H₁\n  rw [add_zero]          at H₁\n  rw [<- add_assoc, add_comm, add_inv_l]          at H₁\n  rw [add_zero]          at H₁\n  exact H₁\n"
+      },
+      "add_cancel_r": {
+        "kind": "theorem",
+        "lines": [44, 51],
+        "content": "theorem add_cancel_r (x y z : F) : y + x = z + x → y = z := by\n  intro H\n  rw [add_comm y x, add_comm z x] at H\n  apply add_cancel_l\n  assumption\n"
+      },
+      "mul_cancel_l": {
+        "kind": "theorem",
+        "lines": [50, 66],
+        "content": "theorem mul_cancel_l (x y z : F) (h : x ≠ zero_F) : x * y = x * z → y = z := by\n  intro H\n  have H₁ := congrArg (fun w => inv_F x * w) H\n  change inv_F x * (x * y) = inv_F x * (x * z) at H₁\n\n  rw [← mul_assoc]        at H₁\n  rw [mul_inv_l _ h]      at H₁\n  rw [mul_one_l]          at H₁\n  rw [← mul_assoc]        at H₁\n  rw [mul_inv_l _ h]      at H₁\n  rw [mul_one_l]          at H₁\n\n  exact H₁\n"
+      },
+      "mul_cancel_r": {
+        "kind": "theorem",
+        "lines": [65, 73],
+        "content": "theorem mul_cancel_r (x y z : F) (h : x ≠ zero_F) : y * x = z * x → y = z := by\n  intro H\n  rw [mul_comm y x, mul_comm z x] at H\n  apply mul_cancel_l x y z h\n  assumption\n"
+      },
+      "inv_unique": {
+        "kind": "theorem",
+        "lines": [72, 84],
+        "content": "theorem inv_unique (x y : F) (h : x ≠ zero_F) (H : x * y = one_F) : y = inv_F x := by\n  have H₁ := congrArg (fun w => inv_F x * w) H\n  change inv_F x * (x * y) = inv_F x * one_F at H₁\n  rw [← mul_assoc]    at H₁\n  rw [mul_inv_l _ h]  at H₁\n  rw [mul_one_l]      at H₁\n  rw [mul_comm]       at H₁\n  rw [mul_one_l]      at H₁\n  exact H₁\n"
+      },
+      "inv_involutive": {
+        "kind": "theorem",
+        "lines": [83, 90],
+        "content": "theorem inv_involutive (x : F) (h : x ≠ zero_F) : inv_F (inv_F x) = x := by\n  apply Eq.symm\n  apply inv_unique\n  · exact inv_nonzero x h\n  · exact mul_inv_l x h\n"
+      },
+      "end FieldProperties": {
+        "kind": "end",
+        "lines": [89, 89],
+        "content": "end FieldProperties"
+      },
+      "IsSolvable": {
+        "kind": "class",
+        "lines": [91, 91],
+        "content": "class IsSolvable (G : Type) : Prop"
+      },
+      "Tower": {
+        "kind": "namespace",
+        "lines": [93, 93],
+        "content": "namespace Tower"
+      },
+      "polynomial": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {polynomial      : Type → Type}"
+      },
+      "SplittingField": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {SplittingField  : ∀ {F : Type}, polynomial F → Type}"
+      },
+      "algebraMap": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {algebraMap      : ∀ {F K : Type}, F → K}"
+      },
+      "Splits": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {Splits          : ∀ {F K : Type}, polynomial F → (F → K) → Prop}"
+      },
+      "map_poly": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {map_poly        : ∀ {F K : Type}, polynomial F → (F → K) → polynomial K}"
+      },
+      "Gal": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {Gal             : ∀ {F : Type}, polynomial F → Type}"
+      },
+      "F": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable {F : Type}"
+      },
+      "p": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (p q r s t : polynomial F)"
+      },
+      "q": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (p q r s t : polynomial F)"
+      },
+      "r": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (p q r s t : polynomial F)"
+      },
+      "s": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (p q r s t : polynomial F)"
+      },
+      "t": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (p q r s t : polynomial F)\nvariable (K L : Type)"
+      },
+      "K": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (K L : Type)"
+      },
+      "L": {
+        "kind": "variable",
+        "lines": [94, 104],
+        "content": "variable (K L : Type)"
+      },
+      "map_poly_comp": {
+        "kind": "axiom",
+        "lines": [105, 106],
+        "content": "axiom map_poly_comp : ∀ {F K L : Type} (p : polynomial F)\n  (f : F → K) (g : K → L), map_poly (map_poly p f) g = map_poly p (fun x => g (f x))"
+      },
+      "isSolvable_of_isScalarTower": {
+        "kind": "axiom",
+        "lines": [107, 108],
+        "content": "axiom isSolvable_of_isScalarTower : ∀ {F K : Type} {p q : polynomial F},\n  IsSolvable (Gal p) → IsSolvable (Gal (map_poly q (@algebraMap F K))) → IsSolvable (Gal q)"
+      },
+      "isSolvable_map_poly": {
+        "kind": "axiom",
+        "lines": [109, 110],
+        "content": "axiom isSolvable_map_poly : ∀ {F K : Type} (p : polynomial F),\n  IsSolvable (Gal p) → IsSolvable (Gal (map_poly p (@algebraMap F K)))"
+      },
+      "isSolvable_of_splits": {
+        "kind": "axiom",
+        "lines": [111, 112],
+        "content": "axiom isSolvable_of_splits : ∀ {F K : Type} (p : polynomial F) (f : F → K),\n  Splits p f → IsSolvable (Gal p)"
+      },
+      "gal_isSolvable_tower": {
+        "kind": "theorem",
+        "lines": [114, 120],
+        "content": "theorem gal_isSolvable_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p))))) :\n  IsSolvable (Gal q) := by\n  apply isSolvable_of_isScalarTower hp hq\n"
+      },
+      "gal_isSolvable_double_tower": {
+        "kind": "theorem",
+        "lines": [120, 129],
+        "content": "theorem gal_isSolvable_double_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q))))) :\n  IsSolvable (Gal r) := by\n  have Hq := isSolvable_of_isScalarTower hp hq\n  apply isSolvable_of_isScalarTower Hq hr\n"
+      },
+      "gal_isSolvable_triple_tower": {
+        "kind": "theorem",
+        "lines": [128, 138],
+        "content": "theorem gal_isSolvable_triple_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n  (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r))))) :\n  IsSolvable (Gal s) := by\n  have Hq := isSolvable_of_isScalarTower hp hq\n  have Hr := isSolvable_of_isScalarTower Hq hr\n  apply isSolvable_of_isScalarTower Hr hs\n"
+      },
+      "gal_isSolvable_quadruple_tower": {
+        "kind": "theorem",
+        "lines": [138, 150],
+        "content": "theorem gal_isSolvable_quadruple_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n  (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n  (ht : IsSolvable (Gal (map_poly t (@algebraMap F (SplittingField s))))) :\n  IsSolvable (Gal t) := by\n  have Hq := isSolvable_of_isScalarTower hp hq\n  have Hr := isSolvable_of_isScalarTower Hq hr\n  have Hs := isSolvable_of_isScalarTower Hr hs\n  apply isSolvable_of_isScalarTower Hs ht\n"
+      },
+      "gal_isSolvable_map_poly": {
+        "kind": "theorem",
+        "lines": [150, 154],
+        "content": "theorem gal_isSolvable_map_poly (hp : IsSolvable (Gal p)) :\n  IsSolvable (Gal (map_poly p (@algebraMap F K))) := by\n  apply isSolvable_map_poly p hp\n"
+      },
+      "gal_isSolvable_of_split": {
+        "kind": "theorem",
+        "lines": [154, 159],
+        "content": "theorem gal_isSolvable_of_split\n  (hsplit : Splits p (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal p) := by\n  apply isSolvable_of_splits p (@algebraMap F (SplittingField p)) hsplit\n"
+      },
+      "gal_isSolvable_split_tower": {
+        "kind": "theorem",
+        "lines": [159, 164],
+        "content": "theorem gal_isSolvable_split_tower\n  (hsplit : Splits q (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal q) := by\n  apply isSolvable_of_splits q (@algebraMap F (SplittingField p)) hsplit\n"
+      },
+      "gal_isSolvable_two_step_map": {
+        "kind": "theorem",
+        "lines": [164, 170],
+        "content": "theorem gal_isSolvable_two_step_map (hp : IsSolvable (Gal p)) :\n  IsSolvable (Gal (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L))) := by\n  apply isSolvable_map_poly\n  apply isSolvable_map_poly\n  exact hp\n"
+      },
+      "gal_isSolvable_three_step_map": {
+        "kind": "theorem",
+        "lines": [170, 180],
+        "content": "theorem gal_isSolvable_three_step_map {M : Type}\n  (hp : IsSolvable (Gal p)) :\n  IsSolvable (Gal (map_poly (map_poly (map_poly p (@algebraMap F K))\n                                           (@algebraMap K L))\n                                 (@algebraMap L M))) := by\n  apply isSolvable_map_poly\n  apply isSolvable_map_poly\n  apply isSolvable_map_poly\n  exact hp\n"
+      },
+      "gal_isSolvable_map_poly_comp": {
+        "kind": "theorem",
+        "lines": [180, 186],
+        "content": "theorem gal_isSolvable_map_poly_comp (hp : IsSolvable (Gal p)) :\n  IsSolvable (Gal (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L))) := by\n  apply isSolvable_map_poly\n  apply isSolvable_map_poly\n  exact hp\n"
+      },
+      "gal_isSolvable_mutual_split": {
+        "kind": "theorem",
+        "lines": [186, 194],
+        "content": "theorem gal_isSolvable_mutual_split\n  (hsplit_p : Splits p (@algebraMap F (SplittingField q)))\n  (hsplit_q : Splits q (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal p) ∧ IsSolvable (Gal q) := by\n  constructor\n  · apply isSolvable_of_splits p (@algebraMap F (SplittingField q)) hsplit_p\n  · apply isSolvable_of_splits q (@algebraMap F (SplittingField p)) hsplit_q\n"
+      },
+      "gal_isSolvable_tower_split": {
+        "kind": "theorem",
+        "lines": [194, 203],
+        "content": "theorem gal_isSolvable_tower_split\n  (hsplit_q : Splits q (@algebraMap F (SplittingField p)))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q))))) :\n  IsSolvable (Gal r) := by\n  apply isSolvable_of_isScalarTower\n  · apply isSolvable_of_splits\n    exact hsplit_q\n  · exact hr\n"
+      },
+      "gal_isSolvable_map_after_split": {
+        "kind": "theorem",
+        "lines": [203, 210],
+        "content": "theorem gal_isSolvable_map_after_split\n  (hsplit : Splits p (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal (map_poly p (@algebraMap F K))) := by\n  apply isSolvable_map_poly\n  apply isSolvable_of_splits\n  exact hsplit\n"
+      },
+      "end Tower": {
+        "kind": "end",
+        "lines": [210, 210],
+        "content": "end Tower"
+      }
+    },
+    "coq": {
+      "Field": {
+        "kind": "Class",
+        "lines": [0, 21],
+        "content": "Class Field (F : Type) := {\n  zero_F    : F;\n  one_F     : F;\n  add_F     : F -> F -> F;\n  mul_F     : F -> F -> F;\n  opp_F     : F -> F;\n  inv_F     : F -> F;\n\n  add_comm    : forall x y, add_F x y = add_F y x;\n  add_assoc   : forall x y z, add_F (add_F x y) z = add_F x (add_F y z);\n  add_zero    : forall x, add_F x zero_F = x;\n  add_inv_l   : forall x, add_F (opp_F x) x = zero_F;\n\n  mul_comm    : forall x y, mul_F x y = mul_F y x;\n  mul_assoc   : forall x y z, mul_F (mul_F x y) z = mul_F x (mul_F y z);\n  mul_one_l   : forall x, mul_F one_F x = x;\n  mul_inv_l   : forall x, x <> zero_F -> mul_F (inv_F x) x = one_F;\n\n  distrib_l   : forall x y z, mul_F x (add_F y z) = add_F (mul_F x y) (mul_F x z);\n\n  zero_neq_one : zero_F <> one_F;\n  inv_nonzero  : forall x, x <> zero_F -> inv_F x <> zero_F;\n}."
+      },
+      "Section FieldProperties.": {
+        "kind": "Section",
+        "lines": [24, 24],
+        "content": "Section FieldProperties."
+      },
+      "F": {
+        "kind": "Context",
+        "lines": [25, 25],
+        "content": "  Context {F : Type} {HF : Field F}."
+      },
+      "HF": {
+        "kind": "Context",
+        "lines": [25, 25],
+        "content": "  Context {F : Type} {HF : Field F}."
+      },
+      "+": {
+        "kind": "Notation",
+        "lines": [27, 27],
+        "content": "  Infix \"+\" := add_F."
+      },
+      "*": {
+        "kind": "Notation",
+        "lines": [28, 28],
+        "content": "  Infix \"*\" := mul_F."
+      },
+      "-": {
+        "kind": "Notation",
+        "lines": [29, 29],
+        "content": "  Notation \"- x\" := (opp_F x)."
+      },
+      "/": {
+        "kind": "Notation",
+        "lines": [30, 30],
+        "content": "  Notation \"/ x\" := (inv_F x)."
+      },
+      "0": {
+        "kind": "Notation",
+        "lines": [31, 31],
+        "content": "  Notation \"0\" := zero_F."
+      },
+      "1": {
+        "kind": "Notation",
+        "lines": [32, 32],
+        "content": "  Notation \"1\" := one_F."
+      },
+      "add_cancel_l": {
+        "kind": "Lemma",
+        "lines": [34, 45],
+        "content": "  Lemma add_cancel_l (x y z : F) : x + y = x + z -> y = z.\n  Proof.\n    intros H.\n    apply (f_equal (fun w => - x + w)) in H.\n    rewrite <- !add_assoc in H.\n    rewrite !add_inv_l in H.\n    rewrite add_comm in H.\n    rewrite !add_zero in H.\n    rewrite add_comm in H.\n    rewrite !add_zero in H.\n    exact H.\n  Qed."
+      },
+      "add_cancel_r": {
+        "kind": "Lemma",
+        "lines": [47, 54],
+        "content": "  Lemma add_cancel_r (x y z : F) : y + x = z + x -> y = z.\n  Proof.\n    intros H.\n    rewrite (add_comm y x) in H.\n    rewrite (add_comm z x) in H.\n    apply add_cancel_l in H.\n    exact H.\n  Qed."
+      },
+      "mul_cancel_l": {
+        "kind": "Lemma",
+        "lines": [56, 66],
+        "content": "  Lemma mul_cancel_l (x y z : F) : x <> 0 -> x * y = x * z -> y = z.\n  Proof.\n    intros Hnz Heq.\n    apply (f_equal (fun w => inv_F x * w)) in Heq.\n    rewrite <- !mul_assoc in Heq.\n    rewrite mul_inv_l in Heq; [| assumption].\n    rewrite mul_one_l in Heq.\n    rewrite mul_one_l in Heq.\n    exact Heq.\n  Qed."
+      },
+      "mul_cancel_r": {
+        "kind": "Lemma",
+        "lines": [67, 75],
+        "content": "  Lemma mul_cancel_r (x y z : F) : x <> 0 -> y * x = z * x -> y = z.\n  Proof.\n    intros Hnz H.\n    rewrite (mul_comm y x) in H.\n    rewrite (mul_comm z x) in H.\n    apply (mul_cancel_l x y z Hnz) in H.\n    exact H.\n  Qed."
+      },
+      "inv_unique": {
+        "kind": "Lemma",
+        "lines": [76, 86],
+        "content": "  Lemma inv_unique (x y : F) : x <> 0 -> x * y = 1 -> y = inv_F x.\n  Proof.\n    intros Hnz He.\n    apply (f_equal (fun w => inv_F x * w)) in He.\n    rewrite <- !mul_assoc in He.\n    rewrite mul_inv_l in He; [| assumption].\n    rewrite mul_one_l in He.\n    rewrite mul_comm in He.\n    rewrite mul_one_l in He.\n    exact He.\n  Qed."
+      },
+      "inv_involutive": {
+        "kind": "Lemma",
+        "lines": [88, 96],
+        "content": "  Lemma inv_involutive (x : F) : x <> 0 -> inv_F (inv_F x) = x.\n  Proof.\n    intros Hnz.\n    apply eq_sym.\n    apply inv_unique.\n    - apply inv_nonzero; assumption.\n    - apply mul_inv_l; assumption.\n  Qed."
+      },
+      "End FieldProperties.": {
+        "kind": "End",
+        "lines": [97, 97],
+        "content": "End FieldProperties."
+      },
+      "IsSolvable": {
+        "kind": "Class",
+        "lines": [99, 99],
+        "content": "Class IsSolvable (G : Type) : Prop."
+      },
+      "Section Tower.": {
+        "kind": "Section",
+        "lines": [101, 101],
+        "content": "Section Tower."
+      },
+      "polynomial": {
+        "kind": "variable",
+        "lines": [102, 108],
+        "content": "  Variable polynomial      : Type -> Type."
+      },
+      "SplittingField": {
+        "kind": "Variable",
+        "lines": [102, 108],
+        "content": "  Variable SplittingField  : forall {F : Type}, polynomial F -> Type.\n  Variable algebraMap      : forall {F K : Type}, F -> K.\n  Variable Splits          : forall {F K : Type}, polynomial F -> (F -> K) -> Prop.\n  Variable map_poly        : forall {F K : Type}, polynomial F -> (F -> K) -> polynomial K.\n  Variable Gal             : forall {F : Type}, polynomial F -> Type."
+      },
+      "algebraMap": {
+        "kind": "Variable",
+        "lines": [102, 108],
+        "content": "  Variable algebraMap      : forall {F K : Type}, F -> K.\n  Variable Splits          : forall {F K : Type}, polynomial F -> (F -> K) -> Prop.\n  Variable map_poly        : forall {F K : Type}, polynomial F -> (F -> K) -> polynomial K.\n  Variable Gal             : forall {F : Type}, polynomial F -> Type."
+      },
+      "Splits": {
+        "kind": "Variable",
+        "lines": [102, 108],
+        "content": "  Variable Splits          : forall {F K : Type}, polynomial F -> (F -> K) -> Prop.\n  Variable map_poly        : forall {F K : Type}, polynomial F -> (F -> K) -> polynomial K.\n  Variable Gal             : forall {F : Type}, polynomial F -> Type."
+      },
+      "map_poly": {
+        "kind": "Variable",
+        "lines": [102, 108],
+        "content": "  Variable map_poly        : forall {F K : Type}, polynomial F -> (F -> K) -> polynomial K.\n  Variable Gal             : forall {F : Type}, polynomial F -> Type."
+      },
+      "Gal": {
+        "kind": "Variable",
+        "lines": [102, 108],
+        "content": "  Variable Gal             : forall {F : Type}, polynomial F -> Type."
+      },
+      "p": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables p q r s t : polynomial F."
+      },
+      "q": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables p q r s t : polynomial F."
+      },
+      "r": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables p q r s t : polynomial F."
+      },
+      "s": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables p q r s t : polynomial F."
+      },
+      "t": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables p q r s t : polynomial F."
+      },
+      "K": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables K L       : Type."
+      },
+      "L": {
+        "kind": "Variables",
+        "lines": [111, 112],
+        "content": "  Variables K L       : Type."
+      },
+      "u": {
+        "kind": "Variables",
+        "lines": [114, 114],
+        "content": "  Variables u v : polynomial F."
+      },
+      "v": {
+        "kind": "Variables",
+        "lines": [114, 114],
+        "content": "  Variables u v : polynomial F."
+      },
+      "map_poly_comp": {
+        "kind": "Axiom",
+        "lines": [116, 120],
+        "content": "  Axiom map_poly_comp :\n    forall {F K L : Type} (p : polynomial F)\n           (f : F -> K) (g : K -> L),\n      map_poly (map_poly p f) g\n      = map_poly p (fun x => g (f x))."
+      },
+      "isSolvable_of_isScalarTower": {
+        "kind": "Axiom",
+        "lines": [121, 127],
+        "content": "  Axiom isSolvable_of_isScalarTower :\n    forall {F K : Type} {p q : polynomial F},\n      IsSolvable (Gal p) ->\n      IsSolvable (Gal (map_poly q (@algebraMap F K))) ->\n      IsSolvable (Gal q)."
+      },
+      "isSolvable_map_poly": {
+        "kind": "Axiom",
+        "lines": [128, 133],
+        "content": "  Axiom isSolvable_map_poly :\n    forall {F K : Type} (p : polynomial F),\n      IsSolvable (Gal p) ->\n      IsSolvable (Gal (map_poly p (@algebraMap F K)))."
+      },
+      "isSolvable_of_splits": {
+        "kind": "Axiom",
+        "lines": [134, 134],
+        "content": "  Axiom isSolvable_of_splits :\n    forall {F K : Type} (p : polynomial F) (f : F -> K),\n      Splits p f -> IsSolvable (Gal p)."
+      },
+      "gal_isSolvable_tower": {
+        "kind": "Theorem",
+        "lines": [135, 140],
+        "content": "  Theorem gal_isSolvable_tower\n          (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n        : IsSolvable (Gal q).\n  Proof. eapply isSolvable_of_isScalarTower; eauto. Qed."
+      },
+      "gal_isSolvable_double_tower": {
+        "kind": "Theorem",
+        "lines": [141, 150],
+        "content": "  Theorem gal_isSolvable_double_tower\n          (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n        : IsSolvable (Gal r).\n  Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq) as Hq.\n    apply (@isSolvable_of_isScalarTower F (SplittingField q) q r); assumption.\n  Qed."
+      },
+      "gal_isSolvable_triple_tower": {
+        "kind": "Theorem",
+        "lines": [151, 162],
+        "content": "  Theorem gal_isSolvable_triple_tower\n          (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n          (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n        : IsSolvable (Gal s).\n  Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq)  as Hq.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField q) q r Hq hr) as Hr.\n    apply (@isSolvable_of_isScalarTower F (SplittingField r) r s); assumption.\n  Qed."
+      },
+      "gal_isSolvable_quadruple_tower": {
+        "kind": "Theorem",
+        "lines": [163, 176],
+        "content": "  Theorem gal_isSolvable_quadruple_tower\n          (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n          (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n          (ht : IsSolvable (Gal (map_poly t (@algebraMap F (SplittingField s)))))\n        : IsSolvable (Gal t).\n  Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq)  as Hq.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField q) q r Hq hr) as Hr.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField r) r s Hr hs) as Hs.\n    apply (@isSolvable_of_isScalarTower F (SplittingField s) s t); assumption.\n  Qed."
+      },
+      "gal_isSolvable_map_poly": {
+        "kind": "Theorem",
+        "lines": [177, 181],
+        "content": "  Theorem gal_isSolvable_map_poly\n          (hp : IsSolvable (Gal p))\n        : IsSolvable (Gal (map_poly p (@algebraMap F K))).\n  Proof. apply (isSolvable_map_poly p hp). Qed."
+      },
+      "gal_isSolvable_of_split": {
+        "kind": "Theorem",
+        "lines": [182, 186],
+        "content": "  Theorem gal_isSolvable_of_split\n          (hsplit : Splits p (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal p).\n  Proof. apply (isSolvable_of_splits p _ hsplit). Qed."
+      },
+      "gal_isSolvable_split_tower": {
+        "kind": "Theorem",
+        "lines": [187, 191],
+        "content": "  Theorem gal_isSolvable_split_tower\n          (hsplit : Splits q (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal q).\n  Proof. apply (isSolvable_of_splits q _ hsplit). Qed."
+      },
+      "gal_isSolvable_two_step_map": {
+        "kind": "Theorem",
+        "lines": [192, 201],
+        "content": " Theorem gal_isSolvable_two_step_map\n          (hp : IsSolvable (Gal p))\n        : IsSolvable\n            (Gal (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L))).\n    Proof.\n    pose proof (@isSolvable_map_poly F K p hp) as H1.\n    pose proof (@isSolvable_map_poly K L (map_poly p (@algebraMap F K)) H1) as H2.\n    exact H2.\n    Qed."
+      },
+      "gal_isSolvable_three_step_map": {
+        "kind": "Theorem",
+        "lines": [202, 219],
+        "content": "  Theorem gal_isSolvable_three_step_map\n          {M : Type}\n          (hp : IsSolvable (Gal p))\n        : IsSolvable\n            (Gal\n               (map_poly\n                  (map_poly\n                     (map_poly p (@algebraMap F K))\n                             (@algebraMap K L))\n                             (@algebraMap L M))).\n  Proof.\n    pose proof (@isSolvable_map_poly F K p hp) as H1.\n    pose proof (@isSolvable_map_poly K L (map_poly p (@algebraMap F K)) H1) as H2.\n    pose proof (@isSolvable_map_poly L M\n                   (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L)) H2) as H3.\n    exact H3.\n  Qed."
+      },
+      "gal_isSolvable_map_poly_comp": {
+        "kind": "Theorem",
+        "lines": [220, 234],
+        "content": "  Theorem gal_isSolvable_map_poly_comp\n          (hp : IsSolvable (Gal p))\n        : IsSolvable\n            (Gal\n              (map_poly\n                 (map_poly p (@algebraMap F K))\n                 (@algebraMap K L))).\n  Proof.\n    pose proof (@isSolvable_map_poly F K p hp) as H1.\n    exact (isSolvable_map_poly\n            (F := K) (K := L)\n            (map_poly p (@algebraMap F K))\n            H1).\n  Qed."
+      },
+      "gal_isSolvable_mutual_split": {
+        "kind": "Theorem",
+        "lines": [235, 244],
+        "content": "  Theorem gal_isSolvable_mutual_split\n          (hsplit_p : Splits p (@algebraMap F (SplittingField q)))\n          (hsplit_q : Splits q (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal p) /\\ IsSolvable (Gal q).\n  Proof.\n    split.\n    - apply (isSolvable_of_splits p _ hsplit_p).\n    - apply (isSolvable_of_splits q _ hsplit_q).\n  Qed."
+      },
+      "gal_isSolvable_tower_split": {
+        "kind": "Theorem",
+        "lines": [245, 253],
+        "content": "  Theorem gal_isSolvable_tower_split\n          (hsplit_q  : Splits q (@algebraMap F (SplittingField p)))\n          (hr        : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n        : IsSolvable (Gal r).\n  Proof.\n    pose proof (isSolvable_of_splits q _ hsplit_q) as Hq.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField q) q r Hq hr) as Hr.\n    exact Hr.\n  Qed."
+      },
+      "gal_isSolvable_map_after_split": {
+        "kind": "Theorem",
+        "lines": [255, 262],
+        "content": "  Theorem gal_isSolvable_map_after_split\n          (hsplit : Splits p (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal (map_poly p (@algebraMap F K))).\n  Proof.\n    pose proof (isSolvable_of_splits p _ hsplit) as Hp.\n    apply (isSolvable_map_poly p Hp).\n  Qed."
+      },
+      "End Tower.": {
+        "kind": "End",
+        "lines": [263, 263],
+        "content": "End Tower."
+      },
+      "zero_F": { "kind": "class_field", "lines": [1, 1], "content": "  zero_F    : F;" },
+      "one_F":  { "kind": "class_field", "lines": [2, 2], "content": "  one_F     : F;" },
+      "add_F":  { "kind": "class_field", "lines": [3, 3], "content": "  add_F     : F -> F -> F;" },
+      "mul_F":  { "kind": "class_field", "lines": [4, 4], "content": "  mul_F     : F -> F -> F;" },
+      "opp_F":  { "kind": "class_field", "lines": [5, 5], "content": "  opp_F     : F -> F;" },
+      "inv_F":  { "kind": "class_field", "lines": [6, 6], "content": "  inv_F     : F -> F;" },
+      "add_comm":   { "kind": "class_field", "lines": [8, 8],  "content": "  add_comm    : forall x y, add_F x y = add_F y x;" },
+      "add_assoc":  { "kind": "class_field", "lines": [9, 9],  "content": "  add_assoc   : forall x y z, add_F (add_F x y) z = add_F x (add_F y z);" },
+      "add_zero":   { "kind": "class_field", "lines": [10, 10], "content": "  add_zero    : forall x, add_F x zero_F = x;" },
+      "add_inv_l":  { "kind": "class_field", "lines": [11, 11], "content": "  add_inv_l   : forall x, add_F (opp_F x) x = zero_F;" },
+      "mul_comm":   { "kind": "class_field", "lines": [13, 13], "content": "  mul_comm    : forall x y, mul_F x y = mul_F y x;" },
+      "mul_assoc":  { "kind": "class_field", "lines": [14, 14], "content": "  mul_assoc   : forall x y z, mul_F (mul_F x y) z = mul_F x (mul_F y z);" },
+      "mul_one_l":  { "kind": "class_field", "lines": [15, 15], "content": "  mul_one_l   : forall x, mul_F one_F x = x;" },
+      "mul_inv_l":  { "kind": "class_field", "lines": [16, 16], "content": "  mul_inv_l   : forall x, x <> zero_F -> mul_F (inv_F x) x = one_F;" },
+      "distrib_l":  { "kind": "class_field", "lines": [18, 18], "content": "  distrib_l   : forall x y z, mul_F x (add_F y z) = add_F (mul_F x y) (mul_F x z);" },
+      "zero_neq_one": { "kind": "class_field", "lines": [20, 20], "content": "  zero_neq_one : zero_F <> one_F;" },
+      "inv_nonzero":  { "kind": "class_field", "lines": [21, 21], "content": "  inv_nonzero  : forall x, x <> zero_F -> inv_F x <> zero_F;" }
+    },
+    "items": [
+      {
+        "name": "add_cancel_l",
+        "lean": {
+          "kind": "theorem",
+          "lines": [33, 43],
+          "statement": "theorem add_cancel_l (x y z : F) : x + y = x + z → y = z := by",
+          "proof": "  intro H\n  have H₁ := congrArg (fun w => -x + w) H\n  change -x + (x+y) = -x + (x+z) at H₁\n  rw [← add_assoc]       at H₁\n  rw [add_inv_l]         at H₁\n  rw [add_comm]          at H₁\n  rw [add_zero]          at H₁\n  rw [<- add_assoc, add_comm, add_inv_l]          at H₁\n  rw [add_zero]          at H₁\n  exact H₁",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "+", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "-", "category": "notation" },
+              { "symbol": "+", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [35, 46],
+          "statement": "  Lemma add_cancel_l (x y z : F) : x + y = x + z -> y = z.",
+          "proof": "Proof.\n    intros H.\n    apply (f_equal (fun w => - x + w)) in H.\n    rewrite <- !add_assoc in H.\n    rewrite !add_inv_l in H.\n    rewrite add_comm in H.\n    rewrite !add_zero in H.\n    rewrite add_comm in H.\n    rewrite !add_zero in H.\n    exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" },
+              { "symbol": "+", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "-", "category": "Notation" },
+              { "symbol": "+", "category": "Notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "add_cancel_r",
+        "lean": {
+          "kind": "theorem",
+          "lines": [45, 49],
+          "statement": "theorem add_cancel_r (x y z : F) : y + x = z + x → y = z := by",
+          "proof": "  intro H\n  rw [add_comm y x, add_comm z x] at H\n  apply add_cancel_l\n  assumption",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "+", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "add_cancel_l", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [48, 55],
+          "statement": "  Lemma add_cancel_r (x y z : F) : y + x = z + x -> y = z.",
+          "proof": "Proof.\n    intros H.\n    rewrite (add_comm y x) in H.\n    rewrite (add_comm z x) in H.\n    apply add_cancel_l in H.\n    exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" },
+              { "symbol": "+", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "add_cancel_l", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "mul_cancel_l",
+        "lean": {
+          "kind": "theorem",
+          "lines": [51, 63],
+          "statement": "theorem mul_cancel_l (x y z : F) (h : x ≠ zero_F) : x * y = x * z → y = z := by",
+          "proof": "  intro H\n  have H₁ := congrArg (fun w => inv_F x * w) H\n  change inv_F x * (x * y) = inv_F x * (x * z) at H₁\n\n  rw [← mul_assoc]        at H₁\n  rw [mul_inv_l _ h]      at H₁\n  rw [mul_one_l]          at H₁\n  rw [← mul_assoc]        at H₁\n  rw [mul_inv_l _ h]      at H₁\n  rw [mul_one_l]          at H₁\n\n  exact H₁",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "*", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [57, 66],
+          "statement": "  Lemma mul_cancel_l (x y z : F) : x <> 0 -> x * y = x * z -> y = z.",
+          "proof": "Proof.\n    intros Hnz Heq.\n    apply (f_equal (fun w => inv_F x * w)) in Heq.\n    rewrite <- !mul_assoc in Heq.\n    rewrite mul_inv_l in Heq; [| assumption].\n    rewrite mul_one_l in Heq.\n    rewrite mul_one_l in Heq.\n    exact Heq.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" },
+              { "symbol": "*", "category": "Notation" },
+              { "symbol": "0", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "Notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "mul_cancel_r",
+        "lean": {
+          "kind": "theorem",
+          "lines": [65, 69],
+          "statement": "theorem mul_cancel_r (x y z : F) (h : x ≠ zero_F) : y * x = z * x → y = z := by",
+          "proof": "  intro H\n  rw [mul_comm y x, mul_comm z x] at H\n  apply mul_cancel_l x y z h\n  assumption",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "*", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "mul_cancel_l", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [68, 75],
+          "statement": "  Lemma mul_cancel_r (x y z : F) : x <> 0 -> y * x = z * x -> y = z.",
+          "proof": "Proof.\n    intros Hnz H.\n    rewrite (mul_comm y x) in H.\n    rewrite (mul_comm z x) in H.\n    apply (mul_cancel_l x y z Hnz) in H.\n    exact H.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" },
+              { "symbol": "*", "category": "Notation" },
+              { "symbol": "0", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "mul_cancel_l", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_unique",
+        "lean": {
+          "kind": "theorem",
+          "lines": [71, 79],
+          "statement": "theorem inv_unique (x y : F) (h : x ≠ zero_F) (H : x * y = one_F) : y = inv_F x := by",
+          "proof": "  have H₁ := congrArg (fun w => inv_F x * w) H\n  change inv_F x * (x * y) = inv_F x * one_F at H₁\n  rw [← mul_assoc]    at H₁\n  rw [mul_inv_l _ h]  at H₁\n  rw [mul_one_l]      at H₁\n  rw [mul_comm]       at H₁\n  rw [mul_one_l]      at H₁\n  exact H₁",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" },
+              { "symbol": "*", "category": "notation" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [77, 87],
+          "statement": "  Lemma inv_unique (x y : F) : x <> 0 -> x * y = 1 -> y = inv_F x.",
+          "proof": "Proof.\n    intros Hnz He.\n    apply (f_equal (fun w => inv_F x * w)) in He.\n    rewrite <- !mul_assoc in He.\n    rewrite mul_inv_l in He; [| assumption].\n    rewrite mul_one_l in He.\n    rewrite mul_comm in He.\n    rewrite mul_one_l in He.\n    exact He.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" },
+              { "symbol": "*", "category": "Notation" },
+              { "symbol": "1", "category": "Notation" }
+            ],
+            "proof": [
+              { "symbol": "*", "category": "Notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "inv_involutive",
+        "lean": {
+          "kind": "theorem",
+          "lines": [81, 85],
+          "statement": "theorem inv_involutive (x : F) (h : x ≠ zero_F) : inv_F (inv_F x) = x := by",
+          "proof": "  apply Eq.symm\n  apply inv_unique\n  · exact inv_nonzero x h\n  · exact mul_inv_l x h",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "inv_unique", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [89, 96],
+          "statement": "  Lemma inv_involutive (x : F) : x <> 0 -> inv_F (inv_F x) = x.",
+          "proof": "Proof.\n    intros Hnz.\n    apply eq_sym.\n    apply inv_unique.\n    - apply inv_nonzero; assumption.\n    - apply mul_inv_l; assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "Field", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "inv_unique", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_tower",
+        "lean": {
+          "kind": "theorem",
+          "lines": [115, 116],
+          "statement": "theorem gal_isSolvable_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p))))) :\n  IsSolvable (Gal q) := by",
+          "proof": "  apply isSolvable_of_isScalarTower hp hq",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [136, 140],
+          "statement": "  Theorem gal_isSolvable_tower\n           (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n        : IsSolvable (Gal q).",
+          "proof": "Proof. eapply isSolvable_of_isScalarTower; eauto. Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_double_tower",
+        "lean": {
+          "kind": "theorem",
+          "lines": [122, 124],
+          "statement": "theorem gal_isSolvable_double_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q))))) :\n  IsSolvable (Gal r) := by",
+          "proof": "  have Hq := isSolvable_of_isScalarTower hp hq\n  apply isSolvable_of_isScalarTower Hq hr",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [142, 150],
+          "statement": "  Theorem gal_isSolvable_double_tower           (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n        : IsSolvable (Gal r).",
+          "proof": "Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq) as Hq.\n    apply (@isSolvable_of_isScalarTower F (SplittingField q) q r); assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_triple_tower",
+        "lean": {
+          "kind": "theorem",
+          "lines": [131, 134],
+          "statement": "theorem gal_isSolvable_triple_tower\n  (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n  (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r))))) :\n  IsSolvable (Gal s) := by",
+          "proof": "  have Hq := isSolvable_of_isScalarTower hp hq\n  have Hr := isSolvable_of_isScalarTower Hq hr\n  apply isSolvable_of_isScalarTower Hr hs",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [152, 162],
+          "statement": "  Theorem gal_isSolvable_triple_tower           (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n          (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n        : IsSolvable (Gal s).",
+          "proof": "Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq)  as Hq.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField q) q r Hq hr) as Hr.\n    apply (@isSolvable_of_isScalarTower F (SplittingField r) r s); assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_quadruple_tower",
+        "lean": {
+          "kind": "theorem",
+          "lines": [142, 146],
+          "statement": "theorem gal_isSolvable_quadruple_tower   (hp : IsSolvable (Gal p))\n  (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n  (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n  (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n  (ht : IsSolvable (Gal (map_poly t (@algebraMap F (SplittingField s))))) :\n  IsSolvable (Gal t) := by",
+          "proof": "  have Hq := isSolvable_of_isScalarTower hp hq\n  have Hr := isSolvable_of_isScalarTower Hq hr\n  have Hs := isSolvable_of_isScalarTower Hr hs\n  apply isSolvable_of_isScalarTower Hs ht",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [164, 176],
+          "statement": "  Theorem gal_isSolvable_quadruple_tower          (hp : IsSolvable (Gal p))\n          (hq : IsSolvable (Gal (map_poly q (@algebraMap F (SplittingField p)))))\n          (hr : IsSolvable (Gal (map_poly r (@algebraMap F (SplittingField q)))))\n          (hs : IsSolvable (Gal (map_poly s (@algebraMap F (SplittingField r)))))\n          (ht : IsSolvable (Gal (map_poly t (@algebraMap F (SplittingField s)))))\n        : IsSolvable (Gal t).",
+          "proof": "Proof.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField p) p q hp hq)  as Hq.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField q) q r Hq hr) as Hr.\n    pose proof (@isSolvable_of_isScalarTower F (SplittingField r) r s Hr hs) as Hs.\n    apply (@isSolvable_of_isScalarTower F (SplittingField s) s t); assumption.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_isScalarTower", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_map_poly",
+        "lean": {
+          "kind": "theorem",
+          "lines": [149, 150],
+          "statement": "theorem gal_isSolvable_map_poly (hp : IsSolvable (Gal p)) : IsSolvable (Gal (map_poly p (@algebraMap F K))) := by",
+          "proof": "  apply isSolvable_map_poly p hp",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_map_poly", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [178, 181],
+          "statement": "  Theorem gal_isSolvable_map_poly           (hp : IsSolvable (Gal p))\n        : IsSolvable (Gal (map_poly p (@algebraMap F K))).",
+          "proof": "Proof. apply (isSolvable_map_poly p hp). Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_map_poly", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_of_split",
+        "lean": {
+          "kind": "theorem",
+          "lines": [154, 155],
+          "statement": "theorem gal_isSolvable_of_split   (hsplit : Splits p (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal p) := by",
+          "proof": "  apply isSolvable_of_splits p (@algebraMap F (SplittingField p)) hsplit",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Splits", "category": "variable" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_splits", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [183, 186],
+          "statement": "  Theorem gal_isSolvable_of_split           (hsplit : Splits p (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal p).",
+          "proof": "Proof. apply (isSolvable_of_splits p _ hsplit). Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Splits", "category": "variable" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_splits", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_split_tower",
+        "lean": {
+          "kind": "theorem",
+          "lines": [159, 160],
+          "statement": "theorem gal_isSolvable_split_tower\n  (hsplit : Splits q (@algebraMap F (SplittingField p))) :\n  IsSolvable (Gal q) := by",
+          "proof": "  apply isSolvable_of_splits q (@algebraMap F (SplittingField p)) hsplit",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Splits", "category": "variable" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_splits", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [188, 191],
+          "statement": "  Theorem gal_isSolvable_split_tower           (hsplit : Splits q (@algebraMap F (SplittingField p)))\n        : IsSolvable (Gal q).",
+          "proof": "Proof. apply (isSolvable_of_splits q _ hsplit). Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Splits", "category": "variable" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" },
+              { "symbol": "SplittingField", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_of_splits", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "gal_isSolvable_two_step_map",
+        "lean": {
+          "kind": "theorem",
+          "lines": [163, 166],
+          "statement": "theorem gal_isSolvable_two_step_map (hp : IsSolvable (Gal p)) :\n  IsSolvable (Gal (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L))) := by",
+          "proof": "  apply isSolvable_map_poly\n  apply isSolvable_map_poly\n  exact hp",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_map_poly", "category": "Axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [193, 201],
+          "statement": " Theorem gal_isSolvable_two_step_map           (hp : IsSolvable (Gal p))\n        : IsSolvable\n            (Gal (map_poly (map_poly p (@algebraMap F K)) (@algebraMap K L))).",
+          "proof": "Proof.\n    pose proof (@isSolvable_map_poly F K p hp) as H1.\n    pose proof (@isSolvable_map_poly K L (map_poly p (@algebraMap F K)) H1) as H2.\n    exact H2.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "IsSolvable", "category": "class" },
+              { "symbol": "Gal", "category": "variable" },
+              { "symbol": "map_poly", "category": "variable" },
+              { "symbol": "algebraMap", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "isSolvable_map_poly", "category": "Axiom" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

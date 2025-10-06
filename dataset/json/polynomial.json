@@ -1,0 +1,615 @@
+{
+    "source": "polynomial",
+    "lean": {
+      "mynat": { "kind": "inductive", "lines": [0, 0], "content": "inductive mynat : Type" },
+      "mynat_add": { "kind": "def", "lines": [6, 6], "content": "def mynat_add : mynat → mynat → mynat" },
+      "mynat_le": { "kind": "inductive", "lines": [16, 16], "content": "inductive mynat_le : mynat → mynat → Prop" },
+      "mynat_zero_le": {"kind": "theorem", "lines": [24, 24], "content": "theorem mynat_zero_le (n : mynat) : mynat_le O n := by"},
+      "mynat_add_zero_r": {"kind": "theorem", "lines": [31, 31], "content": "theorem mynat_add_zero_r : ∀ n, mynat_add n O = n"},
+      "mynat_succ_le_succ": {"kind": "theorem", "line": [36,37], "content": "theorem mynat_succ_le_succ {n m : mynat} :\n  mynat_le n m → mynat_le (S n) (S m) :="},
+      "mynat_add_S_r": {"kind": "theorem", "line": [44,44], "content": "theorem mynat_add_S_r : ∀ m n, mynat_add m (S n) = S (mynat_add m n)"},
+      "mylist": { "kind": "inductive", "lines": [44, 44], "content": "inductive mylist (A : Type) : Type" },
+      "mynat_add_comm": {"kind": "theorem", "lines": [49, 49], "content": "theorem mynat_add_comm : ∀ n m, mynat_add n m = mynat_add m n"},
+      "::L": { "kind": "notation", "lines": [51, 51], "content": "notation h \"::L\" t => mylist.consL  h t" },
+      "InL": { "kind": "inductive", "lines": [59, 59], "content": "inductive InL {A : Type} (x : A) : mylist A → Prop" },
+      "NoDupL": { "kind": "inductive", "lines": [63, 63], "content": "inductive NoDupL {A : Type} : mylist A → Prop" },
+      "lengthL": { "kind": "def", "lines": [67, 67], "content": "def lengthL {A : Type} : mylist A → mynat" },
+      "ring": { "kind": "class", "lines": [71, 71], "content": "class ring (R : Type) where" },
+      "-R": { "kind": "notation", "lines": [94, 94], "content": "notation:35 \"-R \" x   => ring.opp x" },
+      "section Polynomial": { "kind": "section", "lines": [95, 95], "content": "section Polynomial" },
+      "R": { "kind": "variable", "lines": [97, 97], "content": "variable {R : Type} [rR : ring R]" },
+      "polynomial": { "kind": "variable", "lines": [98, 98], "content": "variable {polynomial : Type} [rP : ring polynomial]" },
+      "degree": { "kind": "variable", "lines": [102, 102], "content": "variable (degree    : polynomial → mynat)" },
+      "monomial": { "kind": "variable", "lines": [103, 103], "content": "variable (monomial  : mynat → R → polynomial)" },
+      "eval": { "kind": "variable", "lines": [104, 104], "content": "variable (eval      : polynomial → R → R)" },
+      "local -R": { "kind": "notation", "lines": [109, 109], "content": "local notation:55 x \" -R \" y => rR.add x (rR.opp y)" },
+      "X": { "kind": "def", "lines": [113, 113], "content": "def X (monomial : mynat → R → polynomial) : polynomial :=" },
+      "C": { "kind": "def", "lines": [116, 116], "content": "def C (monomial : mynat → R → polynomial) (c : R) : polynomial :=" },
+      "X_minus": { "kind": "def", "lines": [119, 119], "content": "def X_minus (monomial : mynat → R → polynomial) (a : R) : polynomial :=" },
+      "C_zero": { "kind": "axiom", "lines": [123, 123], "content": "axiom C_zero    : C monomial rR.zero = rP.zero" },
+      "C_one": { "kind": "axiom", "lines": [124, 124], "content": "axiom C_one     : C monomial rR.one  = rP.one" },
+      "deg_zero": { "kind": "axiom", "lines": [126, 126], "content": "axiom deg_zero  : degree rP.zero = O" },
+      "eval_add": { "kind": "axiom", "lines": [128, 128], "content": "axiom eval_add  : ∀ (p q : polynomial) (x : R), eval (rP.add p q) x = rR.add (eval p x) (eval q x)" },
+      "eval_mul": { "kind": "axiom", "lines": [129, 129], "content": "axiom eval_mul  : ∀ (p q : polynomial) (x : R), eval (rP.mul p q) x = rR.mul (eval p x) (eval q x)" },
+      "eval_C": { "kind": "axiom", "lines": [130, 130], "content": "axiom eval_C    : ∀ (c : R) (x : R),   eval (C monomial c) x = c" },
+      "eval_X": { "kind": "axiom", "lines": [131, 131], "content": "axiom eval_X    : ∀ (x : R),     eval (X monomial) x     = x" },
+      "deg_C": { "kind": "axiom", "lines": [133, 133], "content": "axiom deg_C        : ∀ (c : R), c ≠ rR.zero → degree (C monomial c) = O" },
+      "deg_constant": { "kind": "axiom", "lines": [134, 134], "content": "axiom deg_constant : ∀ (p : polynomial), degree p = O ↔ ∃ c : R, p = C monomial c" },
+      "deg_X_minus": { "kind": "axiom", "lines": [135, 135], "content": "axiom deg_X_minus  : ∀ (a : R), degree (X_minus monomial a) = S O" },
+      "deg_mul": { "kind": "axiom", "lines": [136, 136], "content": "axiom deg_mul      : ∀ (p q : polynomial), p ≠ rP.zero → q ≠ rP.zero →" },
+      "euclid_X_minus": { "kind": "axiom", "lines": [141, 141], "content": "axiom euclid_X_minus :" },
+      "sub_eq_zero_l": { "kind": "theorem", "lines": [155, 155], "content": "theorem sub_eq_zero_l : ∀ a b : R, rR.add a (rR.opp b) = rR.zero → a = b := by" },
+      "is_root": { "kind": "def", "lines": [186, 186], "content": "def is_root (eval : polynomial → R → R) (a : R) (p : polynomial) : Prop := eval p a = rR.zero" },
+      "root_factor": { "kind": "theorem", "lines": [188, 188], "content": "theorem root_factor" },
+      "root_transfer": { "kind": "theorem", "lines": [237, 237], "content": "theorem root_transfer" },
+      "roots_le_degree": { "kind": "theorem", "lines": [267, 267], "content": "theorem roots_le_degree" },
+      "poly_of_roots": { "kind": "def", "lines": [340, 340], "content": "def poly_of_roots (monomial : mynat → R → polynomial) : mylist R → polynomial" },
+      "X_minus_nonzero": { "kind": "theorem", "lines": [343, 343], "content": "theorem X_minus_nonzero" },
+      "constant_root_zero": { "kind": "theorem", "lines": [355, 355], "content": "theorem constant_root_zero" },
+      "root_of_product": { "kind": "theorem", "lines": [369, 369], "content": "theorem root_of_product" },
+      "root_scale_constant": { "kind": "theorem", "lines": [378, 378], "content": "theorem root_scale_constant" },
+      "poly_of_roots_nonzero": { "kind": "theorem", "lines": [401, 401], "content": "theorem poly_of_roots_nonzero" },
+      "deg_poly_of_roots": { "kind": "theorem", "lines": [416, 416], "content": "theorem deg_poly_of_roots :" },
+      "root_factor_list": { "kind": "theorem", "lines": [451, 451], "content": "theorem root_factor_list" },
+      "degree_factorisation": { "kind": "theorem", "lines": [500, 500], "content": "theorem degree_factorisation :" }
+    },
+    "coq": {
+      "mynat": { "kind": "Inductive", "lines": [0, 0], "content": "Inductive mynat : Type :=" },
+      "mynat_add": { "kind": "Fixpoint", "lines": [5, 5], "content": "Fixpoint mynat_add (n m : mynat) : mynat :=" },
+      "mynat_le": { "kind": "Inductive", "lines": [11, 11], "content": "Inductive mynat_le : mynat -> mynat -> Prop :=" },
+      "mynat_add_zero_r": { "kind": "Lemma", "lines": [22, 22], "content": "Lemma mynat_add_zero_r : forall n, mynat_add n O = n." },
+      "mynat_zero_le": { "kind": "Lemma", "lines": [15, 15], "content": "Lemma mynat_zero_le (n : mynat) : mynat_le O n." },
+      "mynat_succ_le_succ": { "kind": "Lemma", "lines": [29, 29], "content": "Lemma mynat_succ_le_succ (n m : mynat) :\n  mynat_le n m -> mynat_le (S n) (S m)." },
+      "mynat_add_S_r": { "kind": "Lemma", "lines": [37, 38], "content": "Lemma mynat_add_S_r : forall m n,\n  mynat_add m (S n) = S (mynat_add m n)." },
+      "mynat_add_comm": { "kind": "Lemma", "lines": [46, 46], "content": "Lemma mynat_add_comm : forall n m, mynat_add n m = mynat_add m n." },
+      "mylist": { "kind": "Inductive", "lines": [39, 39], "content": "Inductive mylist (A : Type) : Type :=" },
+      "::L": { "kind": "Notation", "lines": [45, 45], "content": "Infix \"::L\" := consL (at level 60, right associativity)." },
+      "+R": { "kind": "Notation", "lines": [69, 69], "content": "Notation \"x +R y\" := (add x y) (at level 50, left associativity)." },
+      "-R": { "kind": "Notation", "lines": [70, 70], "content": "Notation \"-R x\"    := (opp x)    (at level 35)." },
+      "x -R y": { "kind": "Notation", "lines": [71, 71], "content": "Notation \"x -R y\"  := (add x (opp y)) (at level 55)." },
+      "*R": { "kind": "Notation", "lines": [72, 72], "content": "Notation \"x *R y\"  := (mul x y)  (at level 40)." },
+      "InL": { "kind": "Inductive", "lines": [49, 49], "content": "Inductive InL {A : Type} (x : A) : mylist A -> Prop :=" },
+      "NoDupL": { "kind": "Inductive", "lines": [53, 53], "content": "Inductive NoDupL {A : Type} : mylist A -> Prop :=" },
+      "lengthL": { "kind": "Fixpoint", "lines": [57, 57], "content": "Fixpoint lengthL {A : Type} (xs : mylist A) : mynat :=" },
+      "ring": { "kind": "Class", "lines": [61, 61], "content": "Class ring (R : Type) := {" },
+      "Section Polynomial.": { "kind": "Section", "lines": [74, 74], "content": "Section Polynomial." },
+      "R": { "kind": "Context", "lines": [75, 75], "content": "  Context {R : Type} `{ring R}." },
+      "polynomial": { "kind": "Context", "lines": [77, 77], "content": "  Context {polynomial : Type} `{ring polynomial}." },
+      "degree": { "kind": "Variable", "lines": [79, 79], "content": "  Variable degree    : polynomial -> mynat." },
+      "monomial": { "kind": "Variable", "lines": [80, 80], "content": "  Variable monomial  : mynat -> R -> polynomial." },
+      "eval": { "kind": "Variable", "lines": [82, 82], "content": "  Variable eval : polynomial -> R -> R." },
+      "X": { "kind": "Definition", "lines": [84, 84], "content": "  Definition X          : polynomial := monomial (S O) one." },
+      "C": { "kind": "Definition", "lines": [85, 85], "content": "  Definition C (c:R)    : polynomial := monomial O c." },
+      "X_minus": { "kind": "Definition", "lines": [86, 86], "content": "  Definition X_minus (a:R) : polynomial := X +R C (-R a)." },
+      "C_zero": { "kind": "Axiom", "lines": [88, 88], "content": "  Axiom C_zero : C zero = zero." },
+      "C_one": { "kind": "Axiom", "lines": [89, 89], "content": "  Axiom C_one         : C one = one." },
+      "deg_zero": { "kind": "Axiom", "lines": [91, 91], "content": "  Axiom deg_zero      : degree zero = O." },
+      "eval_add": { "kind": "Axiom", "lines": [93, 93], "content": "  Axiom eval_add     : forall p q x,     eval (p +R q) x = eval p x +R eval q x." },
+      "eval_mul": { "kind": "Axiom", "lines": [94, 94], "content": "  Axiom eval_mul     : forall p q x,     eval (p *R q) x = eval p x *R eval q x." },
+      "eval_C": { "kind": "Axiom", "lines": [95, 95], "content": "  Axiom eval_C       : forall c x,       eval (C c) x   = c." },
+      "eval_X": { "kind": "Axiom", "lines": [96, 96], "content": "  Axiom eval_X       : forall x,         eval X x       = x." },
+      "deg_C": { "kind": "Axiom", "lines": [98, 98], "content": "  Axiom deg_C        : forall c, c <> zero -> degree (C c) = O." },
+      "deg_constant": { "kind": "Axiom", "lines": [99, 99], "content": "  Axiom deg_constant : forall p, degree p = O <-> exists c, p = C c." },
+      "deg_X_minus": { "kind": "Axiom", "lines": [100, 100], "content": "  Axiom deg_X_minus  : forall a,         degree (X_minus a) = S O." },
+      "deg_mul": { "kind": "Axiom", "lines": [101, 101], "content": "  Axiom deg_mul      : forall p q," },
+      "euclid_X_minus": { "kind": "Axiom", "lines": [105, 105], "content": "   Axiom euclid_X_minus :" },
+      "sub_eq_zero_l": { "kind": "Lemma", "lines": [143, 143], "content": "  Lemma sub_eq_zero_l `{ring R} : forall a b, a -R b = zero -> a = b." },
+      "root_factor": { "kind": "Lemma", "lines": [159, 159], "content": "  Lemma root_factor :" },
+      "root_transfer": { "kind": "Lemma", "lines": [189, 189], "content": "  Lemma root_transfer :" },
+      "root": { "kind": "Definition", "lines": [209, 209],"content": "  Definition root (a:R) (p:polynomial) : Prop := eval p a = zero."},
+      "roots_le_degree": { "kind": "Theorem", "lines": [210, 210], "content": "  Theorem roots_le_degree :" },
+      "poly_of_roots": { "kind": "Fixpoint", "lines": [265, 265], "content": "  Fixpoint poly_of_roots (xs : mylist R) : polynomial :=" },
+      "X_minus_nonzero": { "kind": "Lemma", "lines": [267, 267], "content": "  Lemma X_minus_nonzero : forall a, X_minus a <> zero." },
+      "constant_root_zero": { "kind": "Lemma", "lines": [276, 276], "content": "  Lemma constant_root_zero :" },
+      "root_of_product": { "kind": "Lemma", "lines": [287, 287], "content": "  Lemma root_of_product :" },
+      "root_scale_constant": { "kind": "Lemma", "lines": [295, 295], "content": "  Lemma root_scale_constant :" },
+      "poly_of_roots_nonzero": { "kind": "Lemma", "lines": [307, 307], "content": "  Lemma poly_of_roots_nonzero : forall xs, poly_of_roots xs <> zero." },
+      "deg_poly_of_roots": { "kind": "Lemma", "lines": [315, 315], "content": "  Lemma deg_poly_of_roots :" },
+      "root_factor_list": { "kind": "Lemma", "lines": [330, 330], "content": "  Lemma root_factor_list :" },
+      "degree_factorisation": { "kind": "Lemma", "lines": [358, 358], "content": "  Lemma degree_factorisation :" }
+    },
+    "items": [
+      {
+        "name": "sub_eq_zero_l",
+        "lean": {
+          "kind": "theorem",
+          "lines": [156, 181],
+          "statement": "theorem sub_eq_zero_l : ∀ a b : R, rR.add a (rR.opp b) = rR.zero → a = b := by",
+          "proof": "  intro a b h\n  have h' : rR.add (rR.add a (rR.opp b)) b = rR.add rR.zero b := by\n    simpa using congrArg (fun t : R => rR.add t b) h\n  -- rewrite using the ring axioms, following the Coq script\n  have := h'\n  -- (a + (-b)) + b = a + ((-b) + b) by assoc; then = a + 0 = a; RHS: 0 + b = b\n  -- We'll perform the same steps explicitly:\n  -- Left:\n  have L1 : rR.add (rR.add a (rR.opp b)) b = rR.add a (rR.add (rR.opp b) b) := by\n    simpa using (rR.add_assoc a (rR.opp b) b)\n  have L2 : rR.add (rR.opp b) b = rR.zero := by\n    calc\n      rR.add (rR.opp b) b = rR.add b (rR.opp b) := by simpa using (rR.add_comm (rR.opp b) b)\n      _ = rR.zero := by simpa using (rR.add_opp b)\n  have L3 : rR.add a (rR.add (rR.opp b) b) = rR.add a rR.zero := by simp [L2]\n  have L4 : rR.add a rR.zero = a := rR.add_zero a\n  -- Right:\n  have R1 : rR.add rR.zero b = b := by\n    calc\n      rR.add rR.zero b = rR.add b rR.zero := by simpa using (rR.add_comm rR.zero b)\n      _ = b := by simpa using (rR.add_zero b)\n  -- Put together:\n  have : a = b := by\n    simpa [L1, L2, L3, L4, R1] using h'\n  exact this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [144, 158],
+          "statement": "  Lemma sub_eq_zero_l `{ring R} : forall a b, a -R b = zero -> a = b.",
+          "proof": "Proof.\n    intros a b H2.\n    assert (H': (a +R opp b) +R b = zero +R b).\n    {\n      rewrite H2.\n      reflexivity.\n    }\n    rewrite add_assoc in H'.\n    rewrite add_comm with (x:=opp b) (y:=b) in H'.\n    rewrite add_opp in H'.\n    rewrite add_zero in H'.\n    rewrite add_comm, add_zero in H'.\n    exact H'.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "x -R y", "category": "notation" }
+            ],
+            "proof": [
+            ]
+          }
+        }
+      },
+      {
+        "name": "root_factor",
+        "lean": {
+          "kind": "theorem",
+          "lines": [195, 236],
+          "statement": "theorem root_factor\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R)\n  (p : polynomial) (a : R) :\n  is_root eval a p → ∃ q : polynomial, p = rP.mul q (X_minus monomial a)\n:= by",
+          "proof": "  intro hp\n  --\n  rcases (euclid_X_minus (degree := degree) (monomial := monomial) p a) with\n    ⟨q, r, h_eq, h_deg⟩\n  -- Show `eval r a = 0`\n  have hr0 : eval r a = rR.zero := by\n    -- rewrite the evaluation of the decomposition at `a`\n    have hsum : eval (rP.add (rP.mul q (X_minus monomial a)) r) a = rR.zero := by\n      simpa [h_eq] using hp\n    -- first, use eval_add to split the sum\n    have hsum' : rR.add (eval (rP.mul q (X_minus monomial a)) a) (eval r a) = rR.zero := by\n      simpa [eval_add] using hsum\n    -- then, expand the product\n    have hmul : eval (rP.mul q (X_minus monomial a)) a\n                  = rR.mul (eval q a) (eval (X_minus monomial a) a) := by\n      simp [eval_mul]\n    have : rR.add (rR.mul (eval q a) (eval (X_minus monomial a) a)) (eval r a) = rR.zero := by\n      simpa [hmul] using hsum'\n    -- compute eval of X_minus and simplify\n    have hx : eval (X_minus monomial a) a = rR.add a (rR.opp a) := by\n      simp [X_minus, eval_add, eval_X, eval_C]\n    have : rR.add (rR.mul (eval q a) (rR.add a (rR.opp a))) (eval r a) = rR.zero := by\n      simpa [hx] using this\n    have : rR.add (rR.mul (eval q a) rR.zero) (eval r a) = rR.zero := by\n      simpa [rR.add_opp] using this\n    have : rR.add rR.zero (eval r a) = rR.zero := by\n      simpa [rR.mul_zero] using this\n    have : rR.add (eval r a) rR.zero = rR.zero := by\n      simpa [rR.add_comm] using this\n    simpa [rR.add_zero] using this\n  -- `r` is constant\n  rcases (deg_constant (degree := degree) (monomial := monomial) r).mp h_deg with ⟨c, hc⟩\n  subst hc\n  -- From `eval (C c) a = 0`, we get `c = 0`\n  have : c = rR.zero := by\n    simpa [eval_C] using hr0\n  subst this\n  -- Conclude\n  have : p = rP.mul q (X_minus monomial a) := by\n    simpa [C_zero, rP.add_zero] using h_eq\n  exact ⟨q, this⟩",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "X", "category": "definition" },
+              { "symbol": "C", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "polynomial", "category": "variable"}
+            ],
+            "proof": [
+              { "symbol": "euclid_X_minus", "category": "axiom" },
+              { "symbol": "eval_add", "category": "axiom" },
+              { "symbol": "eval_mul", "category": "axiom" },
+              { "symbol": "eval_X", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" },
+              { "symbol": "deg_constant", "category": "axiom" },
+              { "symbol": "C_zero", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [162, 188],
+          "statement": "  Lemma root_factor :\n    forall p a, eval p a = zero ->\n      exists q, p = q *R X_minus a.",
+          "proof": "Proof.\n    intros p a Hp.\n    destruct (euclid_X_minus p a) as (q & r & Heq & Hdr).\n\n    assert (eval r a = zero).\n    {\n      rewrite Heq in Hp.\n      rewrite (eval_add (q *R X_minus a) r a) in Hp.\n      rewrite (eval_mul q (X_minus a) a)      in Hp.\n      unfold X_minus in Hp.\n      rewrite (eval_add X (C (-R a)) a)        in Hp.\n      rewrite (eval_X a)                      in Hp.\n      rewrite (eval_C (-R a) a)               in Hp.\n      rewrite add_opp     in Hp.\n      rewrite mul_zero    in Hp.\n      rewrite add_comm, add_zero in Hp.\n      assumption.\n    }\n    destruct (proj1 (deg_constant r) Hdr) as (c & Hr_eq).\n    subst r.\n    rewrite eval_C in H1.\n    subst c.\n    rewrite C_zero in Heq.\n    rewrite add_zero in Heq.\n    now exists q.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "definition" },
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "X", "category": "definition" },
+              { "symbol": "C", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "euclid_X_minus", "category": "axiom" },
+              { "symbol": "eval_add", "category": "axiom" },
+              { "symbol": "eval_mul", "category": "axiom" },
+              { "symbol": "eval_X", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" },
+              { "symbol": "deg_constant", "category": "axiom" },
+              { "symbol": "C_zero", "category": "axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "root_transfer",
+        "lean": {
+          "kind": "theorem",
+          "lines": [247, 265],
+          "statement": "theorem root_transfer\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R)\n  (p q : polynomial) (a b : R) :\n  p = rP.mul q (X_minus monomial a) →\n  b ≠ a →\n  is_root eval b p →\n  is_root eval b q\n:= by",
+          "proof": "  intro hp hba hpb\n  -- Evaluate at `b` and use no-zero-divisors\n  have := hpb\n  have hb0 :\n    eval (rP.mul q (X_minus monomial a)) b = rR.zero := by\n    simpa [hp] using hpb\n  have : rR.mul (eval q b) (eval (X_minus monomial a) b) = rR.zero := by\n    simpa [eval_mul] using hb0\n  -- compute eval of X_minus at b\n  have hx : eval (X_minus monomial a) b\n              = rR.add b (rR.opp a) := by\n    simp [X_minus, eval_add, eval_X, eval_C]\n  -- no zero divisors\n  have h' := rR.no_zero_div (eval q b) (b -R a) (by simpa [hx] using this)\n  rcases h' with hq | hba'\n  · exact hq\n  · have : b = a := sub_eq_zero_l (a := b) (b := a) hba'\n    exact (hba this).elim",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "axiom" },
+              { "symbol": "eval_add", "category": "axiom" },
+              { "symbol": "eval_X", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" },
+              { "symbol": "sub_eq_zero_l", "category": "theorem" },
+              { "symbol": "local -R", "category": "notation" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [195, 207],
+          "statement": "  Lemma root_transfer :\n    forall p q a b,\n      p = q *R X_minus a ->\n      b <> a ->\n      eval p b = zero ->\n      eval q b = zero.",
+          "proof": "Proof.\n    intros p q a b Hp Hba Hb.\n    rewrite Hp in Hb.\n    rewrite eval_mul in Hb.\n    unfold X_minus in Hb.\n    rewrite !eval_add, eval_X, eval_C in Hb.\n    apply no_zero_div in Hb.\n    destruct Hb as [Hq | Hba'].\n    - exact Hq.\n    - apply sub_eq_zero_l in Hba'.\n      congruence.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "definition" },
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "axiom" },
+              { "symbol": "eval_add", "category": "axiom" },
+              { "symbol": "eval_X", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" },
+              { "symbol": "sub_eq_zero_l", "category": "Lemma" },
+              { "symbol": "x -R y", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "roots_le_degree",
+        "lean": {
+          "kind": "theorem",
+          "lines": [277, 336],
+          "statement": "theorem roots_le_degree\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R)\n  (p : polynomial) (xs : mylist R) :\n  NoDupL xs →\n  (∀ a, InL a xs → is_root eval a p) →\n  p ≠ rP.zero →\n  mynat_le (lengthL xs) (degree p)\n:= by",
+          "proof": "  intro hnd hrt hp0\n  -- Stronger statement with explicit generalization over p\n  have main : ∀ (xs : mylist R), NoDupL xs →\n      ∀ (p : polynomial), (∀ a, InL a xs → is_root eval a p) → p ≠ rP.zero →\n      mynat_le (lengthL xs) (degree p) := by\n    intro xs\n    induction xs with\n    | nilL =>\n        intro _ p _ _\n        simpa using mynat_zero_le (degree p)\n    | consL a xs ih =>\n        intro hnd_xs p hrt' hp0'\n        -- a is a root\n        have ha : is_root eval a p :=\n          hrt' a (InL.In_head xs)\n        -- factor p = q * (X - a)\n        rcases root_factor degree monomial eval p a ha with ⟨q, hpq⟩\n        -- destruct NoDup for a ::L xs\n        cases hnd_xs with\n        | ND_cons _ _ hnotin hnd_tl =>\n            -- q ≠ 0\n            have qnz : q ≠ rP.zero := by\n              intro h\n              have hq0 : rP.mul q (X_minus monomial a) = rP.zero := by\n                simp [h, rP.mul_comm, rP.mul_zero]\n              have : p = rP.zero := by simp [hpq, hq0]\n              exact hp0' this\n            -- X_minus a ≠ 0\n            have xnz : (X_minus monomial a) ≠ rP.zero := by\n              intro h\n              have hx0 : rP.mul q (X_minus monomial a) = rP.zero := by\n                simp [h, rP.mul_zero]\n              have : p = rP.zero := by simp [hpq, hx0]\n              exact hp0' this\n            -- degree computation\n            have hdeg : degree p = S (degree q) := by\n              have := (deg_mul (degree := degree)\n                          (p := q) (q := X_minus monomial a)) qnz xnz\n              -- degree p = degree q + degree (X - a) = degree q + 1\n              -- normalize to S (degree q)\n              simpa [hpq, deg_X_minus, mynat_add_comm, mynat_add_zero_r, mynat_add_S_r] using this\n            -- reduce to xs, using root transfer\n            have hF : ∀ b, InL b xs → is_root eval b q := by\n              intro b hb\n              -- b ≠ a\n              have hba : b ≠ a := by\n                intro hbaeq; subst hbaeq\n                exact hnotin hb\n              -- b is root of p\n              have hbroot : is_root eval b p :=\n                hrt' b (InL.In_tail (y := a) (xs := xs) hb)\n              -- transfer\n              exact root_transfer degree monomial eval p q a b hpq hba hbroot\n            -- conclude by IH on q and xs\n            have ihRes := ih hnd_tl q hF qnz\n            -- rewrite degree p = S (degree q) and length of cons\n            simpa [hdeg, lengthL] using mynat_succ_le_succ ihRes\n  -- apply main to the original inputs\n  exact main xs hnd p hrt hp0",
+          "dependencies": {
+            "statement": [
+              { "symbol": "mynat_le", "category": "inductive" },
+              { "symbol": "lengthL", "category": "definition" },
+              { "symbol": "InL", "category": "inductive" },
+              { "symbol": "NoDupL", "category": "inductive" },
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "mynat_zero_le", "category": "theorem" },
+              { "symbol": "root_factor", "category": "theorem" },
+              { "symbol": "root_transfer", "category": "theorem" },
+              { "symbol": "deg_mul", "category": "axiom" },
+              { "symbol": "deg_X_minus", "category": "axiom" },
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "mynat_add_comm", "category": "theorem" },
+              { "symbol": "mynat_add_zero_r", "category": "theorem" },
+              { "symbol": "mynat_add_S_r", "category": "theorem" },
+              { "symbol": "mynat_succ_le_succ", "category": "theorem" },
+              { "symbol": "lengthL", "category": "definition" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Theorem",
+          "lines": [216, 260],
+          "statement": "  Theorem roots_le_degree :\n    forall p (xs:mylist R),\n      NoDupL xs ->\n      (forall a, InL a xs -> root a p) ->\n      p <> zero ->\n      mynat_le (lengthL xs) (degree p).",
+          "proof": "Proof.\n    intros p xs Hnd Hrt Hnz.\n    revert p Hrt Hnz.\n    induction xs as [|a xs IH]; intros p Hrt Hnz.\n    - simpl. apply mynat_zero_le.\n    - simpl in *. \n      assert (Ha : root a p) by (apply Hrt; constructor).\n      destruct (root_factor p a Ha) as [q Hpq].\n      inversion Hnd as [| x0 xs0 Hnotin Hnd_xs]; subst x0 xs0; clear Hnd.\n      assert (q <> zero) as qnz.\n      { \n        intro G.\n        rewrite G in Hpq.\n        rewrite mul_comm in Hpq.\n        rewrite mul_zero in Hpq.\n        exact (Hnz Hpq).\n      }\n      assert (X_minus a <> zero) as xnz.\n      { \n        intro G.\n        rewrite G in Hpq.\n        rewrite mul_zero in Hpq.\n        exact (Hnz Hpq).\n      }\n      assert (Hdeg : degree p = S (degree q)).\n      { \n        rewrite Hpq.\n        rewrite (deg_mul q (X_minus a) qnz xnz).\n        rewrite deg_X_minus.\n        rewrite mynat_add_comm.\n        reflexivity. \n      }\n      rewrite Hdeg.\n      apply mynat_succ_le_succ.\n      assert (Hf : forall b, InL b xs -> root b q).\n      { \n        intros b Hb.\n        apply (root_transfer p q a b Hpq).\n        - intro Heq; subst b; apply Hnotin; assumption.\n        - apply Hrt; constructor 2; assumption.\n      }\n      apply IH; auto.\n\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "mynat_le", "category": "inductive" },
+              { "symbol": "lengthL", "category": "Fixpoint" },
+              { "symbol": "InL", "category": "Inductive" },
+              { "symbol": "NoDupL", "category": "Inductive" },
+              { "symbol": "root", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "mynat_zero_le", "category": "Lemma" },
+              { "symbol": "root_factor", "category": "Lemma" },
+              { "symbol": "root_transfer", "category": "Lemma" },
+              { "symbol": "deg_mul", "category": "Axiom" },
+              { "symbol": "deg_X_minus", "category": "Axiom" },
+              { "symbol": "X_minus", "category": "Definition" },
+              { "symbol": "mynat_add_comm", "category": "Lemma" },
+              { "symbol": "mynat_add_zero_r", "category": "Lemma" },
+              { "symbol": "mynat_add_S_r", "category": "Lemma" },
+              { "symbol": "mynat_succ_le_succ", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "X_minus_nonzero",
+        "lean": {
+          "kind": "theorem",
+          "lines": [347, 353],
+          "statement": "theorem X_minus_nonzero\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial) :\n  ∀ a, (X_minus monomial a) ≠ rP.zero := by",
+          "proof": "  intro a h\n  have hdeg : degree (X_minus monomial a) = S O :=\n    deg_X_minus (degree := degree) (monomial := monomial) a\n  have : degree rP.zero = S O := by simpa [h] using hdeg\n  have : O = S O := by simp [deg_zero] at this\n  cases this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "X_minus", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "deg_X_minus", "category": "axiom" },
+              { "symbol": "deg_zero", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [268, 275],
+          "statement": "  Lemma X_minus_nonzero : forall a, X_minus a <> zero.",
+          "proof": "Proof.\n    intros a Ha.\n    specialize (deg_X_minus a) as Hdeg.\n    rewrite Ha in Hdeg.\n    rewrite deg_zero in Hdeg.\n    discriminate Hdeg.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "X_minus", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "deg_X_minus", "category": "Axiom" },
+              { "symbol": "deg_zero", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "constant_root_zero",
+        "lean": {
+          "kind": "theorem",
+          "lines": [361, 367],
+          "statement": "theorem constant_root_zero\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R)\n  (p : polynomial) (a : R) :\n  degree p = O → is_root eval a p → p = rP.zero := by",
+          "proof": "  intro hdeg hroot\n  rcases (deg_constant (degree := degree) (monomial := monomial) p).mp hdeg with ⟨c, hc⟩\n  subst hc\n  have : c = rR.zero := by simpa [is_root, eval_C] using hroot\n  subst this\n  simp [C_zero]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "C", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "deg_constant", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" },
+              { "symbol": "C_zero", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [278, 286],
+          "statement": "  Lemma constant_root_zero :\n    forall p a, degree p = O -> root a p -> p = zero.",
+          "proof": "Proof.\n    intros p a Hdeg Hroot.\n    destruct (proj1 (deg_constant p) Hdeg) as [c Hpc].\n    subst p.\n    unfold root in Hroot; rewrite eval_C in Hroot.\n    subst c.\n    rewrite C_zero; reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "Definition" },
+              { "symbol": "C", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "deg_constant", "category": "Axiom" },
+              { "symbol": "eval_C", "category": "Axiom" },
+              { "symbol": "C_zero", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "root_of_product",
+        "lean": {
+          "kind": "theorem",
+          "lines": [373, 376],
+          "statement": "theorem root_of_product\n  (eval : polynomial → R → R)\n  (p q : polynomial) (a : R) :\n  is_root eval a (rP.mul p q) → is_root eval a p ∨ is_root eval a q := by",
+          "proof": "  intro hpq\n  have : rR.mul (eval p a) (eval q a) = rR.zero := by simpa [is_root, eval_mul] using hpq\n  simpa [is_root] using rR.no_zero_div (eval p a) (eval q a) this",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [289, 294],
+          "statement": "  Lemma root_of_product :\n    forall p q a, root a (p *R q) -> root a p \/ root a q.",
+          "proof": "Proof.\n    intros p q a Hpq.\n    unfold root in *; rewrite eval_mul in Hpq.\n    apply no_zero_div in Hpq; tauto.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "root_scale_constant",
+        "lean": {
+          "kind": "theorem",
+          "lines": [383, 399],
+          "statement": "theorem root_scale_constant\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R)\n  (p : polynomial) (c a : R) :\n  c ≠ rR.zero → (is_root eval a p ↔ is_root eval a (rP.mul (C monomial c) p)) := by",
+          "proof": "  intro hc\n  constructor\n  · intro hp\n    -- Expand and rewrite explicitly to avoid unused-simp warnings\n    -- eval ((C c) * p) a = c * eval p a = c * 0 = 0\n    have hpa0 : eval p a = rR.zero := hp\n    have : rR.mul c (eval p a) = rR.zero := by\n      simp [hpa0, rR.mul_zero]\n    simpa [is_root, eval_mul, eval_C] using this\n  · intro hcp\n    have hz : rR.mul c (eval p a) = rR.zero := by\n      simpa [is_root, eval_mul, eval_C] using hcp\n    have hdisj : c = rR.zero ∨ eval p a = rR.zero := rR.no_zero_div c (eval p a) hz\n    cases hdisj with\n    | inl hcz => exact (hc hcz).elim\n    | inr hp0 => simpa [is_root] using hp0",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "C", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "R", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "axiom" },
+              { "symbol": "eval_C", "category": "axiom" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [297, 306],
+          "statement": "  Lemma root_scale_constant :\n    forall p c a, c <> zero -> (root a p <-> root a (C c *R p)).",
+          "proof": "Proof.\n    intros p c a Hc.\n    split.\n    - intros Hp; unfold root in *.\n      rewrite eval_mul, eval_C, Hp, mul_zero; reflexivity.\n    - intros Hcp; unfold root in *.\n      rewrite eval_mul, eval_C in Hcp.\n      apply no_zero_div in Hcp; tauto.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "Definition" },
+              { "symbol": "C", "category": "Definition" }
+            ],
+            "proof": [
+              { "symbol": "eval_mul", "category": "Axiom" },
+              { "symbol": "eval_C", "category": "Axiom" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "poly_of_roots_nonzero",
+        "lean": {
+          "kind": "theorem",
+          "lines": [408, 414],
+          "statement": "theorem poly_of_roots_nonzero\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial) :\n  ∀ (xs : mylist R), poly_of_roots monomial xs ≠ rP.zero\n| mylist.nilL => rP.one_neq_zero\n| mylist.consL a xs =>\n    by",
+          "proof": "      intro h\n      -- (X - a) * poly_of_roots xs = 0 ⇒ one factor = 0\n      have := rP.no_zero_div (X_minus monomial a) (poly_of_roots monomial xs) h\n      rcases this with hx | hxs\n      · exact (X_minus_nonzero (degree := degree) (monomial := monomial) a) hx\n      · exact (poly_of_roots_nonzero (degree := degree) (monomial := monomial) xs) hxs",
+          "dependencies": {
+            "statement": [
+              { "symbol": "poly_of_roots", "category": "definition" },
+              { "symbol": "ring", "category": "class" },
+              { "symbol": "polynomial", "category": "variable" }
+            ],
+            "proof": [
+              { "symbol": "X_minus_nonzero", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [308, 314],
+          "statement": "  Lemma poly_of_roots_nonzero : forall xs, poly_of_roots xs <> zero.",
+          "proof": "Proof.\n    induction xs as [|a xs IH]; simpl.\n    - exact one_neq_zero.\n    - intro Ha; apply no_zero_div in Ha; destruct Ha as [Ha|Ha]; \n        [apply X_minus_nonzero in Ha | apply IH in Ha]; contradiction.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "poly_of_roots", "category": "Fixpoint" }
+            ],
+            "proof": [
+              { "symbol": "X_minus_nonzero", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "deg_poly_of_roots",
+        "lean": {
+          "kind": "theorem",
+          "lines": [419, 448],
+          "statement": "theorem deg_poly_of_roots\n  (xs : mylist R) :\n  degree (poly_of_roots monomial xs) = lengthL xs := by",
+          "proof": "  induction xs with\n  | nilL =>\n      calc\n        degree (poly_of_roots monomial mylist.nilL)\n            = degree rP.one := by simp [poly_of_roots]\n        _   = degree (C monomial rR.one) := by simp [C_one]\n        _   = O := by simp [deg_C, rR.one_neq_zero]\n  | consL a xs ih =>\n      have hx : (X_minus monomial a) ≠ rP.zero :=\n        X_minus_nonzero (degree := degree) (monomial := monomial) a\n      have hp : (poly_of_roots monomial xs) ≠ rP.zero :=\n        poly_of_roots_nonzero (degree := degree) (monomial := monomial) xs\n      have hmul :\n          degree (poly_of_roots monomial (mylist.consL a xs))\n            = mynat_add (degree (X_minus monomial a))\n                        (degree (poly_of_roots monomial xs)) := by\n        simpa [poly_of_roots] using\n          (deg_mul (degree := degree)\n            (p := X_minus monomial a) (q := poly_of_roots monomial xs) hx hp)\n\n      have hxdeg : degree (X_minus monomial a) = S O :=\n        deg_X_minus (degree := degree) (monomial := monomial) a\n\n      have hstep :\n          degree (poly_of_roots monomial (mylist.consL a xs))\n            = S (degree (poly_of_roots monomial xs)) := by\n        simpa [hxdeg, mynat_add_comm, mynat_add_S_r, mynat_add_zero_r] using hmul\n\n      simpa [lengthL, hstep] using congrArg S ih",
+          "dependencies": {
+            "statement": [
+              { "symbol": "degree", "category": "variable" },
+              { "symbol": "poly_of_roots", "category": "definition" },
+              { "symbol": "lengthL", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "deg_mul", "category": "axiom" },
+              { "symbol": "deg_X_minus", "category": "axiom" },
+              { "symbol": "X_minus_nonzero", "category": "theorem" },
+              { "symbol": "poly_of_roots_nonzero", "category": "theorem" },
+              { "symbol": "C_one", "category": "axiom" },
+              { "symbol": "deg_C", "category": "axiom" },
+              { "symbol": "mynat_add_comm", "category": "theorem" },
+              { "symbol": "mynat_add_S_r", "category": "theorem" },
+              { "symbol": "mynat_add_zero_r", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [317, 328],
+          "statement": "  Lemma deg_poly_of_roots :\n    forall xs, degree (poly_of_roots xs) = lengthL xs.",
+          "proof": "Proof.\n    induction xs as [|a xs IH]; simpl.\n    - rewrite <- C_one, deg_C; [reflexivity|exact one_neq_zero].\n    - pose proof (X_minus_nonzero a) as Hx.\n      pose proof (poly_of_roots_nonzero xs) as Hp.\n      rewrite deg_mul; try assumption.\n      rewrite deg_X_minus, IH.\n      rewrite mynat_add_comm.\n      rewrite mynat_add_S_r, mynat_add_zero_r.\n      reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "degree", "category": "Variable" },
+              { "symbol": "poly_of_roots", "category": "Fixpoint" },
+              { "symbol": "lengthL", "category": "Fixpoint" }
+            ],
+            "proof": [
+              { "symbol": "deg_mul", "category": "Axiom" },
+              { "symbol": "deg_X_minus", "category": "Axiom" },
+              { "symbol": "X_minus_nonzero", "category": "Lemma" },
+              { "symbol": "poly_of_roots_nonzero", "category": "Lemma" },
+              { "symbol": "C_one", "category": "Axiom" },
+              { "symbol": "deg_C", "category": "Axiom" },
+              { "symbol": "mynat_add_comm", "category": "Lemma" },
+              { "symbol": "mynat_add_S_r", "category": "Lemma" },
+              { "symbol": "mynat_add_zero_r", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "root_factor_list",
+        "lean": {
+          "kind": "theorem",
+          "lines": [459, 495],
+          "statement": "theorem root_factor_list\n  (degree : polynomial → mynat)\n  (monomial : mynat → R → polynomial)\n  (eval : polynomial → R → R) :\n  ∀ (p : polynomial) (xs : mylist R),\n    NoDupL xs →\n    (∀ a, InL a xs → is_root eval a p) →\n    ∃ q, p = rP.mul q (poly_of_roots monomial xs)\n:= by",
+          "proof": "  intro p xs; revert p\n  induction xs with\n  | nilL =>\n      intro p _ _\n      exact ⟨p, by simp [poly_of_roots, rP.mul_one]⟩\n  | consL a xs ih =>\n      intro p hnd hroots\n\n      cases hnd with\n      | ND_cons _ _ hnotin hnd' =>\n\n          have Ha : InL a (a ::L xs) := InL.In_head xs\n          have hroot_pa : is_root eval a p := hroots a Ha\n          rcases root_factor (degree := degree) (monomial := monomial) (eval := eval) p a hroot_pa with ⟨q, hpq⟩\n\n          have Hq : ∀ b, InL b xs → is_root eval b q := by\n            intro b hb\n            have hba : b ≠ a := by\n              intro hbaeq; subst hbaeq; exact hnotin hb\n            have hbroot : is_root eval b p := hroots b (InL.In_tail (y := a) (xs := xs) hb)\n            exact root_transfer (degree := degree) (monomial := monomial) (eval := eval)\n              p q a b hpq hba hbroot\n\n          rcases ih q hnd' Hq with ⟨q0, hq0⟩\n          refine ⟨q0, ?_⟩\n\n\n\n          calc\n            p = rP.mul q (X_minus monomial a) := by simp [hpq]\n            _ = rP.mul (rP.mul q0 (poly_of_roots monomial xs)) (X_minus monomial a) := by\n                  simp [hq0]\n            _ = rP.mul q0 (rP.mul (poly_of_roots monomial xs) (X_minus monomial a)) := by\n                  simp [rP.mul_assoc]\n            _ = rP.mul q0 (rP.mul (X_minus monomial a) (poly_of_roots monomial xs)) := by\n                  simp [rP.mul_comm]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "is_root", "category": "definition" },
+              { "symbol": "poly_of_roots", "category": "definition" },
+              { "symbol": "NoDupL", "category": "inductive" },
+              { "symbol": "InL", "category": "inductive" }
+            ],
+            "proof": [
+              { "symbol": "root_factor", "category": "theorem" },
+              { "symbol": "root_transfer", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [335, 357],
+          "statement": "  Lemma root_factor_list :\n  forall p xs,\n    NoDupL xs ->\n    (forall a, InL a xs -> root a p) ->\n    exists q, p = q *R poly_of_roots xs.",
+          "proof": "Proof.\n    intros p xs.\n    induction xs as [| a xs IH] in p |- *.\n    - exists p; simpl; rewrite mul_one; reflexivity.\n    - intros Hnd Hroots.\n    inversion Hnd as [| a' xs' Hnotin Hnd']; subst a' xs'.\n    assert (Ha : InL a (a ::L xs)) by constructor.\n    pose proof (Hroots a Ha) as Hroot_pa.\n    destruct (root_factor p a Hroot_pa) as [q Hpq].\n    assert (Hroots_q : forall b, InL b xs -> root b q).\n    {\n      intros b Hb.\n      assert (Hba : b <> a) by (intro E; subst b; apply Hnotin; assumption).\n      pose proof (Hroots b (In_tail b a xs Hb)) as Hroot_b.\n      eapply root_transfer; eauto.\n    }\n    destruct (IH q Hnd' Hroots_q) as [q0 Hq0].\n    exists q0.\n    simpl. rewrite Hpq. rewrite Hq0. rewrite mul_assoc.\n    rewrite (mul_comm (poly_of_roots xs) (X_minus a)).\n    reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "root", "category": "Definition" },
+              { "symbol": "poly_of_roots", "category": "Fixpoint" },
+              { "symbol": "NoDupL", "category": "Inductive" },
+              { "symbol": "InL", "category": "Inductive" }
+            ],
+            "proof": [
+              { "symbol": "root_factor", "category": "Lemma" },
+              { "symbol": "root_transfer", "category": "Lemma" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "degree_factorisation",
+        "lean": {
+          "kind": "theorem",
+          "lines": [504, 510],
+          "statement": "theorem degree_factorisation :\n  ∀ (p : polynomial) (xs : mylist R) (q : polynomial),\n    p = rP.mul q (poly_of_roots monomial xs) →\n    q ≠ rP.zero →\n    degree p = mynat_add (degree q) (lengthL xs)\n:= by",
+          "proof": "  intro p xs q hp hq\n  have hz : poly_of_roots monomial xs ≠ rP.zero :=\n    poly_of_roots_nonzero (degree := degree) (monomial := monomial) xs\n  simp [hp,\n         (deg_mul (degree := degree) _ _ hq hz),\n         deg_poly_of_roots (degree := degree) (monomial := monomial) xs]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "poly_of_roots", "category": "definition" },
+              { "symbol": "mynat_add", "category": "definition" }
+            ],
+            "proof": [
+              { "symbol": "deg_mul", "category": "axiom" },
+              { "symbol": "poly_of_roots_nonzero", "category": "theorem" },
+              { "symbol": "deg_poly_of_roots", "category": "theorem" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [363, 369],
+          "statement": "  Lemma degree_factorisation :\n    forall p xs q,\n      p = q *R poly_of_roots xs ->\n      q <> zero ->\n      degree p = mynat_add (degree q) (lengthL xs).",
+          "proof": "Proof.\n    intros p xs q Hp Hq.\n    rewrite Hp.\n    rewrite deg_mul; try assumption; try apply poly_of_roots_nonzero.\n    rewrite deg_poly_of_roots. reflexivity.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "poly_of_roots", "category": "Fixpoint" },
+              { "symbol": "mynat_add", "category": "Fixpoint/def" }
+            ],
+            "proof": [
+              { "symbol": "deg_mul", "category": "Axiom" },
+              { "symbol": "poly_of_roots_nonzero", "category": "Lemma" },
+              { "symbol": "deg_poly_of_roots", "category": "Lemma" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

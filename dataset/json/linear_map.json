@@ -1,0 +1,329 @@
+{
+    "source": "linear_map",
+    "lean": {
+      "Field": {
+        "kind": "class",
+        "lines": [0, 13],
+        "content": "class Field (R : Type) where\n  zero    : R\n  one     : R\n  add     : R → R → R\n  mul     : R → R → R\n  opp     : R → R\n  add_comm  : ∀ x y, add x y = add y x\n  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)\n  add_zero  : ∀ x, add x zero = x\n  add_opp   : ∀ x, add x (opp x) = zero\n  mul_comm  : ∀ x y, mul x y = mul y x\n  mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)\n  mul_one   : ∀ x, mul x one = x\n  dist_l    : ∀ a x y, mul a (add x y) = add (mul a x) (mul a y)"
+      },
+      "Field.zero": { "kind": "class_field", "lines": [1, 1], "content": "  zero    : R" },
+      "Field.one": { "kind": "class_field", "lines": [2, 2], "content": "  one     : R" },
+      "Field.add": { "kind": "class_field", "lines": [3, 3], "content": "  add     : R → R → R" },
+      "Field.mul": { "kind": "class_field", "lines": [4, 4], "content": "  mul     : R → R → R" },
+      "Field.opp": { "kind": "class_field", "lines": [5, 5], "content": "  opp     : R → R" },
+      "Field.add_comm": { "kind": "class_field", "lines": [6, 6], "content": "  add_comm  : ∀ x y, add x y = add y x" },
+      "Field.add_assoc": { "kind": "class_field", "lines": [7, 7], "content": "  add_assoc : ∀ x y z, add (add x y) z = add x (add y z)" },
+      "Field.add_zero": { "kind": "class_field", "lines": [8, 8], "content": "  add_zero  : ∀ x, add x zero = x" },
+      "Field.add_opp": { "kind": "class_field", "lines": [9, 9], "content": "  add_opp   : ∀ x, add x (opp x) = zero" },
+      "Field.mul_comm": { "kind": "class_field", "lines": [10, 10], "content": "  mul_comm  : ∀ x y, mul x y = mul y x" },
+      "Field.mul_assoc": { "kind": "class_field", "lines": [11, 11], "content": "  mul_assoc : ∀ x y z, mul (mul x y) z = mul x (mul y z)" },
+      "Field.mul_one": { "kind": "class_field", "lines": [12, 12], "content": "  mul_one   : ∀ x, mul x one = x" },
+      "Field.dist_l": { "kind": "class_field", "lines": [13, 13], "content": "  dist_l    : ∀ a x y, mul a (add x y) = add (mul a x) (mul a y)" },
+      "Lin": { "kind": "namespace", "lines": [15, 15], "content": "namespace Lin" },
+      "variable_R": { "kind": "variable", "lines": [17, 17], "content": "variable {R : Type} [FR : Field R]" },
+      "open Field": { "kind": "open", "lines": [18, 18], "content": "open Field" },
+      "+R": { "kind": "notation", "lines": [20, 20], "content": "infixl:65  \"+R\"  => Field.add" },
+      "*R": { "kind": "notation", "lines": [21, 21], "content": "infixl:70  \"*R\"  => Field.mul" },
+      "-R": { "kind": "notation", "lines": [22, 22], "content": "prefix:100 \"-R\"  => Field.opp" },
+      "VSpace": {
+        "kind": "class",
+        "lines": [24, 38],
+        "content": "class VSpace (R : Type) [Field R] (V : Type) where\n  zeroV : V\n  addV  : V → V\n  oppV  : V → V\n  smul  : R → V → V\n  addV_comm  : ∀ u v, addV u v = addV v u\n  addV_assoc : ∀ u v w, addV (addV u v) w = addV u (addV v w)\n  addV_zero  : ∀ u, addV u zeroV = u\n  addV_opp   : ∀ u, addV u (oppV u) = zeroV\n  smul_addV  : ∀ a u v, smul a (addV u v) = addV (smul a u) (smul a v)\n  addR_smul  : ∀ a b u, smul (a +R b) u = addV (smul a u) (smul b u)\n  mul_smul   : ∀ a b u, smul (a *R b) u = smul a (smul b u)\n  one_smul   : ∀ u, smul Field.one u = u\n  smul_zero  : ∀ a, smul a zeroV = zeroV"
+      },
+      "simp_attr_VSpace": { "kind": "attribute", "lines": [39, 39], "content": "attribute [simp] VSpace.addV_zero VSpace.smul_zero" },
+      "+V": { "kind": "notation", "lines": [41, 41], "content": "infixl:65  \"+V\"  => VSpace.addV" },
+      "•V": { "kind": "notation", "lines": [42, 42], "content": "notation:70 a \" •V \" u => VSpace.smul a u" },
+      "LMap": {
+        "kind": "structure",
+        "lines": [44, 50],
+        "content": "structure LMap (V W : Type) [VSpace R V] [VSpace R W] where\n  toFun : V → W\n  map_add : ∀ u v, toFun (VSpace.addV (R:=R) u v)\n             = VSpace.addV (R:=R) (toFun u) (toFun v)\n  map_smul : ∀ a u, toFun (VSpace.smul (R:=R) a u)\n             = VSpace.smul (R:=R) a (toFun u)"
+      },
+      "LMap.toFun": { "kind": "structure_field", "lines": [45, 45], "content": "  toFun : V → W" },
+      "LMap.map_add": {
+        "kind": "structure_field",
+        "lines": [46, 47],
+        "content": "  map_add : ∀ u v, toFun (VSpace.addV (R:=R) u v)\n             = VSpace.addV (R:=R) (toFun u) (toFun v)"
+      },
+      "LMap.map_smul": {
+        "kind": "structure_field",
+        "lines": [48, 49],
+        "content": "  map_smul : ∀ a u, toFun (VSpace.smul (R:=R) a u)\n             = VSpace.smul (R:=R) a (toFun u)"
+      },
+      "simp_attr_LMap": { "kind": "attribute", "lines": [51, 51], "content": "attribute [simp] LMap.map_add LMap.map_smul" },
+      "variable_VWU_types": { "kind": "variable", "lines": [53, 53], "content": "variable {V W U : Type}" },
+      "variable_VSpace_instances": { "kind": "variable", "lines": [54, 54], "content": "variable [VSpace R V] [VSpace R W] [VSpace R U]" },
+      "ker": { "kind": "def", "lines": [56, 56], "content": "def ker (L : LMap (R:=R) V W) : V → Prop := fun x => L.toFun x = VSpace.zeroV (R:=R)" },
+      "im": { "kind": "def", "lines": [57, 57], "content": "def im  (L : LMap (R:=R) V W) : W → Prop := fun y => ∃ x, L.toFun x = y" },
+      "comp": {
+        "kind": "def",
+        "lines": [59, 67],
+        "content": "def comp (g : LMap (R:=R) W U) (f : LMap (R:=R) V W) : LMap (R:=R) V U :=\n{ toFun := fun x => g.toFun (f.toFun x)\n, map_add := by\n    intro u v\n    simp\n, map_smul := by\n    intro a u\n    simp\n}"
+      },
+      "ker_add": {
+        "kind": "theorem",
+        "lines": [72, 75],
+        "content": "theorem ker_add {L : LMap (R:=R) V W} {x y : V} :\n  ker L x → ker L y → ker L (VSpace.addV (R:=R) x y) :=\nby\n  intro hx hy\n  unfold ker at hx hy ⊢\n  simp [hx, hy]"
+      },
+      "ker_smul": {
+        "kind": "theorem",
+        "lines": [79, 82],
+        "content": "theorem ker_smul {L : LMap (R:=R) V W} {a : R} {x : V} :\n  ker L x → ker L (VSpace.smul (R:=R) a x) :=\nby\n  intro hx\n  unfold ker at *\n  simp [hx]"
+      },
+      "im_add": {
+        "kind": "theorem",
+        "lines": [86, 91],
+        "content": "theorem im_add {L : LMap (R:=R) V W} {y z : W} :\n  im L y → im L z → im L (VSpace.addV (R:=R) y z) :=\nby\n  intro hy hz\n  rcases hy with ⟨x, rfl⟩\n  rcases hz with ⟨x', rfl⟩\n  refine ⟨VSpace.addV (R:=R) x x', ?_⟩\n  simp"
+      },
+      "im_smul": {
+        "kind": "theorem",
+        "lines": [95, 98],
+        "content": "theorem im_smul {L : LMap (R:=R) V W} {a : R} {y : W} :\n  im L y → im L (VSpace.smul (R:=R) a y) :=\nby\n  intro hy; rcases hy with ⟨x, rfl⟩\n  refine ⟨VSpace.smul (R:=R) a x, ?_⟩\n  simp"
+      },
+      "Lin": { "kind": "end", "lines": [99, 99], "content": "end Lin" }
+    },
+    "coq": {
+      "Field": {
+        "kind": "Class",
+        "lines": [7, 22],
+        "content": "Class Field := {\n  R0    : Type;\n  zeroR : R0;\n  oneR  : R0;\n  addR  : R0 -> R0 -> R0;\n  mulR  : R0 -> R0 -> R0;\n  oppR  : R0 -> R0;\n  addR_comm  : forall x y, addR x y = addR y x;\n  addR_assoc : forall x y z, addR (addR x y) z = addR x (addR y z);\n  addR_zero  : forall x, addR x zeroR = x;\n  addR_opp   : forall x, addR x (oppR x) = zeroR;\n  mulR_comm  : forall x y, mulR x y = mulR y x;\n  mulR_assoc : forall x y z, mulR (mulR x y) z = mulR x (mulR y z);\n  mulR_one   : forall x, mulR x oneR = x;\n  distR_l    : forall a x y, mulR a (addR x y) = addR (mulR a x) (mulR a y)\n}."
+      },
+      "R0": { "kind": "class_field", "lines": [8, 8], "content": "  R0    : Type;" },
+      "zeroR": { "kind": "class_field", "lines": [9, 9], "content": "  zeroR : R0;" },
+      "oneR": { "kind": "class_field", "lines": [10, 10], "content": "  oneR  : R0;" },
+      "addR": { "kind": "class_field", "lines": [11, 11], "content": "  addR  : R0 -> R0 -> R0;" },
+      "mulR": { "kind": "class_field", "lines": [12, 12], "content": "  mulR  : R0 -> R0 -> R0;" },
+      "oppR": { "kind": "class_field", "lines": [13, 13], "content": "  oppR  : R0 -> R0;" },
+      "addR_comm": { "kind": "class_field", "lines": [14, 14], "content": "  addR_comm  : forall x y, addR x y = addR y x;" },
+      "addR_assoc": { "kind": "class_field", "lines": [15, 15], "content": "  addR_assoc : forall x y z, addR (addR x y) z = addR x (addR y z);" },
+      "addR_zero": { "kind": "class_field", "lines": [16, 16], "content": "  addR_zero  : forall x, addR x zeroR = x;" },
+      "addR_opp": { "kind": "class_field", "lines": [17, 17], "content": "  addR_opp   : forall x, addR x (oppR x) = zeroR;" },
+      "mulR_comm": { "kind": "class_field", "lines": [18, 18], "content": "  mulR_comm  : forall x y, mulR x y = mulR y x;" },
+      "mulR_assoc": { "kind": "class_field", "lines": [19, 19], "content": "  mulR_assoc : forall x y z, mulR (mulR x y) z = mulR x (mulR y z);" },
+      "mulR_one": { "kind": "class_field", "lines": [20, 20], "content": "  mulR_one   : forall x, mulR x oneR = x;" },
+      "distR_l": { "kind": "class_field", "lines": [21, 21], "content": "  distR_l    : forall a x y, mulR a (addR x y) = addR (mulR a x) (mulR a y)" },
+      "Lin.": { "kind": "Section", "lines": [24, 24], "content": "Section Lin." },
+      "Context {F : Field}.": { "kind": "Context", "lines": [25, 25], "content": "  Context {F : Field}." },
+      "+R": { "kind": "Infix", "lines": [26, 26], "content": "  Infix \"+R\" := addR (at level 65)." },
+      "*R": { "kind": "Infix", "lines": [27, 27], "content": "  Infix \"*R\" := mulR (at level 70)." },
+      "-R": { "kind": "Notation", "lines": [28, 28], "content": "  Notation \"-R x\" := (oppR x) (at level 100)." },
+      "VSpace": {
+        "kind": "Class",
+        "lines": [30, 45],
+        "content": "  Class VSpace := {\n    V0    : Type;\n    zeroV : V0;\n    addV  : V0 -> V0 -> V0;\n    oppV  : V0 -> V0;\n    smul  : R0 -> V0 -> V0;\n    addV_comm  : forall u v, addV u v = addV v u;\n    addV_assoc : forall u v w, addV (addV u v) w = addV u (addV v w);\n    addV_zero  : forall u, addV u zeroV = u;\n    addV_opp   : forall u, addV u (oppV u) = zeroV;\n    smul_addV  : forall a u v, smul a (addV u v) = addV (smul a u) (smul a v);\n    addR_smul  : forall a b u, smul (a +R b) u = addV (smul a u) (smul b u);\n    mul_smul   : forall a b u, smul (a *R b) u = smul a (smul b u);\n    one_smul   : forall u, smul oneR u = u;\n    smul_zeroV : forall a, smul a zeroV = zeroV\n  }."
+      },
+      "V0": { "kind": "class_field", "lines": [31, 31], "content": "    V0    : Type;" },
+      "zeroV": { "kind": "class_field", "lines": [32, 32], "content": "    zeroV : V0;" },
+      "addV": { "kind": "class_field", "lines": [33, 33], "content": "    addV  : V0 -> V0 -> V0;" },
+      "oppV": { "kind": "class_field", "lines": [34, 34], "content": "    oppV  : V0 -> V0;" },
+      "smulV": { "kind": "class_field", "lines": [35, 35], "content": "    smul  : R0 -> V0 -> V0;" },
+      "addV_comm": { "kind": "class_field", "lines": [36, 36], "content": "    addV_comm  : forall u v, addV u v = addV v u;" },
+      "addV_assoc": { "kind": "class_field", "lines": [37, 37], "content": "    addV_assoc : forall u v w, addV (addV u v) w = addV u (addV v w);" },
+      "addV_zero": { "kind": "class_field", "lines": [38, 38], "content": "    addV_zero  : forall u, addV u zeroV = u;" },
+      "addV_opp": { "kind": "class_field", "lines": [39, 39], "content": "    addV_opp   : forall u, addV u (oppV u) = zeroV;" },
+      "smul_addV": { "kind": "class_field", "lines": [40, 40], "content": "    smul_addV  : forall a u v, smul a (addV u v) = addV (smul a u) (smul a v);" },
+      "addR_smul": { "kind": "class_field", "lines": [41, 41], "content": "    addR_smul  : forall a b u, smul (a +R b) u = addV (smul a u) (smul b u);" },
+      "mul_smul": { "kind": "class_field", "lines": [42, 42], "content": "    mul_smul   : forall a b u, smul (a *R b) u = smul a (smul b u);" },
+      "one_smul": { "kind": "class_field", "lines": [43, 43], "content": "    one_smul   : forall u, smul oneR u = u;" },
+      "smul_zeroV": { "kind": "class_field", "lines": [44, 44], "content": "    smul_zeroV : forall a, smul a zeroV = zeroV" },
+      "+V": { "kind": "Infix", "lines": [47, 47], "content": "  Infix \"+V\" := addV (at level 65)." },
+      "•V": { "kind": "Notation", "lines": [48, 48], "content": "  Notation \"a •V x\" := (smul a x) (at level 70)." },
+      "Lin": {
+        "kind": "Record",
+        "lines": [50, 54],
+        "content": "  Record Lin `{VS1 : VSpace} `{VS2 : VSpace} := {\n    toFun    : V0 -> V0;\n    map_add  : forall u v, toFun (u +V v) = addV (toFun u) (toFun v);\n    map_smul : forall a u, toFun (a •V u) = smul a (toFun u)\n  }."
+      },
+      "Lin.toFun": { "kind": "record_field", "lines": [51, 51], "content": "    toFun    : V0 -> V0;" },
+      "Lin.map_add": { "kind": "record_field", "lines": [52, 52], "content": "    map_add  : forall u v, toFun (u +V v) = addV (toFun u) (toFun v);" },
+      "Lin.map_smul": { "kind": "record_field", "lines": [53, 53], "content": "    map_smul : forall a u, toFun (a •V u) = smul a (toFun u)" },
+      "ker": {
+        "kind": "Definition",
+        "lines": [56, 57],
+        "content": "  Definition ker `{VS1 : VSpace} `{VS2 : VSpace} (L : Lin) : V0 -> Prop :=\n    fun x => toFun L x = zeroV."
+      },
+      "im": {
+        "kind": "Definition",
+        "lines": [58, 59],
+        "content": "  Definition im  `{VS1 : VSpace} `{VS2 : VSpace} (L : Lin) : V0 -> Prop :=\n    fun y => exists x, toFun L x = y."
+      },
+      "ker_add": {
+        "kind": "Lemma",
+        "lines": [64, 71],
+        "content": "  Lemma ker_add `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (x y : V0) :\n    ker L x -> ker L y -> ker L (x +V y).\n  Proof.\n    intros hx hy.\n    unfold ker in *.\n    rewrite map_add.\n    rewrite hx, hy.\n    now rewrite addV_zero.\n  Qed."
+      },
+      "ker_smul": {
+        "kind": "Lemma",
+        "lines": [74, 78],
+        "content": "  Lemma ker_smul `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (a : R0) (x : V0) : ker L x -> ker L (a •V x).\n  Proof.\n    intros hx; unfold ker in *.\n    now rewrite map_smul, hx, smul_zeroV.\n  Qed."
+      },
+      "im_add": {
+        "kind": "Lemma",
+        "lines": [82, 87],
+        "content": "  Lemma im_add `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (y z : V0) :\n    im L y -> im L z -> im L (y +V z).\n  Proof.\n    intros [x Hx] [x' Hx']; subst y z.\n    exists (x +V x').\n    now rewrite map_add.\n  Qed."
+      },
+      "im_smul": {
+        "kind": "Lemma",
+        "lines": [91, 95],
+        "content": "  Lemma im_smul `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (a : R0) (y : V0) :\n    im L y -> im L (a •V y).\n  Proof.\n    intros [x Hx]; subst y.\n    exists (a •V x); now rewrite map_smul.\n  Qed."
+      },
+      "Lin": { "kind": "End", "lines": [96, 96], "content": "End Lin." }
+    },
+    "items": [
+      {
+        "name": "ker_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [72, 75],
+          "statement": "theorem ker_add {L : LMap (R:=R) V W} {x y : V} :\n  ker L x → ker L y → ker L (VSpace.addV (R:=R) x y) := by",
+          "proof": "  intro hx hy\n  unfold ker at hx hy ⊢\n  simp [hx, hy]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "LMap", "category": "structure" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Field", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "ker", "category": "definition" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [64, 71],
+          "statement": "  Lemma ker_add `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (x y : V0) :\n    ker L x -> ker L y -> ker L (x +V y).",
+          "proof": "Proof.\n    intros hx hy.\n    unfold ker in *.\n    rewrite map_add.\n    rewrite hx, hy.\n    now rewrite addV_zero.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "+V", "category": "notation" },
+              { "symbol": "Lin", "category": "Record" },
+              { "symbol": "VSpace", "category": "Class" },
+              { "symbol": "Field", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "+V", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "ker_smul",
+        "lean": {
+          "kind": "theorem",
+          "lines": [79, 82],
+          "statement": "theorem ker_smul {L : LMap (R:=R) V W} {a : R} {x : V} :\n  ker L x → ker L (VSpace.smul (R:=R) a x) := by",
+          "proof": "  intro hx\n  unfold ker at *\n  simp [hx]",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "LMap", "category": "structure" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Field", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "ker", "category": "definition" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [74, 78],
+          "statement": "  Lemma ker_smul `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (a : R0) (x : V0) : ker L x -> ker L (a •V x).",
+          "proof": "Proof.\n    intros hx; unfold ker in *.\n    now rewrite map_smul, hx, smul_zeroV.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "•V", "category": "notation" },
+              { "symbol": "Lin", "category": "Record" },
+              { "symbol": "VSpace", "category": "Class" },
+              { "symbol": "Field", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "ker", "category": "definition" },
+              { "symbol": "•V", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "im_add",
+        "lean": {
+          "kind": "theorem",
+          "lines": [86, 91],
+          "statement": "theorem im_add {L : LMap (R:=R) V W} {y z : W} :\n  im L y → im L z → im L (VSpace.addV (R:=R) y z) := by",
+          "proof": "  intro hy hz\n  rcases hy with ⟨x, rfl⟩\n  rcases hz with ⟨x', rfl⟩\n  refine ⟨VSpace.addV (R:=R) x x', ?_⟩\n  simp",
+          "dependencies": {
+            "statement": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "LMap", "category": "structure" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Field", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "im", "category": "definition" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [82, 87],
+          "statement": "  Lemma im_add `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (y z : V0) :\n    im L y -> im L z -> im L (y +V z).",
+          "proof": "Proof.\n    intros [x Hx] [x' Hx']; subst y z.\n    exists (x +V x').\n    now rewrite map_add.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "+V", "category": "notation" },
+              { "symbol": "Lin", "category": "Record" },
+              { "symbol": "VSpace", "category": "Class" },
+              { "symbol": "Field", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "+V", "category": "notation" }
+            ]
+          }
+        }
+      },
+      {
+        "name": "im_smul",
+        "lean": {
+          "kind": "theorem",
+          "lines": [95, 98],
+          "statement": "theorem im_smul {L : LMap (R:=R) V W} {a : R} {y : W} :\n  im L y → im L (VSpace.smul (R:=R) a y) := by",
+          "proof": "  intro hy; rcases hy with ⟨x, rfl⟩\n  refine ⟨VSpace.smul (R:=R) a x, ?_⟩\n  simp",
+          "dependencies": {
+            "statement": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "LMap", "category": "structure" },
+              { "symbol": "VSpace", "category": "class" },
+              { "symbol": "Field", "category": "class" }
+            ],
+            "proof": [
+              { "symbol": "im", "category": "definition" }
+            ]
+          }
+        },
+        "coq": {
+          "kind": "Lemma",
+          "lines": [91, 95],
+          "statement": "  Lemma im_smul `{VS1 : VSpace} `{VS2 : VSpace}\n    (L : Lin) (a : R0) (y : V0) :\n    im L y -> im L (a •V y).",
+          "proof": "Proof.\n    intros [x Hx]; subst y.\n    exists (a •V x); now rewrite map_smul.\n  Qed.",
+          "dependencies": {
+            "statement": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "•V", "category": "notation" },
+              { "symbol": "Lin", "category": "Record" },
+              { "symbol": "VSpace", "category": "Class" },
+              { "symbol": "Field", "category": "Class" }
+            ],
+            "proof": [
+              { "symbol": "im", "category": "definition" },
+              { "symbol": "•V", "category": "notation" }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  
