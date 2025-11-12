@@ -3,10 +3,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#latex extension
+*.aux
+*.bbl
+*.blg
+*.out
+*.gz
+
 # C extensions
 *.so
 
 # Data generation
+benchmark/
+training_set/
 Mathlib/
 misc/
 src/extract_term/proofs-dump/mathlib_proofs_by_theorem

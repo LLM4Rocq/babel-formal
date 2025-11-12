@@ -167,7 +167,8 @@ The resulting training dataset follows the structure described in~\cref{fig:diag
 We evaluate on two benchmarks:
 
 \emph{Cross-assistant (Lean \texorpdfstring{$\leftrightarrow$}{<->} Rocq).}
-We created 14 files with the same statements in Rocq and Lean, for a total of 117 aligned lemmas. Each lemma is proved natively in both systems, so the proof scripts differ but are type-correct in aligned contexts. From these, we extracted comparable proof terms in both systems. An example of such a source file is in~\cref{app:benchmark}.
+We created 14 files with the same statements in Rocq and Lean, for a total of 117 aligned lemmas. Preparing files took about 20 hours of manual effort in total.
+Each lemma is proved natively in both systems, so the proof scripts differ but are type-correct in aligned contexts. From these, we extracted comparable proof terms in both systems. An example of such a source file is in~\cref{app:benchmark}.
 
 \emph{Cross-tactic (vanilla Rocq \texorpdfstring{$\to$}{->} SSReflect).}
 We collect 500 Rocq proofs from the C-CoRN library~\cite{corn}, which is a large mathematical library developed in vanilla Rocq (in contrast to MathComp, which is built on SSReflect). We use these proofs to assess translation from vanilla Rocq tactics to SSReflect. To ensure diversity, we pick subsets maximizing document distance (via BM25). An example of entry is in ~\cref{app:ssreflect}.
@@ -282,9 +283,10 @@ blocks could guide local repairs and improve robustness.
 bootstrap proof script translation to check whether the source
 translation is correct.
 
-% \section{Acknowledgments}
+\section{Acknowledgments}
 
-% This work was granted access to the HPC resources of IDRIS under the allocation 2025-AD011016066 made by GENCI.
+This project was funded by the Inria "Défi" \href{https://project.inria.fr/llm4code/}{LLM4Code}.
+This work was granted access to the HPC resources of IDRIS under the allocation 2025-AD011016066 made by GENCI.
 
 % \newpage
 
