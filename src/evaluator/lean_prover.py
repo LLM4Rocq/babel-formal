@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 
 import leanclient as lc
 
-from .prover import Prover, DatasetItem, Message, MessageType
+from .prover import Prover, DatasetItem, Message, MessageType, ProverError
 
 class LeanProver(Prover):
     """
@@ -26,6 +26,10 @@ class LeanProver(Prover):
         self._line_end: Optional[int] = None
         self._current_item: Optional[DatasetItem] = None
         self._accumulated: str = ""  # accumulated proof text including trailing newline
+
+    @classmethod
+    def name(cls):
+        return "Lean 4 prover"
 
     def _check_error(self, diags: List[Dict[str, Any]]) -> Optional[str]:
         """
@@ -109,3 +113,6 @@ class LeanProver(Prover):
         if err or goals:
             return Message(status=MessageType.ONGOING, goals=goals, tactic=tactic, message=err)
         return Message(status=MessageType.FINISH, goals=[], tactic=tactic)
+
+    def close_proof(self):
+        return

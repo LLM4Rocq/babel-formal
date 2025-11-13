@@ -9,7 +9,7 @@ from typing import Optional, List
 
 from pytanque import Pytanque, PetanqueError
 
-from .prover import Prover, DatasetItem, Message, MessageType
+from .prover import Prover, DatasetItem, Message, MessageType, ProverError
 
 class RocqProver(Prover):
     """
@@ -39,6 +39,10 @@ class RocqProver(Prover):
         self._state = None
         self._start_server = start_server
         self._mean_wait = mean_wait
+
+    @classmethod
+    def name(cls):
+        return "Rocq prover"
 
     # --- server lifecycle
     def _spawn_server_if_needed(self):
@@ -134,3 +138,9 @@ class RocqProver(Prover):
             return Message(status=status, goals=goals, tactic=tactic)
         except PetanqueError as e:
             return Message(status=MessageType.ERROR, goals=[], tactic=tactic, message=e.message)
+
+    def close_proof(self):
+        message = self.run_tac('Qed.')
+        if message.status == MessageType.ERROR:
+            raise ProverError("Error when trying to close the proof.", prover_feedback=message.message)
+        return 
