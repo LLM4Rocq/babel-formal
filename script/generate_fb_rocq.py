@@ -25,9 +25,9 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     output['logs'] = agent.logs
 
     if agent.status == AgentStatus.FINISH:
-        output += "_SUCCESS.json"
+        output_path += "_SUCCESS.json"
     else:
-        output += "_FAIL.json"
+        output_path += "_FAIL.json"
     with open(output_path, 'w') as file:
         json.dump(output, file, indent=4)
 
