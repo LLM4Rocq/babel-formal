@@ -12,7 +12,7 @@ from src.agent.rocq import RocqAgent
 
 
 def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
-    llm = OpenAIInstructLLM(model_name)
+    llm = OpenAIInstructLLM(model_name, generation_parameters={"max_tokens":8192, "stop":"</think>"})
     prover = RocqProver(workspace)
     agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth)
 
