@@ -37,11 +37,14 @@ class BaseAgent(ABC):
     
     def step(self):
         """Apply one step"""
-        if self.status == AgentStatus.FINISH:
+        if self.status == AgentStatus.FINISH or self.status == self.status.FATAL:
             return
+        if self.num_errors >= self.max_retry or self.current_depth >= self.max_depth:
+            self.status = AgentStatus.FATAL
+            return 
         prompt = self.state.dump_prompt(self.llm.tokenizer)
         output = self.llm.generate(prompt)
-        self.logs.append({"output": output})
+        self.logs.append({"prompt": prompt, "output": output})
         new_blocks = self.state.update(output)
         message = None
         try:
@@ -69,12 +72,9 @@ class BaseAgent(ABC):
             })
             self.state.rollback_before(new_blocks[0])
             self.num_errors += 1
-        if self.num_errors >= self.max_retry or self.current_depth >= self.max_depth:
-            self.status = AgentStatus.FATAL
-            return 
         if message:
             new_goals = "\n".join(message.goals)
-            positive_feedback = f"Let's continue to translate this proof term into a proof script. {self.prover.name} gives me these new goals: {new_goals}."
+            positive_feedback = f"Let's continue to translate this proof term into a proof script. {self.prover.name()} gives me these new goals: {new_goals}."
             self.state.add_block(BlockType.THINK, positive_feedback, to_continue=True)
         self.status = AgentStatus.ONGOING
     
