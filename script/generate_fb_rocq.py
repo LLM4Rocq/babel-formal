@@ -11,9 +11,9 @@ from src.llm.openai_instruct import OpenAIInstructLLM
 from src.agent.rocq import RocqAgent
 
 
-def exec(item: DatasetItem, output_path: str, max_retry=5, max_depth=32):
+def exec(item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
     llm = OpenAIInstructLLM()
-    prover = RocqProver(args.workspace)
+    prover = RocqProver(workspace)
     agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth)
 
     output = {}
@@ -75,7 +75,7 @@ if __name__ == '__main__':
             with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
                 for i in range(args.pass_k):
                     output_path = os.path.join(args.output, name + f'_{i}.json')
-                    futures.append(executor.submit(exec, item, output_path, max_retry=args.max_retry, max_depth=args.max_depth))
+                    futures.append(executor.submit(exec, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
                 for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
                     pass
 
