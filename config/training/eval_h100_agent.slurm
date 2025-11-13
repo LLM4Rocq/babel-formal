@@ -34,4 +34,27 @@ cd $SCRATCH/babel-formal
 
 pet-server &
 python -m sglang.launch_server --tp-size $TP_SIZE --mem-fraction-static 0.9 --model-path /lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/babel-translate --host 0.0.0.0 --port $MODEL_PORT &
+
+while true; do
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting health check loop..."
+    model_ready=false    
+    # Check model server
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Checking model server on port $MODEL_PORT..."
+    model_response=$(curl -s -m 10 -o /dev/null -w "%{http_code}" http://localhost:$MODEL_PORT/v1/models 2>&1)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Model server response: $model_response"
+    if echo "$model_response" | grep -q "200"; then
+        model_ready=true
+        if [ ! -f "$MODEL_IP_PATH" ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Model server ready."
+        fi
+    fi
+    if [ "$model_ready" = true ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] All services ready, breaking loop."
+        break
+    fi
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for services... (Model: $model_ready)"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Sleeping for 5 seconds..."
+    sleep 5
+done
+
 python -m script.generate_fb_rocq
