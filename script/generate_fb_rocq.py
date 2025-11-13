@@ -12,7 +12,13 @@ from src.agent.rocq import RocqAgent, AgentStatus
 
 
 def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
-    llm = OpenAIInstructLLM(model_name, generation_parameters={"max_tokens":8192, "stop":"<think>"})
+    llm = OpenAIInstructLLM(model_name, generation_parameters=
+    {
+        "max_tokens":8192,
+        "stop":"<think>",
+        "temperature": 0.7,
+        "top_p": 0.95
+    })
     prover = RocqProver(workspace)
     agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth)
 
@@ -42,8 +48,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-workers', type=int, default=32, help='Max number of concurrent workers')
 
-    parser.add_argument('--max-retry', type=int, default=3, help='Max number of retry/block/run')
-    parser.add_argument('--max-depth', type=int, default=32, help='Max depth of generated proof')
+    parser.add_argument('--max-retry', type=int, default=1, help='Max number of retry/block/run')
+    parser.add_argument('--max-depth', type=int, default=1, help='Max depth of generated proof')
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
     parser.add_argument('--top-p', type=float, default=0.95, help='Top-p')
