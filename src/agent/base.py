@@ -41,10 +41,11 @@ class BaseAgent(ABC):
             return
         prompt = self.state.dump_prompt(self.llm.tokenizer)
         output = self.llm.generate(prompt)
+        self.logs.append({"output": output})
         new_blocks = self.state.update(output)
         message = None
         try:
-            message = self.prover.run_tac(new_blocks[-1])
+            message = self.prover.run_tac(new_blocks[-1].text)
             if message.status == MessageType.FINISH:
                 self.prover.close_proof()
                 self.status = AgentStatus.FINISH

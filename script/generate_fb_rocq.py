@@ -12,7 +12,7 @@ from src.agent.rocq import RocqAgent
 
 
 def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
-    llm = OpenAIInstructLLM(model_name, generation_parameters={"max_tokens":8192, "stop":"</think>"})
+    llm = OpenAIInstructLLM(model_name, generation_parameters={"max_tokens":8192, "stop":"<think>"})
     prover = RocqProver(workspace)
     agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth)
 
@@ -30,7 +30,7 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='benchmark/test_lean_to_rocq.json', help='Dataset')
-    parser.add_argument('--workspace', default='dataset', help='Directory containing sources files')
+    parser.add_argument('--workspace', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/dataset/version/rocq/', help='Directory containing sources files')
     parser.add_argument('--model-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/babel-translate', help='Dataset')
     parser.add_argument('--tokenizer-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/babel-translate', help='Dataset')
 
