@@ -31,8 +31,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='benchmark/test_lean_to_rocq.json', help='Dataset')
     parser.add_argument('--workspace', default='dataset', help='Directory containing sources files')
-    parser.add_argument('--model-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/new-babel/babel-translate', help='Dataset')
-    parser.add_argument('--tokenizer-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/new-babel/babel-translate', help='Dataset')
+    parser.add_argument('--model-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/babel-translate', help='Dataset')
+    parser.add_argument('--tokenizer-path', default='/lustre/fsn1/projects/rech/tdm/ulu88xb/babel-formal/babel-translate', help='Dataset')
 
     parser.add_argument('--output', default='export/eval', help='Output directory')
 
