@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from src.evaluator.rocq_prover import DatasetItem, RocqProver
 from src.llm.openai_instruct import OpenAIInstructLLM
-from src.agent.rocq import RocqAgent
+from src.agent.rocq import RocqAgent, AgentStatus
 
 
 def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
@@ -24,6 +24,10 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     output['state'] = str(agent.state)
     output['logs'] = agent.logs
 
+    if agent.status == AgentStatus.FINISH:
+        output += "_SUCCESS.json"
+    else:
+        output += "_FAIL.json"
     with open(output_path, 'w') as file:
         json.dump(output, file, indent=4)
 
@@ -40,7 +44,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-retry', type=int, default=3, help='Max number of retry/block/run')
     parser.add_argument('--max-depth', type=int, default=32, help='Max depth of generated proof')
-    parser.add_argument('--pass-k', type=int, default=16, help='Number of generation per entry')
+    parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
     parser.add_argument('--top-p', type=float, default=0.95, help='Top-p')
     parser.add_argument('--max-tokens', type=int, default=8192, help='Max output len')
@@ -74,7 +78,7 @@ if __name__ == '__main__':
             futures = []
             with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
                 for i in range(args.pass_k):
-                    output_path = os.path.join(args.output, name + f'_{i}.json')
+                    output_path = os.path.join(args.output, name + f'_{i}')
                     futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
                 for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
                     pass
