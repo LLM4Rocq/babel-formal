@@ -54,7 +54,7 @@ class BaseAgent(ABC):
                 self.status = AgentStatus.FINISH
                 return
             if message.status == MessageType.ERROR:
-                self.state.rollback_before(new_blocks[-1])
+                self.state.rollback_before(new_blocks[0])
                 self.num_errors += 1
                 return
                 # script = new_blocks[-1].text
