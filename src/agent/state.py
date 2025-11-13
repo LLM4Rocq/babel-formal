@@ -94,7 +94,7 @@ class State:
         """
         new_blocks = self._parse_output(output)
         if self.blocks and self.blocks[-1].to_continue:
-            if self.blocks[-1].kind != new_blocks[-1].kind:
+            if self.blocks[-1].kind != new_blocks[0].kind:
                 raise StateError("First generated block does not continue last block as required.")
             self.blocks[-1].resume(new_blocks[0].text, to_continue=False)
             new_blocks = new_blocks[1:]
