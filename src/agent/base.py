@@ -55,11 +55,13 @@ class BaseAgent(ABC):
                 return
             if message.status == MessageType.ERROR:
                 self.state.rollback_before(new_blocks[-1])
-                script = new_blocks[-1].text
-                amend = f"Wait, when I wrote \\box{{{script}}}, I received this feedback from {self.prover.name()}: {message.message[:100]}."
-                self.state.amend_last_block(amend, to_continue=True)
                 self.num_errors += 1
                 return
+                # script = new_blocks[-1].text
+                # amend = f"Wait, when I wrote \\box{{{script}}}, I received this feedback from {self.prover.name()}: {message.message[:100]}."
+                # self.state.amend_last_block(amend, to_continue=True)
+                # self.num_errors += 1
+                # return
             self.current_depth += 1
             self.num_errors = 0
         except Exception as e:
