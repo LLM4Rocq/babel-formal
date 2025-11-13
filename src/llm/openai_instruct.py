@@ -16,14 +16,9 @@ class OpenAIInstructLLM(BaseLLM):
         self.client = openai.Client(base_url=base_url, api_key=api_key)
     
     def generate(
-            self, messages: List[Dict[str, str]], **kwargs
+            self, prompt, **kwargs
     ) -> str:
         """Generate a completion using the LLM."""
-        prompt = self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            continue_final_message=True
-        )
         response = self.client.completions.create(
             model=self.model_name,
             prompt=prompt,
