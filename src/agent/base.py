@@ -82,7 +82,7 @@ class BaseAgent(ABC):
     
     def try_proof(self, item: DatasetItem):
         self.start_thm(item)
-        while self.status != AgentStatus.FATAL or self.status != AgentStatus.FINISH:
+        while self.status != AgentStatus.FATAL and self.status != AgentStatus.FINISH:
             self.step()
 
     

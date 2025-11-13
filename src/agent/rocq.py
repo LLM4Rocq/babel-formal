@@ -5,12 +5,8 @@ from typing import List
 from src.evaluator.prover import ProverError, Prover, Message, MessageType, DatasetItem
 from src.llm.base import BaseLLM
 from src.agent.state import State, BlockType
-from src.agent.base import BaseAgent
+from src.agent.base import BaseAgent, AgentStatus
 
-
-class AgentStatus(StrEnum):
-    ONGOING = "ongoing"
-    FINISH = "finish"
 
 class RocqAgent(BaseAgent):
     """Agent class for Rocq prover"""
