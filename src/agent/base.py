@@ -19,7 +19,9 @@ class BaseAgent(ABC):
         llm: BaseLLM,
         prover: Prover,
         max_retry: int=3,
-        max_depth: int=10
+        max_depth: int=10,
+        feedback_error: bool=False,
+        feedback_goals: bool=False
     ):
         self.llm = llm
         self.prover = prover
@@ -27,6 +29,9 @@ class BaseAgent(ABC):
         self.status = AgentStatus.ONGOING
         self.max_retry = max_retry
         self.max_depth = max_depth
+
+        self.feedback_error = feedback_error
+        self.feedback_goals = feedback_goals
         self.current_depth = 0
         self.num_errors = 0
         self.logs = []
@@ -45,7 +50,7 @@ class BaseAgent(ABC):
         prompt = self.state.dump_prompt(self.llm.tokenizer)
         output = self.llm.generate(prompt)
         self.logs.append({"prompt": prompt, "output": output})
-        new_blocks = self.state.update(output)
+        new_blocks = self.state.parse_output(output)
         message = None
         try:
             message = self.prover.run_tac(new_blocks[-1].text)
@@ -54,14 +59,14 @@ class BaseAgent(ABC):
                 self.status = AgentStatus.FINISH
                 return
             if message.status == MessageType.ERROR:
-                self.state.rollback_before(new_blocks[0])
                 self.num_errors += 1
+                if self.feedback_error:
+                    script = new_blocks[-1].text
+                    amend = f"Wait, when I wrote \\box{{{script}}}, I received this feedback from {self.prover.name()}: {message.message[:100]}."
+                    self.state.amend_last_block(amend, to_continue=True)
+                    self.num_errors += 1
                 return
-                # script = new_blocks[-1].text
-                # amend = f"Wait, when I wrote \\box{{{script}}}, I received this feedback from {self.prover.name()}: {message.message[:100]}."
-                # self.state.amend_last_block(amend, to_continue=True)
-                # self.num_errors += 1
-                # return
+            self.state.update(new_blocks)
             self.current_depth += 1
             self.num_errors = 0
         except Exception as e:
@@ -72,13 +77,11 @@ class BaseAgent(ABC):
                 "output": output,
                 "error": str(e)
             })
-            self.state.rollback_before(new_blocks[0])
             self.num_errors += 1
-        if message:
+        if self.feedback_goals and message:
             new_goals = "\n".join(message.goals)
             positive_feedback = f"Let's continue to translate this proof term into a proof script. {self.prover.name()} gives me these new goals: {new_goals}."
             self.state.add_block(BlockType.THINK, positive_feedback, to_continue=True)
-        self.status = AgentStatus.ONGOING
     
     def try_proof(self, item: DatasetItem):
         self.start_thm(item)

@@ -51,7 +51,7 @@ class State:
     def __init__(self, instruction: str):
         self.blocks = [Block(BlockType.INSTRUCTION, instruction)]
     
-    def _parse_output(self, output: str) -> List[Block]:
+    def parse_output(self, output: str) -> List[Block]:
         """
         Pattern extracts: <think>...</think>, \\box{...}, and any plain text
         """
@@ -88,18 +88,16 @@ class State:
             raise StateError("Output doesn't satisfy the expected output format.")
         return blocks
 
-    def update(self, output: str) -> List[Block]:
+    def update(self, new_blocks: List[Block]):
         """
-        Parse output, append new blocks, and return all new blocks.
+        Update old block/Append new blocks
         """
-        new_blocks = self._parse_output(output)
         if self.blocks and self.blocks[-1].to_continue:
             if self.blocks[-1].kind != new_blocks[0].kind:
                 raise StateError("First generated block does not continue last block as required.")
             self.blocks[-1].resume(new_blocks[0].text, to_continue=False)
             new_blocks = new_blocks[1:]
         self.blocks += new_blocks
-        return new_blocks
 
     def amend_last_block(self, text: str, to_continue: bool=True):
         """
