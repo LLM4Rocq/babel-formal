@@ -14,9 +14,9 @@ class vLLM(BaseLLM):
         self.model_name = model_path
         self.client = openai.Client(base_url=base_url, api_key=api_key)
 
-        self.llm = LLM(model=model_path, tokenizer=model_path, max_num_seqs=1, max_model_len=12_000, tensor_parallel_size=tp, dtype="bfloat16", gpu_memory_utilization=0.98, trust_remote_code=True)
-
-        self.sampling_params = SamplingParams(temperature=0.7, max_tokens=8192, top_p=0.9)
+        self.llm = LLM(model=model_path, tokenizer=model_path, max_num_seqs=1, max_model_len=12_000, tensor_parallel_size=tp, dtype="bfloat16", gpu_memory_utilization=0.95, trust_remote_code=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.sampling_params = SamplingParams(temperature=0.7, max_tokens=8192, top_p=0.9, stop="<think>")
         self.sampling_params.n = 1
     
     def generate(
