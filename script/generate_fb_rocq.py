@@ -3,6 +3,7 @@ import os
 import json
 from collections import defaultdict
 import concurrent.futures
+import random
 
 from tqdm import tqdm
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-workers', type=int, default=32, help='Max number of concurrent workers')
 
-    parser.add_argument('--max-retry', type=int, default=1, help='Max number of retry/block/run')
+    parser.add_argument('--max-retry', type=int, default=2, help='Max number of retry/block/run')
     parser.add_argument('--max-depth', type=int, default=16, help='Max depth of generated proof')
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
@@ -75,18 +76,22 @@ if __name__ == '__main__':
             "source": entry['source']
         })
 
+    to_do = []
     for source in tqdm(dataset_lean_to_rocq):
         for entry in dataset_lean_to_rocq[source]:
             name = entry['name']
             term = entry['term']
             dependencies = entry['dependencies']
             item = DatasetItem("rocq", source, term=term, name=name, dependencies=dependencies)
-            
-            futures = []
-            with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
-                for i in range(args.pass_k):
-                    output_path = os.path.join(args.output, name + f'_{i}')
-                    futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
-                for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
-                    pass
+            to_do.append(item)
+    
+    to_do = random.shuffle(to_do)
+    for item in to_do:
+        futures = []
+        with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
+            for i in range(args.pass_k):
+                output_path = os.path.join(args.output, name + f'_{i}')
+                futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
+            for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
+                pass
 
