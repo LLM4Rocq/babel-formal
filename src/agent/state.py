@@ -51,9 +51,9 @@ class State:
     def __init__(self, instruction: str):
         self.blocks = [Block(BlockType.INSTRUCTION, instruction)]
     
-    def parse_output(self, output: str) -> List[Block]:
+    def _parse_output(self, output: str) -> List[Block]:
         """
-        Pattern extracts: <think>...</think>, \\box{...}, and any plain text
+        Regex based pattern extraction of outputs.
         """
         pattern = re.compile(
             r"(<think>.*?</think>)"               # think block
@@ -83,7 +83,13 @@ class State:
                 # Strip tags and record THINK block
                 content = partial_think_tag[: -len("</think>")].strip()
                 blocks.append(Block(BlockType.THINK, content))
+        return blocks
 
+    def parse_output(self, output: str) -> List[Block]:
+        """
+        Pattern extracts: <think>...</think>, \\box{...}, and any plain text
+        """
+        blocks = self._parse_output(output)
         if len(blocks) != 2 or blocks[-1].kind != BlockType.SCRIPT:
             raise StateError("Output doesn't satisfy the expected output format.")
         return blocks

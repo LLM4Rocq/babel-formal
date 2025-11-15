@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import StrEnum
+from copy import deepcopy
+from typing import Tuple, List
 
 from src.evaluator.prover import Prover, MessageType, DatasetItem
 from src.llm.base import BaseLLM
@@ -88,5 +90,25 @@ class BaseAgent(ABC):
         while self.status != AgentStatus.FATAL and self.status != AgentStatus.FINISH:
             self.step()
 
-    
+    def whole_proof_generation(self, item:DatasetItem) -> Tuple[AgentStatus, List[str]]:
+        prompt = self.state.dump_prompt(self.llm.tokenizer)
+        output = self.llm.generate(prompt)
+        self.logs.append({"prompt": prompt, "output": output})
+        new_blocks = self.state._parse_output(output)
+        all_instr = []
+        try:
+            for block in new_blocks:
+                if block.kind == BlockType.SCRIPT:
+                    instr = block.text
+                    all_instr.append(instr)
+            self.prover.close_proof()
+        except Exception as e:
+            self.logs.append({
+                "instructions": deepcopy(all_instr),
+                "error": str(e)
+            })
+            return AgentStatus.FATAL, all_instr
+        return AgentStatus.FINISH, all_instr
+        
+
             
