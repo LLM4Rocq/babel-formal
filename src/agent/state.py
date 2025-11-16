@@ -53,36 +53,70 @@ class State:
     
     def _parse_output(self, output: str) -> List[Block]:
         """
-        Regex based pattern extraction of outputs.
+        Extracts:
+        - <think>...</think> blocks
+        - \\box{...} script blocks
+        - implicit think blocks (text outside tags, ending at </think>)
         """
-        pattern = re.compile(
-            r"(<think>.*?</think>)"               # think block
+        token_pattern = re.compile(
+            r"(<think>.*?</think>)"        # full think block
             r"|"
-            r"(\\box\{.*?\})"                     # script block
+            r"(\\box\{.*?\})"              # script block
             r"|"
-            r"(.*?</think>)"       # partial think block
-            , re.DOTALL
+            r"(</think>)",                 # implicit think terminator
+            re.DOTALL
         )
-
+        THINK_OPEN = "<think>"
+        THINK_CLOSE = "</think>"
         blocks: List[Block] = []
+        pos = 0                          # current scan position
+        pending_think = ""               # buffer for implicit THINK
 
-        for match in pattern.finditer(output):
-            think_tag, script_tag, partial_think_tag = match.groups()
+        for m in token_pattern.finditer(output):
+            start, end = m.span()
+            think_tag, script_tag, implicit_close = m.groups()
+
+            # Text between tokens
+            preceding = output[pos:start]
+
+            if preceding.strip():
+                # Pre-token text belongs to implicit THINK
+                pending_think += preceding
 
             if think_tag:
-                # Strip tags and record THINK block
-                content = think_tag[len("<think>") : -len("</think>")].strip()
+                # Flush any pending implicit think
+                if pending_think.strip():
+                    blocks.append(Block(BlockType.THINK, pending_think.strip()))
+                    pending_think = ""
+
+                # Extract explicit think content
+                content = think_tag[len(THINK_OPEN):-len(THINK_CLOSE)].strip()
                 blocks.append(Block(BlockType.THINK, content))
 
             elif script_tag:
-                # Strip \boxed{...} and record SCRIPT block
-                content = script_tag[len(r"\box{") : -1].strip()
+                # Flush pending implicit think
+                if pending_think.strip():
+                    blocks.append(Block(BlockType.THINK, pending_think.strip()))
+                    pending_think = ""
+
+                # Extract script content
+                content = script_tag[len(r"\box{"):-1].strip()
                 blocks.append(Block(BlockType.SCRIPT, content))
-            
-            elif partial_think_tag:
-                # Strip tags and record THINK block
-                content = partial_think_tag[: -len("</think>")].strip()
-                blocks.append(Block(BlockType.THINK, content))
+
+            elif implicit_close:
+                # Implicit closing of a THINK block
+                if pending_think.strip():
+                    blocks.append(Block(BlockType.THINK, pending_think.strip()))
+                pending_think = ""
+
+            pos = end
+
+        # Trailing text after last token:
+        tail = output[pos:]
+        if tail.strip():
+            pending_think += tail
+            blocks.append(Block(BlockType.THINK, pending_think.strip()))
+
         return blocks
 
     def parse_output(self, output: str) -> List[Block]:
