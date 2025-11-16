@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=babel_no_fb # job's name
+#SBATCH --job-name=babel_fb_ge # job's name
 #SBATCH --output=babel%j.out # output log (%j = job ID)
 #SBATCH --error=babel%j.err # error log (%j = job ID)
 #SBATCH --constraint=h100 # h100 gpus
@@ -57,4 +57,4 @@ while true; do
     sleep 5
 done
 
-python -m script.generate_fb_rocq --feedback_goals false --feedback_error false --max-retry 3 --output export/eval_nofb --pass-k 256
+python -m script.generate_fb_rocq --feedback_goals true --feedback_error false --max-retry 3 --output export/eval_fb_ge --pass-k 256

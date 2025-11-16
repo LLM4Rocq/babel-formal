@@ -57,4 +57,4 @@ while true; do
     sleep 5
 done
 
-python -m script.generate_fb_rocq --feedback_goals true --feedback_error true --max-retry 3 --output export/eval_fb_e --pass-k 256
+python -m script.generate_fb_rocq --feedback_goals false --feedback_error true --max-retry 3 --output export/eval_fb_e --pass-k 256
