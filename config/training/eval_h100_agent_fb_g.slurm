@@ -25,6 +25,8 @@ source /lustre/fswork/projects/rech/tdm/commun/venv/crrrocq/bin/activate
 
 TP_SIZE=4
 MODEL_PORT=30000
+ID=$RANDOM_$(date '+%Y_%m_%d_%H_%M_%S')
+
 export SCRATCH="/lustre/fsn1/projects/rech/tdm/ulu88xb"
 export HF_HOME="$SCRATCH/HF"
 export NEMO_HOME="$SCRATCH/NEMO"
@@ -57,4 +59,4 @@ while true; do
     sleep 5
 done
 
-python -m script.generate_fb_rocq --feedback_goals true --feedback_error false --max-retry 3 --output export/eval_fb_ge --pass-k 256
+python -m script.generate_fb_rocq --feedback_goals true --feedback_error false --max-retry 3 --output export/eval_fb_g_$ID --pass-k 256
