@@ -41,8 +41,6 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     with open(output_path, 'w') as file:
         json.dump(output, file, indent=4)
 
-def start_pet_server(port=8765):
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='benchmark/test_lean_to_rocq.json', help='Dataset')

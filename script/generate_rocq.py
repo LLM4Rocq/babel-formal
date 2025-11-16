@@ -15,12 +15,12 @@ from src.llm.openai_instruct import OpenAIInstructLLM
 from src.agent.rocq import RocqAgent, AgentStatus
 
 
-def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
+def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32, temperature=0.7, top_p=0.95):
     llm = OpenAIInstructLLM(model_name, generation_parameters=
     {
         "max_tokens":8192,
-        "temperature": 0.7,
-        "top_p": 0.95,
+        "temperature": temperature,
+        "top_p": top_p,
         "extra_body": {"skip_special_tokens": False}
     })
     prover = RocqProver(workspace)
@@ -96,7 +96,7 @@ if __name__ == '__main__':
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
             for i in range(args.pass_k):
                 output_path = os.path.join(args.output, name + f'_{i}')
-                futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
+                futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth, temperature=args.temperature, top_p=args.top_p))
             for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
                 pass
         pet_proc.terminate()
