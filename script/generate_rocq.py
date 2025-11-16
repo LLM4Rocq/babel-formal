@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 import concurrent.futures
 import random
+from typing import List
 
 from tqdm import tqdm
 
@@ -16,7 +17,6 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     llm = OpenAIInstructLLM(model_name, generation_parameters=
     {
         "max_tokens":8192,
-        "stop":"<think>",
         "temperature": 0.7,
         "top_p": 0.95,
         "extra_body": {"skip_special_tokens": False}
@@ -74,7 +74,7 @@ if __name__ == '__main__':
             "source": entry['source']
         })
 
-    to_do = []
+    to_do:List[DatasetItem] = []
     for source in tqdm(dataset_lean_to_rocq):
         for entry in dataset_lean_to_rocq[source]:
             name = entry['name']
@@ -86,6 +86,7 @@ if __name__ == '__main__':
     random.shuffle(to_do)
     for item in to_do:
         futures = []
+        name = item.name
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
             for i in range(args.pass_k):
                 output_path = os.path.join(args.output, name + f'_{i}')
