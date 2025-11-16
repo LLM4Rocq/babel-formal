@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 import concurrent.futures
 import random
+import subprocess
 
 from tqdm import tqdm
 
@@ -12,17 +13,17 @@ from src.llm.openai_instruct import OpenAIInstructLLM
 from src.agent.rocq import RocqAgent, AgentStatus
 
 
-def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32):
+def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, max_retry=5, max_depth=32, temperature=0.7, top_p=0.95, feedback_error=False, feedback_goals=False):
     llm = OpenAIInstructLLM(model_name, generation_parameters=
     {
         "max_tokens":8192,
         "stop":"<think>",
-        "temperature": 0.7,
-        "top_p": 0.95,
+        "temperature": temperature,
+        "top_p": top_p,
         "extra_body": {"skip_special_tokens": False}
     })
     prover = RocqProver(workspace)
-    agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth)
+    agent = RocqAgent(llm, prover, max_retry=max_retry, max_depth=max_depth, feedback_error=feedback_error, feedback_goals=feedback_goals)
 
     output = {}
     try:
@@ -55,6 +56,10 @@ if __name__ == '__main__':
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
     parser.add_argument('--top-p', type=float, default=0.95, help='Top-p')
+
+    parser.add_argument('--feedback_goals', type=bool, default=False)
+    parser.add_argument('--feedback_error', type=bool, default=False)
+
     parser.add_argument('--max-tokens', type=int, default=8192, help='Max output len')
 
     parser.add_argument('--gpus', type=int, default=4, help='Number of gpus')
@@ -87,12 +92,24 @@ if __name__ == '__main__':
     
     random.shuffle(to_do)
     for item in to_do:
+        pet_proc = subprocess.Popen(
+            ["pet-server", "--port", "8765"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         futures = []
         name = item.name
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
             for i in range(args.pass_k):
                 output_path = os.path.join(args.output, name + f'_{i}')
-                futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
+                futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth, temperature=args.temperature, top_p=args.top_p, feedback_error=args.feedback_error, feedback_goals=args.feedback_goals))
             for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
                 pass
+        
+        pet_proc.terminate()
+        try:
+            pet_proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            pet_proc.kill()
+            pet_proc.wait()
 
