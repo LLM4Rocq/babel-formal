@@ -142,5 +142,5 @@ class RocqProver(Prover):
     def close_proof(self):
         message = self.run_tac('Qed.')
         if message.status == MessageType.ERROR:
-            raise ProverError("Error when trying to close the proof.", prover_feedback=message.message)
+            raise ProverError(f"Error when trying to close the proof : {message.message}", prover_feedback=message.message)
         return 
