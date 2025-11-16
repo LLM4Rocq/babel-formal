@@ -91,6 +91,7 @@ class BaseAgent(ABC):
             self.step()
 
     def whole_proof_generation(self, item:DatasetItem) -> Tuple[AgentStatus, List[str]]:
+        self.start_thm(item)
         prompt = self.state.dump_prompt(self.llm.tokenizer)
         output = self.llm.generate(prompt)
         self.logs.append({"prompt": prompt, "output": output})
