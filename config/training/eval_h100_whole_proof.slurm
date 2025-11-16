@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=babel_no_fb # job's name
+#SBATCH --job-name=babel_wholeproof # job's name
 #SBATCH --output=babel%j.out # output log (%j = job ID)
 #SBATCH --error=babel%j.err # error log (%j = job ID)
 #SBATCH --constraint=h100 # h100 gpus
@@ -23,6 +23,7 @@ source /lustre/fsn1/worksf/projects/rech/tdm/commun/.opam/opam-init/init.sh
 source /lustre/fswork/projects/rech/tdm/commun/venv/crrrocq/bin/activate
 # conda activate vllm
 
+ID=$RANDOM_$(date '+%Y_%m_%d_%H_%M_%S')
 TP_SIZE=4
 MODEL_PORT=30000
 export SCRATCH="/lustre/fsn1/projects/rech/tdm/ulu88xb"
@@ -57,4 +58,4 @@ while true; do
     sleep 5
 done
 
-python -m script.generate_rocq --max-retry 3 --output export/eval_wholeproof --pass-k 256
+python -m script.generate_rocq --max-retry 3 --output export/eval_wholeproof_$ID --pass-k 256
