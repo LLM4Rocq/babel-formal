@@ -23,7 +23,7 @@ source /lustre/fsn1/worksf/projects/rech/tdm/commun/.opam/opam-init/init.sh
 source /lustre/fswork/projects/rech/tdm/commun/venv/crrrocq/bin/activate
 # conda activate vllm
 
-ID=$RANDOM_$(date '+%Y_%m_%d_%H_%M_%S')
+ID={$SLURM_JOB_ID}_{$RANDOM}_$(date '+%Y_%m_%d_%H_%M_%S')
 TP_SIZE=4
 MODEL_PORT=30000
 export SCRATCH="/lustre/fsn1/projects/rech/tdm/ulu88xb"

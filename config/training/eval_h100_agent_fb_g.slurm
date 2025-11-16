@@ -25,7 +25,7 @@ source /lustre/fswork/projects/rech/tdm/commun/venv/crrrocq/bin/activate
 
 TP_SIZE=4
 MODEL_PORT=30000
-ID=$RANDOM_$(date '+%Y_%m_%d_%H_%M_%S')
+ID={$SLURM_JOB_ID}_{$RANDOM}_$(date '+%Y_%m_%d_%H_%M_%S')
 
 export SCRATCH="/lustre/fsn1/projects/rech/tdm/ulu88xb"
 export HF_HOME="$SCRATCH/HF"
