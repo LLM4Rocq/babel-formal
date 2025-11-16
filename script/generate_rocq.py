@@ -5,6 +5,8 @@ from collections import defaultdict
 import concurrent.futures
 import random
 from typing import List
+import subprocess
+import time
 
 from tqdm import tqdm
 
@@ -48,7 +50,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-workers', type=int, default=32, help='Max number of concurrent workers')
 
-    parser.add_argument('--max-retry', type=int, default=2, help='Max number of retry/block/run')
+    parser.add_argument('--max-retry', type=int, default=3, help='Max number of retry/block/run')
     parser.add_argument('--max-depth', type=int, default=16, help='Max depth of generated proof')
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
@@ -87,10 +89,21 @@ if __name__ == '__main__':
     for item in to_do:
         futures = []
         name = item.name
+        pet_proc = subprocess.Popen(
+            ["pet-server", "--port", "8765"]
+        )
+        time.sleep(2)
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
             for i in range(args.pass_k):
                 output_path = os.path.join(args.output, name + f'_{i}')
                 futures.append(executor.submit(exec, args.model_path, item, output_path, args.workspace, max_retry=args.max_retry, max_depth=args.max_depth))
             for _ in tqdm(concurrent.futures.as_completed(futures), desc="Pass@k", position=1, total=len(futures)):
                 pass
+        pet_proc.terminate()
+        try:
+            pet_proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            pet_proc.kill()
+            pet_proc.wait()
+        time.sleep(2)
 

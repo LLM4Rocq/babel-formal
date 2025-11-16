@@ -5,6 +5,7 @@ from collections import defaultdict
 import concurrent.futures
 import random
 import subprocess
+import time
 
 from tqdm import tqdm
 
@@ -40,6 +41,8 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     with open(output_path, 'w') as file:
         json.dump(output, file, indent=4)
 
+def start_pet_server(port=8765):
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='benchmark/test_lean_to_rocq.json', help='Dataset')
@@ -51,7 +54,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-workers', type=int, default=32, help='Max number of concurrent workers')
 
-    parser.add_argument('--max-retry', type=int, default=2, help='Max number of retry/block/run')
+    parser.add_argument('--max-retry', type=int, default=3, help='Max number of retry/block/run')
     parser.add_argument('--max-depth', type=int, default=16, help='Max depth of generated proof')
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
@@ -93,10 +96,9 @@ if __name__ == '__main__':
     random.shuffle(to_do)
     for item in to_do:
         pet_proc = subprocess.Popen(
-            ["pet-server", "--port", "8765"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            ["pet-server", "--port", "8765"]
         )
+        time.sleep(2)
         futures = []
         name = item.name
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
@@ -112,4 +114,5 @@ if __name__ == '__main__':
         except subprocess.TimeoutExpired:
             pet_proc.kill()
             pet_proc.wait()
+        time.sleep(2)
 
