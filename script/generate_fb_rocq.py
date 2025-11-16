@@ -88,6 +88,7 @@ if __name__ == '__main__':
     random.shuffle(to_do)
     for item in to_do:
         futures = []
+        name = item.name
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
             for i in range(args.pass_k):
                 output_path = os.path.join(args.output, name + f'_{i}')
