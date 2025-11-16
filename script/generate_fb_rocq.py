@@ -85,7 +85,7 @@ if __name__ == '__main__':
             item = DatasetItem("rocq", source, term=term, name=name, dependencies=dependencies)
             to_do.append(item)
     
-    to_do = random.shuffle(to_do)
+    random.shuffle(to_do)
     for item in to_do:
         futures = []
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.max_workers) as executor:
