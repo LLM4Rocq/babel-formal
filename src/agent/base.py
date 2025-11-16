@@ -80,10 +80,11 @@ class BaseAgent(ABC):
                 "error": str(e)
             })
             self.num_errors += 1
+        head_think = ""
         if self.feedback_goals and message:
             new_goals = "\n".join(message.goals)
-            positive_feedback = f"Let's continue to translate this proof term into a proof script. {self.prover.name()} gives me these new goals: {new_goals}."
-            self.state.add_block(BlockType.THINK, positive_feedback, to_continue=True)
+            head_think = f"Let's continue to translate this proof term into a proof script. {self.prover.name()} gives me these new goals: {new_goals}."
+        self.state.add_block(BlockType.THINK, head_think, to_continue=True)
     
     def try_proof(self, item: DatasetItem):
         self.start_thm(item)
@@ -102,6 +103,7 @@ class BaseAgent(ABC):
                 if block.kind == BlockType.SCRIPT:
                     instr = block.text
                     all_instr.append(instr)
+                    self.prover.run_tac(instr)
             self.prover.close_proof()
         except Exception as e:
             self.logs.append({
@@ -110,6 +112,3 @@ class BaseAgent(ABC):
             })
             return AgentStatus.FATAL, all_instr
         return AgentStatus.FINISH, all_instr
-        
-
-            
