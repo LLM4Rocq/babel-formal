@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--max-workers', type=int, default=32, help='Max number of concurrent workers')
 
-    parser.add_argument('--max-retry', type=int, default=3, help='Max number of retry/block/run')
+    parser.add_argument('--max-retry', type=int, default=4, help='Max number of retry/block/run')
     parser.add_argument('--max-depth', type=int, default=16, help='Max depth of generated proof')
     parser.add_argument('--pass-k', type=int, default=128, help='Number of generation per entry')
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
