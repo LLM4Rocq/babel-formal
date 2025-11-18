@@ -66,7 +66,6 @@ class BaseAgent(ABC):
                     script = new_blocks[-1].text
                     amend = f"Wait, when I wrote \\box{{{script}}}, I received this feedback from {self.prover.name()}: {message.message[:100]}."
                     self.state.amend_last_block(amend, to_continue=True)
-                    self.num_errors += 1
                 return
             self.state.update(new_blocks)
             self.current_depth += 1
