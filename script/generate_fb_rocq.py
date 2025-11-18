@@ -41,6 +41,16 @@ def exec(model_name: str, item: DatasetItem, output_path: str, workspace: str, m
     with open(output_path, 'w') as file:
         json.dump(output, file, indent=4)
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "t", "1", "y"):
+        return True
+    if v.lower() in ("no", "false", "f", "0", "n"):
+        return False
+    raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='benchmark/test_lean_to_rocq.json', help='Dataset')
@@ -58,8 +68,9 @@ if __name__ == '__main__':
     parser.add_argument('--temperature', type=float, default=0.7, help='Temperature')
     parser.add_argument('--top-p', type=float, default=0.95, help='Top-p')
 
-    parser.add_argument('--feedback_goals', type=bool, default=False)
-    parser.add_argument('--feedback_error', type=bool, default=False)
+    parser.add_argument("--feedback_goals", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--feedback_error", type=str2bool, nargs='?', const=True, default=False)
+
 
     parser.add_argument('--max-tokens', type=int, default=8192, help='Max output len')
 
