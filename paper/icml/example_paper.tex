@@ -118,15 +118,64 @@
 		\item \textbf{Proof term translation.} We first extract the proof term, then train models to predict scripts from proof terms (Lean term to Lean script, Rocq term to Rocq script). At inference, we extract the term for the source proof and use the model to produce a script in the target assistant or tactic set (see~\cref{fig:inference}). For an example of Lean~$\to$~Rocq inference see~\cref{app:leanrocq}, and~\cref{app:ssreflect} for vanilla Rocq~$\to$~SSReflect.
 	\end{itemize}
 	
-	To support this comparison, we build a benchmark of 14 files with 117 lemmas that are strictly aligned between Lean and Rocq. We also mention, but do not pursue, direct low-level term translation between Lean and Rocq~\cite{leantypechecker}. The main drawback of that direction is that the output is not tied to a maintainable proof script.
+	To support this comparison, we build a benchmark of 14 files with 117 lemmas that are strictly aligned between Lean and Rocq. 
 	
 	Our main contributions are:
 	\begin{itemize}
 		\item \textbf{Two term-to-script models}, trained to reconstruct proof scripts from pretty-printed proof terms. \textit{Babel-translate} is a single term-to-script model trained on both (Lean term$\to$Lean script) and (Rocq term$\to$Rocq script); at inference, we perform cross-assistant translation by prompting it to emit tactics in the target language while providing the source term. \textit{Babel-ssreflect} translates Rocq proof terms directly into SSReflect scripts, enabling cross-tactic translation from vanilla Rocq proofs to SSReflect within Rocq.
 		\item \textbf{A small aligned benchmark} (14 files, 117 lemmas) between Lean and Rocq, with an evaluation of cross-assistant and cross-tactic translation.
-	\end{itemize}
+                \end{itemize}
+                
 	\section{Related Work}
-	{\color{red}TODO}
+
+        The problem of translating proofs, definitions, and theories
+        between interactive theorem provers has been long standing
+        goal, driven by the desire to reuse formal developments,
+        compare foundations, and transfer results across systems with
+        distinct logical cores and computational behaviors.
+
+        A classical approach relies on logical frameworks as common
+        targets for translation. Systems such as LF and its
+        extensions~\cite{harper1993framework} provide a
+        minimal meta-language in which a wide range of deductive
+        systems can be encoded. 
+        %
+        Another influential line of research is based on foundational
+        proof certificates~\cite{chihani:hal-00906485}, which aim to
+        validate proofs originating from different systems using a
+        small, trusted kernel. Rather than translating proofs
+        wholesale, this approach extracts evidence that can be
+        independently checked. While attractive from a trust
+        perspective, FPCs are not primarily designed for proof reuse
+        or round-trip translation between interactive systems.
+
+        A significant body of recent work uses Dedukti~\cite{Dedukti}, an
+        implementation of the $\lambda\Pi$-calculus modulo rewriting,
+        as an intermediate language for interoperability. Dedukti’s
+        support for user-defined rewrite rules makes it possible to
+        faithfully represent the definitional equalities of diverse
+        proof systems within a uniform framework. This approach has
+        enabled the translation of proofs and libraries from HOL-Light
+        to Coq via Dedukti~\cite{Blanqui2024TranslatingHOLLight}, as
+        well as more general translations of definitions and theorems
+        between proof
+        systems~\cite{FrédéricBlanqui2024Libraries}. Dedukti has also
+        been used to translate proofs across different type-theoretic
+        fragments, including translations from impredicative to
+        predicative systems~\cite{FelicissimoBlanquiBarnawal2023}.
+
+        There also exists a tool for performing a direct, low-level
+        translation of terms from Lean to
+        Rocq~\cite{leantypechecker}, exploiting the close similarity
+        between the core type theories of the two systems.
+        
+        However, in all those works, translations typically operate at
+        a low level, losing the structure and automation present
+        in the source proof assistants---and thus do not provide a
+        proof script that can be maintained and extended.
+        
+
+        
 	\section{Methodology}
 	
 	\begin{figure*}[t]
