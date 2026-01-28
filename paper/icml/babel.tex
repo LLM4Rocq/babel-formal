@@ -497,19 +497,19 @@
 			
 			le_refl   : forall x, leR x x;
 			le_trans  : forall x y z, leR x y -> leR y z -> leR x z;
-			add_le_add : forall a b c d, leR a b -> leR c d -> leR (add a c)\\
+			add_le_add : forall a b c d, leR a b -> leR c d -> leR (add a c)
 			(add b d);
 			
 			abs_nonneg : forall x, leR zero (abs x);
 			abs_triangle : forall x y, leR (abs (add x y)) (add (abs x) (abs y));
 			abs_opp : forall x, abs (opp x) = abs x;
 			abs_sub_symm : forall x y, abs (add x (opp y)) = abs (add y (opp x));
-			sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) \\
+			sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) 
 			(add y (opp z));
 			sub_eq_zero : forall x y, add x (opp y) = zero -> x = y;
 			
 			
-			eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps -> leR \\
+			eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps -> leR 
 			(abs x) (add eps eps)) -> x = zero
 		}.
 		
@@ -519,7 +519,7 @@
 		Definition sub (x y : R0) : R0 := add x (opp y).
 		
 		Definition limit (u : N0 -> R0) (l : R0) : Prop :=
-		forall eps, ltR zero eps -> exists N, forall n, Nle N n -> leR\\
+		forall eps, ltR zero eps -> exists N, forall n, Nle N n -> leR
 		(abs (sub (u n) l)) eps.
 		
 		Lemma abs_sub_triangle (x y z : R0) :
@@ -534,7 +534,7 @@
 		limit u l -> limit u m -> l = m.
 		Proof.
 		intros Hl Hm.
-		assert (Hbound: forall eps, ltR zero eps -> leR (abs (sub l m))\\
+		assert (Hbound: forall eps, ltR zero eps -> leR (abs (sub l m))
 		(add eps eps)).
 		{ intros eps Heps.
 			destruct (Hl eps Heps) as [N1 HN1].
@@ -543,11 +543,11 @@
 			assert (H1u: leR (abs (sub (u N) l)) eps).
 			{ apply HN1. apply Nle_max_l. }
 			assert (H1: leR (abs (sub l (u N))) eps).
-			{ unfold sub in H1u. rewrite abs_sub_symm in H1u. fold sub\\
+			{ unfold sub in H1u. rewrite abs_sub_symm in H1u. fold sub
 				in H1u. exact H1u. }
 			assert (H2: leR (abs (sub (u N) m)) eps).
 			{ apply HN2. apply Nle_max_r. }
-			assert (Htri: leR (abs (sub l m)) (add (abs (sub l (u N)))\\
+			assert (Htri: leR (abs (sub l m)) (add (abs (sub l (u N)))
 			(abs (sub (u N) m)))) by apply abs_sub_triangle.
 			eapply le_trans; [exact Htri|].
 			apply add_le_add; [exact H1|exact H2].
@@ -592,7 +592,7 @@
 		
 		le_refl   : forall x, leR x x
 		le_trans  : forall x y z, leR x y → leR y z → leR x z
-		add_le_add : forall a b c d, leR a b → leR c d → leR (add a c) \\
+		add_le_add : forall a b c d, leR a b → leR c d → leR (add a c) 
 		(add b d)
 		
 		abs_nonneg : forall x, leR zero (abs x)
@@ -601,11 +601,11 @@
 		abs_sub_symm : forall x y, abs (add x (opp y)) = abs (add y (opp x))
 		
 		
-		sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) \\
+		sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) 
 		(add y (opp z))
 		sub_eq_zero : forall x y, add x (opp y) = zero → x = y
 		
-		eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps → leR (abs x) \\
+		eq_of_forall_eps2 : forall x, (forall eps, ltR zero eps → leR (abs x) 
 		(add eps eps)) → x = zero
 		
 		namespace Limits
@@ -622,7 +622,7 @@
 		AbsField.leR (AbsField.abs (sub (u n) l)) eps
 		
 		theorem abs_sub_triangle (x y z : R) :
-		AbsField.leR (AbsField.abs (sub x z)) (AbsField.add (AbsField.abs \\
+		AbsField.leR (AbsField.abs (sub x z)) (AbsField.add (AbsField.abs 
 		(sub x y)) (AbsField.abs (sub y z))) := by
 		
 		have : sub x z = AbsField.add (sub x y) (sub y z) := sub_decomp x y z
@@ -633,7 +633,7 @@
 		by
 		intro Hl Hm
 		
-		have Hbound' : forall eps, AR.ltR AR.zero eps → AR.leR (AR.abs (sub l m)) \\
+		have Hbound' : forall eps, AR.ltR AR.zero eps → AR.leR (AR.abs (sub l m)) 
 		(AR.add eps eps) := by
 		intro eps Heps
 		rcases Hl eps Heps with ⟨N1, HN1⟩
@@ -646,7 +646,7 @@
 		apply HN2
 		exact AbsField.le_max_right (R := R) _ _
 		
-		have Htri : AbsField.leR (AbsField.abs (sub l m)) (AbsField.add \\
+		have Htri : AbsField.leR (AbsField.abs (sub l m)) (AbsField.add 
 		(AbsField.abs (sub l (u N))) (AbsField.abs (sub (u N) m))) := by
 		simpa using abs_sub_triangle l (u N) m
 		
