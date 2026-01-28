@@ -231,24 +231,31 @@ For (iii) we apply \textit{Babel-ssreflect} (proof term $\to$ SSReflect script),
 
 \section{Results and Analysis}
 \begin{table}[h]
-\centering
-\begin{tabular}{lccc}
-\hline
-\textbf{Setup} & \textbf{Lean4 $\to$ Rocq} & \textbf{Rocq $\to$ Lean4} & \textbf{Rocq $\to$ SSReflect} \\
-\hline
-GPT-5 (@1x(4 feedbacks)) & \textbf{82.9}\% & \textbf{67.5}\% & 16.6\% \\
-Babel-translate (@128)            & 68.3\% & 40.2\% &  \\
-Babel-ssreflect (@128)            &  &  & \textbf{33.2}\% \\
-Babel-ssreflect \ w/o reas. (@128)            &  &  & 21.8\% \\
-\midrule
-Babel + GPT-5 combined               & 89.7\% & 83.7\% & 34\% \\
-\midrule
-Qwen-2.5-Coder-32b-Instruct  & 6.8\% & 19.7\% & 0\% \\
-(@16x(4 feedbacks)) & & & \\
-\hline
-\end{tabular} \vspace{1ex}
-\caption{Benchmark results for different translation setups across three tasks.}
-\label{tab:translation_results}
+	\centering
+	
+	\begin{tabular}{lccc}
+		\hline
+		\textbf{Proof-to-Term-to-Proof} & \textbf{Lean4 $\to$ Rocq} & \textbf{Rocq $\to$ Lean4} & \textbf{Rocq $\to$ SSReflect} \\
+		\hline
+		Babel-translate (@256x(4 feedbacks))            & \textbf{87.7} \% & \textbf{59.4}\% &  \\
+		Babel-ssreflect (@256x(4 feedbacks))            &  &  & \textbf{33.2}\% \\
+		Qwen-2.5-Coder-32b-Instruct  & 58.3\% & 32.1\% & 0\% \\
+		(@256x(4 feedbacks)) & & & \\
+		\hline
+	\end{tabular} \vspace{1ex}
+	
+	\begin{tabular}{lccc}
+		\hline
+		\textbf{Proof-to-Proof} & \textbf{Lean4 $\to$ Rocq} & \textbf{Rocq $\to$ Lean4}  & \textbf{Rocq $\to$ SSReflect}  \\
+		\hline
+		GPT-5 (@4x(4 feedbacks)) & \textbf{82.9}\% & \textbf{67.5}\% & \textbf{21.8}\% \\
+		Qwen-2.5-Coder-32b-Instruct  & 25.2\% & 39.4\% & 1.2\% \\
+		(@128x(4 feedbacks)) & & & \\
+		\hline
+	\end{tabular} \vspace{1ex}
+	
+	\caption{Benchmark results for different translation setups across three tasks.}
+	\label{tab:translation_results}
 \end{table}
 
 
