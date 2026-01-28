@@ -171,7 +171,7 @@
         
         However, in all those works, translations typically operate at
         a low level, losing the structure and automation present
-        in the source proof assistants---and thus do not provide a
+        in the source proof assistants, and thus do not provide a
         proof script that can be maintained and extended.
         
 
@@ -298,7 +298,7 @@
 	\end{table}
 	
 	
-	For direct proof script translation, GPT-5 reaches 82.9\% success for Lean $\to$ Rocq and 67.5\% for Rocq $\to$ Lean, while it achieves 16.6\% on the cross-tactic task vanilla Rocq $\to$ SSReflect. In contrast, the term-based cross-tactic model attains 33.3\% on Rocq $\to$ SSReflect, showing a clear gap for tactic-style transfer. For cross-assistant translation, term-to-script models remain competitive (88.0\% Lean $\to$ Rocq; 59.8\% Rocq $\to$ Lean).
+	For direct proof script translation, GPT-5 reaches 82.9\% success for Lean $\to$ Rocq and 67.5\% for Rocq $\to$ Lean, while it achieves 16.6\% on the cross-tactic task vanilla Rocq $\to$ SSReflect. In contrast, the term-based cross-tactic model attains 33.2\% on Rocq $\to$ SSReflect, showing a clear gap for tactic-style transfer. For cross-assistant translation, term-to-script models remain competitive (88.0\% Lean $\to$ Rocq; 59.8\% Rocq $\to$ Lean).
 	
 	\paragraph{Ablation study.}
 	Removing the reasoning component in \textit{Babel-ssreflect} reduces Rocq $\to$ SSReflect from 33.2\% to 21.4\%. The model is trained to output only the tactic script.
