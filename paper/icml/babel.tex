@@ -335,7 +335,7 @@
 	In practice, we pretty-print the source term, instantiate the prompt with the target prover's goal/context, and ask the model to produce a target script that reconstructs the same term structure under this alignment.	
 	
 	\paragraph{Models and Training.}
-	We fine-tune \texttt{Qwen2.5-Coder-32B-Instruct}~\cite{deepseek2024} to translate a proof term into a tactic script. We train two models:
+	Our approach is to fine-tune a \texttt{Qwen2.5-Coder-32B-Instruct}~\cite{deepseek2024} to translate a proof term into a tactic script. We train two models:
 	(i) \textbf{Babel-translate:} Lean term $\to$ Lean script and Rocq term $\to$ Rocq script; and
 	(ii) \textbf{Babel-ssreflect:} Rocq term $\to$ SSReflect script.
 	These models are used at inference to produce target scripts from source terms (\cref{fig:inference}).
@@ -440,14 +440,57 @@
 	
 	\section{Conclusion and Future Work}
 	
-	We introduced proof term translation as a way to translate proofs across assistants and tactic styles. Unlike direct tactic translation, this approach does not need parallel scripts for training. On our benchmarks it brings clear gains for style transfer and remains competitive for cross-assistant translation.
+        We propose to address the problem of translating proof scripts
+        across proof assistants and tactic styles by using the internal
+        proof term representation as a pivot language.
+%
+        Unlike approaches based on direct tactic-to-tactic
+        translation, our method does not require parallel proof
+        scripts for training. Instead, it relies solely on the
+        availability of a relatively small corpus of proofs written in a single
+        proof style, making it applicable even in settings where
+        aligned datasets are scarce or nonexistent.
+%
+        Our experimental evaluation demonstrates clear benefits for
+        style transfer within a single proof assistant, where the
+        structure of proof terms is fully aligned. Moreover, for
+        cross-assistant translation, our approach remains competitive
+        with general-purpose large language models such as GPT-5.
 	
 	\paragraph{Future work.}
-	We see three directions:
+	We see three directions for future work.
 	\begin{itemize}
-		\item \textbf{Scale.} Train on larger corpora and more domains, since the approach does not require aligned scripts.
-		\item \textbf{Multilingual.} Scaling this approach to additional assistants mainly requires: (i) extraction and pretty-printing of proof terms, (ii) an automated verification in the target system. Training data is then easy to obtain from native corpora because we do not require parallel scripts.
-		\item \textbf{Source-to-source translation (Lean~$\leftrightarrow$ Rocq).} Use off-the-shelf LLMs for source-to-source translation, and bootstrap proof script translation to check whether the source translation is correct.
+        \item \textbf{Scale.} A direct future work is to train on
+          larger corpora and on more domains, since the approach does
+          not require aligned scripts. 
+          %
+        \item \textbf{Multilingual.} Scaling this approach to
+          additional assistants mainly requires: (i) extraction and
+          pretty-printing of proof terms, (ii) an automated
+          verification in the target system. Training data is then
+          easy to obtain from native corpora because we do not require
+          parallel scripts.
+          %
+        \item \textbf{Migration.}  Porting mathlib from Lean~3 to
+          Lean~4 has taken 18 months to a community of 300 programmers
+          (cf.
+          \href{https://leanprover-community.github.io/mathlib-port-status/}
+          {Mathlib porting status}), and this even without trying to
+          take benefit from the new features of Lean~4.
+%
+          Even more concerning, the Liquid Tensor
+          Experiment~\cite{Scholze03042022}, initiated by P. Scholze
+          and widely recognized for introducing formal methods into
+          the heart of modern mathematics, is now becoming
+          obsolete—still confined to Lean~3 and an outdated version of
+          mathlib, having missed the shift to Lean~4.
+%
+Concretely, this means for instance that the definition of perfectoid
+spaces is not accesible in the current version of mathlib.
+%
+Tackling these challenges is essential for the wider acceptance and
+increased productivity of formal proofs in both mathematics and the
+software industry.
 	\end{itemize}
 	
 	% ICML: do not include acknowledgements in the anonymous submission.
@@ -455,8 +498,42 @@
 	% Omitted for anonymous review.
 	
 	\section*{Impact Statement}
-	This paper studies automated translation of formal proofs between proof assistants and between tactic languages. A primary positive impact is improved interoperability between formal-mathematics ecosystems, which can reduce duplicated effort and accelerate the reuse of verified results. Because all translated scripts are ultimately checked by the target proof assistant, the approach is designed to mitigate the risk of producing incorrect proofs that appear superficially plausible. Remaining risks include engineering misuse (e.g., over-trusting generated scripts before verification, or deploying translation pipelines without adequate checks) and potential shifts in how contributors learn and write proofs. We therefore emphasize verification-first workflows and recommend that tool support surface proof obligations, errors, and provenance of generated artifacts.
-	
+
+        
+        This paper studies the automated translation of formal proofs
+        across proof assistants and tactic languages. Its primary
+        benefit is improved interoperability between
+        formal-mathematics ecosystems, reducing duplicated effort and
+        accelerating the reuse of verified results.
+%
+        Because all translated scripts are ultimately checked by the
+        target proof assistant, our approach is designed to avoid
+        introducing incorrect proofs. In this sense, the work
+        constitutes a first step toward breaking down barriers between
+        theorem provers through the automatic translation of formal
+        libraries---analogous to maintaining multiple language editions
+        of the same book.
+%
+        Moreover, this approach opens the door to the development of
+        automatic linting tools that can translate a given formal
+        development into more robust or maintainable proof styles,
+        without compromising the correctness of the contribution.
+
+        Beyond, our technique could also be used to migrate code from
+        to a new version of a proof assistant. Addressing this
+        challenge without imposing an excessive burden on
+        mathematical library developers is crucial for fostering
+        future advancements.  Currently, many MathLib contributors
+        feel that a transition from Lean 4 to Lean 5, similar to the
+        shift from Lean 3 to Lean 4, would be untenable for the
+        community. This raises the risk of a schism between newer
+        versions of a proof assistant and widely used libraries, potentially
+        stalling adoption and innovation. To mitigate this issue,
+        developing robust tools for the automated migration of
+        libraries is not just desirable---it is essential to ensure the
+        sustainability and evolution of formal mathematical proof
+        ecosystems.
+        
 	\bibliography{babel}
 	\bibliographystyle{icml2026}
 
@@ -476,7 +553,11 @@
 	
 	\subsection{Prompt Babel-translate}
 	\label{app:promptbabel}
-	For Lean $\to$ Rocq, we instruct the model to translate a Lean proof term and its local context into a Rocq tactic script. We prepend the following instruction:
+	For Lean $\to$ Rocq, we instruct the model to translate a Lean
+        proof term and its local context into a Rocq tactic script. We
+        prepend the following instruction:
+
+        \begin{small}
 	\begin{verbatim}
 		You are given a proof term:
 		
@@ -499,7 +580,9 @@
 		Some dependencies that could be helpful:
 		
 		{dependencies}
-	\end{verbatim}
+    \end{verbatim}
+         \end{small}
+
 	We hard-code the beginning of the first thinking block:
 	\begin{verbatim}
 		<think> Okay, let's try to transform this proof term into a sequence of coq
@@ -512,6 +595,7 @@
 	\subsection{Prompt GPT-5 direct translation}
 	\label{app:promptgpt}
 	For Lean $\to$ Rocq, we instruct the model to translate a Lean proof script into a Rocq proof script. We give the following instruction:
+        \begin{small}
 	\begin{verbatim}
 		You are a precise translator from Lean 4 proofs to Rocq (Coq).
 		
@@ -554,14 +638,17 @@
 		
 		Now produce the output for the given input.
 	\end{verbatim}
-	
+	        \end{small}
+
 	In case of an issue, we prepend the following feedback to the next prompt:
+        \begin{small}
 	\begin{verbatim}
 		You already tried this proof:
 		{proof}
 		but it fails with this error:
 		{error_message}.
 	\end{verbatim}
+        \end{small}
 	
 	\subsection{Benchmark example}
 	\label{app:benchmark}
@@ -766,14 +853,14 @@
 	
 	We illustrate the Rocq~$\to$~SSReflect translation on a lemma extracted from CoRN. Babel takes as input the proof term and produces a short SSReflect script that closes the goal under the same context.
 	
-	\paragraph{Lemma (CoRN).}
+	\subsubsection*{Lemma (CoRN).}
 	\begin{rocq}
 		Lemma CR_nonZero_as_Cauchy_IR_nonZero_1 :
 		forall (x:CR), (CRapartT x 0)%CR ->
 		Dom (f_rcpcl' _) (CRasCauchy_IR x).
 	\end{rocq}
 	
-	\paragraph{Proof term.}
+	\subsubsection*{Proof term.}
 	\begin{rocq}
 		CR_nonZero_as_Cauchy_IR_nonZero_1 =
 		fun (x : CR) (x_ : (x >< ' 0%Q)%CR) =>
@@ -787,7 +874,7 @@
 		Arguments CR_nonZero_as_Cauchy_IR_nonZero_1 x _
 	\end{rocq}
 	
-	\paragraph{Original Rocq script.}
+	\subsubsection*{Original Rocq script.}
 	\begin{rocq}
 		intros x x_.
 		change ((CRasCauchy_IR x)[#][0]).
@@ -798,7 +885,7 @@
 		Defined.
 	\end{rocq}
 	
-	\paragraph{Babel (SSReflect) script from the term.}
+	\subsubsection*{Babel (SSReflect) script from the term.}
 	\begin{rocq}
 		move=> x_; rewrite /CRapartT; apply: CR_ap_as_Cauchy_IR_ap_1 => /=.
 	\end{rocq}
@@ -809,7 +896,8 @@
 	We illustrate the Lean~$\to$~Rocq translation on a lemma whose Lean proof uses the \texttt{simp} tactic. Babel takes as input the proof term and the goal (it does not see the Lean proof), and reconstructs the explicit calls to lemmas such as \texttt{map\_smul} and \texttt{smul\_zeroV} 
 	that \texttt{simp} applies implicitly.
 	
-	\paragraph{Lemma (Lean).}
+	\subsubsection*{Lemma (Lean).}
+        
 	\begin{rocq}
 		theorem ker_smul {L : LMap (R:=R) V W} {a : R} {x : V} :
 		ker L x → ker L (VSpace.smul (R:=R) a x) :=
@@ -819,7 +907,7 @@
 		simp [hx]
 	\end{rocq}
 	
-	\paragraph{Proof term.}
+	\subsubsection*{Proof term.}
 	\begin{rocq}
 		ker_smul =
 		fun (VS2 : VSpace) (L : Lin) (a : R0) (x : V0) (hx : ker L x) =>
@@ -831,7 +919,7 @@
 		ker L x -> ker L (a •V x)
 	\end{rocq}
 	
-	\paragraph{Original Lean script.}
+	\subsubsection*{Original Lean script.}
 	\begin{rocq}
 		intro hx
 		unfold ker at *
@@ -839,10 +927,11 @@
 	\end{rocq}
 	
 	
-	\paragraph{Babel (Rocq) reconstruction.}
+	\subsubsection*{Babel (Rocq) reconstruction.}
 	
 	\noindent\textcolor{red}{The beginning of the first reasoning block (initial hypotheses and goal) is hardcoded by us to provide context; it is \emph{not} generated by the model.}
 	
+        \begin{small}
 	\begin{verbatim}
 		Okay, let's try to transform this proof term into a sequence of Coq tactics.
 		First, let's write down the hypotheses and the initial goal (after the "|-") 
@@ -855,9 +944,11 @@
 		x  : V0
 		|- ker L x -> ker L (a •V x)
 	\end{verbatim}
+        \end{small}
 	
 	\noindent\rule{6cm}{0.4pt}
 	
+        \begin{small}
 	\begin{verbatim}
 		The proof term starts with fun {R} ... {x} hx => .... This is a lambda
 		abstraction that binds the variable hx. In a Coq proof, this corresponds
@@ -928,5 +1019,6 @@
 		thing. Therefore, reflexivity is the final step to close the proof. </think>
 		\box{reflexivity.}
 	\end{verbatim}
-	
+	        \end{small}
+
 	\end{document}
