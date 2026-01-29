@@ -27,6 +27,17 @@
 % If you use cleveref:
 \usepackage[capitalize,noabbrev]{cleveref}
 
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.55}
+\definecolor{darkgreen}{rgb}{0.0, 0.55, 0.13}
+\definecolor{darkred}{rgb}{0.55, 0.0, 0.0}
+\definecolor{darkviolet}{rgb}{0.58, 0.0, 0.83}
+\definecolor{lightblue}{rgb}{0.68, 0.85, 0.9}
+
+\usepackage{amssymb,stmaryrd}
+\usepackage{listings}
+\usepackage{lstrocq}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THEOREMS (keep if needed)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,6 +56,8 @@
 \newcommand{\ie}{\emph{i.e.,}\xspace}
 \newcommand{\etal}{\emph{et al.}\xspace}
 \newcommand{\eg}{\emph{e.g.,}\xspace}
+
+
 
 % Running title (must be short)
 \icmltitlerunning{Babel-formal: Translating Proofs Between Lean and Rocq}
@@ -105,7 +118,49 @@
 		\caption{How interactive theorem provers operate.}
 		\label{fig:basicprovers}
 	\end{figure*}
-	Proof assistants such as Rocq and Lean accumulate over time large libraries of formal mathematics (for example, MathComp~\cite{mathcomp} for Rocq and Mathlib~\cite{mathlib} for Lean), yet proofs are not reusable across systems, even in a strictly aligned context. We study two translation settings. The first is \emph{cross-assistant} translation between Lean and Rocq, which is useful to import the many results that exist in one prover but not in the other. The second is \emph{cross-tactic} translation inside Rocq, from the standard Rocq tactic language, called here \textit{vanilla Rocq}, to \textit{SSReflect}~\cite{ssreflect}, which is a compact, structured tactic language widely used with MathComp (see an example in~\cref{app:ssreflect}), and can make existing proofs more robust to changes.
+        Proof assistants such as the Rocq Prover and Lean have accumulated
+        large libraries of formalized mathematics over time—for
+        instance, MathComp~\cite{mathcomp} for Rocq and
+        mathlib~\cite{mathlib} for Lean—yet proofs remain largely
+        non-reusable across systems, even in closely aligned settings
+        where corresponding formulations of the same theorems have
+        been identified.
+%
+        A major reason for this lack of interoperability is the
+        inherent complexity of formal proof development, which is
+        typically mediated by tactics, as illustrated in
+        \cref{fig:basicprovers}. Tactics provide powerful automation
+        and are central to interactive proving, but they also
+        introduce substantial variability and often unpredictable
+        behavior in proof scripts.
+%
+        This heavy reliance on tactics makes proof transfer
+        particularly challenging: proof scripts encode not only
+        logical arguments but also system-specific automation
+        strategies, rendering direct reuse across proof assistants
+        extremely difficult.
+        %
+        Due to the diverse array of high-level interaction methods
+        offered by theorem provers, numerous approaches can be
+        employed to prove the same theorem inside the same theorem
+        prover.
+        %
+        Each style, for instance the use of Ltac~\cite{Ltac}, called here \textit{vanilla
+          Rocq}, vs SSReflect~\cite{ssreflect}
+        in Rocq, should be seen as a language on its own.
+        Consequently, datasets become even more limited when focusing
+        on specific proof styles.
+        
+        
+        We study two translation
+        settings. The first is \emph{cross-assistant} translation
+        between Lean and Rocq, which is useful to import the many
+        results that exist in one prover but not in the other. The
+        second is \emph{cross-tactic} translation inside Rocq, from
+        the standard vanilla Rocq tactic language to \textit{SSReflect}, which is a
+        compact, structured tactic language widely used with MathComp
+        (see an example in~\cref{app:ssreflect}), and can make
+        existing proofs more robust to changes.
 	
 	These translation capabilities matter in practice because large verified libraries are not portable: many results exist in one ecosystem but not the other, and re-proving them is costly even when statements are aligned. Beyond reuse, translation also supports migration of existing developments toward more robust proof styles (\eg vanilla Rocq $\to$ SSReflect) without rewriting whole files.
 	Finally, our approach is complementary to statement translation. Proof term translation can then fill this gap: once statements are aligned, we can leverage the source proof term to synthesize a proof script that the target assistant can check.
@@ -468,7 +523,7 @@
 	\label{app:benchmark}
 	We show one Lean/Rocq pair from the aligned set. The Rocq entry is:
 	
-	\begin{verbatim}
+	\begin{rocq}
 		Class AbsField := {
 			R0   : Type;
 			zero : R0;
@@ -559,11 +614,11 @@
 		Qed.
 		
 		End Limits.
-	\end{verbatim}
+	\end{rocq}
 	
 	The Lean counterpart is:
 	
-	\begin{verbatim}
+	\begin{rocq}
 		class AbsField (R : Type) where
 		zero  : R
 		one   : R
@@ -599,7 +654,6 @@
 		abs_triangle : forall x y, leR (abs (add x y)) (add (abs x) (abs y))
 		abs_opp : forall x, abs (opp x) = abs x
 		abs_sub_symm : forall x y, abs (add x (opp y)) = abs (add y (opp x))
-		
 		
 		sub_decomp : forall x y z, add x (opp z) = add (add x (opp y)) 
 		(add y (opp z))
@@ -660,7 +714,7 @@
 		
 		exact AbsField.sub_eq_zero l m (by simpa [sub] using Hz)
 		end Limits
-	\end{verbatim}
+	\end{rocq}
 	
 	
 	\subsection{Translation to SSReflect}
@@ -669,14 +723,14 @@
 	We illustrate the Rocq~$\to$~SSReflect translation on a lemma extracted from CoRN. Babel takes as input the proof term and produces a short SSReflect script that closes the goal under the same context.
 	
 	\paragraph{Lemma (CoRN).}
-	\begin{verbatim}
+	\begin{rocq}
 		Lemma CR_nonZero_as_Cauchy_IR_nonZero_1 :
 		forall (x:CR), (CRapartT x 0)%CR ->
 		Dom (f_rcpcl' _) (CRasCauchy_IR x).
-	\end{verbatim}
+	\end{rocq}
 	
 	\paragraph{Proof term.}
-	\begin{verbatim}
+	\begin{rocq}
 		CR_nonZero_as_Cauchy_IR_nonZero_1 =
 		fun (x : CR) (x_ : (x >< ' 0%Q)%CR) =>
 		ap_wdr_unfolded Cauchy_IR (CRasCauchy_IR x) (CRasCauchy_IR (' 0%Q)%CR) [0]
@@ -687,10 +741,10 @@
 		Dom (f_rcpcl' Cauchy_IR) (CRasCauchy_IR x)
 		
 		Arguments CR_nonZero_as_Cauchy_IR_nonZero_1 x _
-	\end{verbatim}
+	\end{rocq}
 	
 	\paragraph{Original Rocq script.}
-	\begin{verbatim}
+	\begin{rocq}
 		intros x x_.
 		change ((CRasCauchy_IR x)[#][0]).
 		stepr (CRasCauchy_IR 0%CR).
@@ -698,12 +752,12 @@
 		assumption.
 		eapply CR_inject_Q_as_Cauchy_IR_inject_Q.
 		Defined.
-	\end{verbatim}
+	\end{rocq}
 	
 	\paragraph{Babel (SSReflect) script from the term.}
-	\begin{verbatim}
+	\begin{rocq}
 		move=> x_; rewrite /CRapartT; apply: CR_ap_as_Cauchy_IR_ap_1 => /=.
-	\end{verbatim}
+	\end{rocq}
 	
 	\subsection{Translation from Lean to Rocq}
 	\label{app:leanrocq}
@@ -712,17 +766,17 @@
 	that \texttt{simp} applies implicitly.
 	
 	\paragraph{Lemma (Lean).}
-	\begin{verbatim}
+	\begin{rocq}
 		theorem ker_smul {L : LMap (R:=R) V W} {a : R} {x : V} :
 		ker L x → ker L (VSpace.smul (R:=R) a x) :=
 		by
 		intro hx
 		unfold ker at *
 		simp [hx]
-	\end{verbatim}
+	\end{rocq}
 	
 	\paragraph{Proof term.}
-	\begin{verbatim}
+	\begin{rocq}
 		ker_smul =
 		fun (VS2 : VSpace) (L : Lin) (a : R0) (x : V0) (hx : ker L x) =>
 		eq_ind_r (fun v : V0 => v = zeroV)
@@ -731,14 +785,14 @@
 		(map_smul L a x)
 		: forall {VS2 : VSpace} (L : Lin) (a : R0) (x : V0),
 		ker L x -> ker L (a •V x)
-	\end{verbatim}
+	\end{rocq}
 	
 	\paragraph{Original Lean script.}
-	\begin{verbatim}
+	\begin{rocq}
 		intro hx
 		unfold ker at *
 		simp [hx]
-	\end{verbatim}
+	\end{rocq}
 	
 	
 	\paragraph{Babel (Rocq) reconstruction.}
