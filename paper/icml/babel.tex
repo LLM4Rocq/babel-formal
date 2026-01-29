@@ -148,11 +148,13 @@
         Each style, for instance the use of Ltac~\cite{Ltac}, called here \textit{vanilla
           Rocq}, vs SSReflect~\cite{ssreflect}
         in Rocq, should be seen as a language on its own.
-        Consequently, datasets become even more limited when focusing
-        on specific proof styles.
+        %
+        Consequently, the notion of proof translation also makes sense
+        inside the same theorem prover, for instance to harmonize the
+        style of a given library, or translate to a style that is
+        preferred by the core developers of a library.
         
-        
-        We study two translation
+        In this paper, we study two translation
         settings. The first is \emph{cross-assistant} translation
         between Lean and Rocq, which is useful to import the many
         results that exist in one prover but not in the other. The
@@ -162,10 +164,44 @@
         (see an example in~\cref{app:ssreflect}), and can make
         existing proofs more robust to changes.
 	
-	These translation capabilities matter in practice because large verified libraries are not portable: many results exist in one ecosystem but not the other, and re-proving them is costly even when statements are aligned. Beyond reuse, translation also supports migration of existing developments toward more robust proof styles (\eg vanilla Rocq $\to$ SSReflect) without rewriting whole files.
-	Finally, our approach is complementary to statement translation. Proof term translation can then fill this gap: once statements are aligned, we can leverage the source proof term to synthesize a proof script that the target assistant can check.
+        These translation capabilities are practically important
+        because large verified libraries are not portable across proof
+        assistants: many results exist in one ecosystem but not in
+        another, and re-proving them is costly even when the
+        underlying statements are already aligned.
+%
+        Beyond cross-system reuse, translation also enables the
+        migration of existing developments toward more robust or
+        maintainable proof styles (\eg from vanilla Rocq to
+        SSReflect) without requiring a complete rewrite of proof
+        files.
+%
+        Finally, our approach is complementary to statement
+        translation. Once corresponding statements have been aligned,
+        proof-term translation can bridge the remaining gap by
+        exploiting the source proof term to synthesize a proof script
+        that the target assistant can directly check.
 	
-	Both Rocq and Lean provide a way to pretty print \emph{proof terms} given by the proof assistant (see~\cref{fig:basicprovers}) in a way that omits details while keeping the structure of a proof. We thus explore using \emph{pretty-printed proof terms} as a pivot language. This removes the need for an aligned training corpus of tactic scripts. At inference time, we only require strictly aligned statements, \ie the same theorem and premises, so that both systems elaborate comparable terms. The approach is related to decompilation in programming languages, where models map assembly to higher-level C programs~\cite{llm4decompile2024}.
+	Both Rocq and Lean provide a way to pretty print \emph{proof
+          terms} in a form that elides low-level details while
+        preserving the essential structure of the derivation. We
+        therefore explore the use of pretty-printed proof terms as a
+        pivot language.
+%
+        This approach leverages the observation that, although
+        user-level interactions with proof assistants exhibit
+        significant variability, the underlying structure of proof
+        terms is remarkably similar between Lean and Rocq---for the
+        simple reason that they share the most of their logical foundations---and in
+        fact fully aligned when considering migrations within a single
+        proof assistant.
+        %
+        This removes the need for an aligned training corpus of tactic
+        scripts which currently does not exists. At inference time, we only require strictly aligned
+        statements, \ie the same theorem and premises, so that both
+        systems elaborate comparable terms. The approach is related to
+        decompilation in programming languages, where models map
+        assembly to higher-level C programs~\cite{llm4decompile2024}.
 	
 	We compare two strategies:
 	\begin{itemize}
@@ -177,7 +213,15 @@
 	
 	Our main contributions are:
 	\begin{itemize}
-		\item \textbf{Two term-to-script models}, trained to reconstruct proof scripts from pretty-printed proof terms. \textit{Babel-translate} is a single term-to-script model trained on both (Lean term$\to$Lean script) and (Rocq term$\to$Rocq script); at inference, we perform cross-assistant translation by prompting it to emit tactics in the target language while providing the source term. \textit{Babel-ssreflect} translates Rocq proof terms directly into SSReflect scripts, enabling cross-tactic translation from vanilla Rocq proofs to SSReflect within Rocq.
+		\item \textbf{Two term-to-script models}, trained to
+                  reconstruct proof scripts from pretty-printed proof
+                  terms. \textit{Babel-translate} is a single
+                  term-to-script model trained on both (Lean
+                  term$\to$Lean script) and (Rocq term$\to$Rocq
+                  script); at inference, we perform cross-assistant
+                  translation by prompting it to emit tactics in the
+                  target language while providing the source
+                  term. \textit{Babel-ssreflect} translates vanilla Rocq proof terms directly into SSReflect scripts, enabling cross-tactic translation from vanilla Rocq proofs to SSReflect within Rocq.
 		\item \textbf{A small aligned benchmark} (14 files, 117 lemmas) between Lean and Rocq, with an evaluation of cross-assistant and cross-tactic translation.
                 \end{itemize}
                 
