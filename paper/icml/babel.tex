@@ -437,7 +437,25 @@
 		\caption{Lean $\to$ Rocq scaling (pass@$k$): Babel vs.\ Qwen2.5-Coder-32B-Instruct, with matched sampling budget in the Term $\to$ Script mode.}
 		\label{fig:scaling-compare}
 	\end{figure}
-	
+
+        
+        \Cref{fig:scaling-feedback} shows that incorporating
+        intermediate feedback substantially improves translation
+        performance, in particular when the next intermediate goal is
+        provided to the LLM before inferring the subsequent tactic.
+%
+        Interestingly, using error messages as feedback proves
+        counterproductive, performing worse than the “no feedback”
+        baseline.
+%
+        A likely explanation is that the model was not trained on
+        error-message–conditioned interactions. More fundamentally,
+        error messages are not primarily designed to guide automated
+        proof search. This suggests that designing proof-assistant
+        error messages specifically tailored to drive LLM-based tactic
+        generation could significantly improve their effectiveness in
+        this setting.
+
 	\section{Conclusion and Future Work}
 	
         We propose to address the problem of translating proof scripts
@@ -485,12 +503,13 @@
           obsolete—still confined to Lean~3 and an outdated version of
           mathlib, having missed the shift to Lean~4.
 %
-Concretely, this means for instance that the definition of perfectoid
-spaces is not accesible in the current version of mathlib.
+          Concretely, this means for instance that the definition of
+          perfectoid spaces is not accesible in the current version of
+          mathlib.
 %
-Tackling these challenges is essential for the wider acceptance and
-increased productivity of formal proofs in both mathematics and the
-software industry.
+          Tackling these challenges is essential for the wider
+          acceptance and increased productivity of formal proofs in
+          both mathematics and the software industry.
 	\end{itemize}
 	
 	% ICML: do not include acknowledgements in the anonymous submission.
