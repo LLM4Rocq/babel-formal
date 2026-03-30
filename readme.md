@@ -21,7 +21,7 @@ Babel-Formal explores proof term translation as a practical bridge across intera
 | --- | --- | --- | --- |
 | GPT‑5 (4 feedback rounds) | **82.9 %** | **67.5 %** | 16.6 % |
 | Babel-translate (256 samples x 2 feedback) | 88.0 % | 59.8 % | – |
-| Babel-ssreflect (128 samples x 2 feedback) | – | – | **33.2 %** |
+| Babel-ssreflect (256 samples x 2 feedback) | – | – | **33.2 %** |
 | Babel w/o reasoning | – | – | 21.4 % |
 | GPT‑5 + Babel (union) | 93.2 % | 83.7 % | 34 % |
 
@@ -31,7 +31,6 @@ Babel-Formal explores proof term translation as a practical bridge across intera
 - `src/evaluation/`: Lean and Rocq evaluators, configs, and prompt templates.
 - `src/training_nemo/`: training jobs built on NVIDIA NeMo; tweak hyperparameters in `config/training/nemo.yaml` and launch with the SLURM scripts in `config/training/training_h100.slurm` (train) and `config/training/eval_h100.slurm` (eval).
 - `dataset/`: aligned Lean/Rocq benchmark, SSReflect variants, and auxiliary corpora.
-- `paper/`: full NeurIPS workshop submission.
 - `doc/`: detailed pipeline notes (see `doc/details.md`).
 
 ## Getting started
