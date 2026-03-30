@@ -61,17 +61,6 @@ All Rocq exports land in `export_dataset_rocq/` by default.
 - **Run.** `python src/evaluation/rocq_evaluate.py --config src/evaluation/config.yaml` (or the Lean variant). The scripts integrate with Pytanque for Rocq and `leanclient` for Lean.
 - **Metrics.** pass@k (non-interactive) for Babel models, pass@1 with feedback loops for GPT‑5. Combined scores take the union of both candidate sets.
 
-## 8. Headline results (same as the paper)
-| Setup | Lean → Rocq | Rocq → Lean | Rocq → SSReflect |
-| --- | --- | --- | --- |
-| GPT‑5 (4 repair rounds) | 82.9 % | 67.5 % | 16.6 % |
-| Babel-translate (128 samples) | 68.3 % | 40.2 % | – |
-| Babel-ssreflect (128 samples) | – | – | 33.2 % |
-| Babel-ssreflect w/o reasoning | – | – | 21.8 % |
-| Union (GPT‑5 ∪ Babel) | 89.7 % | 83.7 % | 34 % |
-
-Removing reasoning traces hurts SSReflect transfer, and the Lean↔Rocq model collapses without them. GPT‑5 still helps on the aligned benchmark, so combining both gives the best pass rates.
-
 ## 9. Tips & troubleshooting
 - Long proof terms: revisit `step_3` filters or adjust the tokenizer limits before fine-tuning.
 - Missing dependencies: regenerate symbol metadata (`step_4` for Lean, Rocq extractors for Coq) so the prompts always list the needed lemmas.

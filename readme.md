@@ -1,7 +1,5 @@
 # Babel-Formal
 
-**Paper** [here](paper/babel_formal.pdf), **model Babel-ssreflect** [here](https://huggingface.co/theostos/babel-ssreflect), and **model Babel-translate** [here](https://huggingface.co/theostos/babel-translate).
-
 Babel-Formal explores proof term translation as a practical bridge across interactive theorem provers. We translate proofs between Lean and Rocq and across tactic sets by treating proof terms as a pivot language.
 
 ## Project scope
@@ -22,10 +20,10 @@ Babel-Formal explores proof term translation as a practical bridge across intera
 | Setup | Lean → Rocq | Rocq → Lean | Rocq → SSReflect |
 | --- | --- | --- | --- |
 | GPT‑5 (4 feedback rounds) | **82.9 %** | **67.5 %** | 16.6 % |
-| Babel-translate (128 samples) | 68.3 % | 40.2 % | – |
-| Babel-ssreflect (128 samples) | – | – | **33.2 %** |
-| Babel w/o reasoning | – | – | 21.8 % |
-| GPT‑5 + Babel (union) | 89.7 % | 83.7 % | 34 % |
+| Babel-translate (256 samples x 2 feedback) | 88.0 % | 59.8 % | – |
+| Babel-ssreflect (128 samples x 2 feedback) | – | – | **33.2 %** |
+| Babel w/o reasoning | – | – | 21.4 % |
+| GPT‑5 + Babel (union) | 93.2 % | 83.7 % | 34 % |
 
 ## Repository map
 - `src/proof_dumps/`: quick proof-term dumps for prefiltering (length, tokens) without running the full extraction pipeline.
