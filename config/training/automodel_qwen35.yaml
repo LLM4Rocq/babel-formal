@@ -1,0 +1,93 @@
+recipe: TrainFinetuneRecipeForNextTokenPrediction
+
+step_scheduler:
+  global_batch_size: ${GLOBAL_BATCH_SIZE,32}
+  local_batch_size: ${LOCAL_BATCH_SIZE,1}
+  ckpt_every_steps: ${CKPT_EVERY_STEPS,200}
+  val_every_steps: null
+  max_steps: ${MAX_STEPS,320}
+
+dist_env:
+  backend: nccl
+  timeout_minutes: ${DIST_TIMEOUT_MINUTES,10}
+
+rng:
+  _target_: nemo_automodel.components.training.rng.StatefulRNG
+  seed: ${SEED,1111}
+  ranked: true
+
+model:
+  _target_: nemo_automodel.NeMoAutoModelForCausalLM.from_pretrained
+  pretrained_model_name_or_path: ${MODEL_NAME,Qwen/Qwen3.5-4B}
+  trust_remote_code: true
+  torch_dtype: bf16
+
+compile:
+  enabled: false
+  mode: default
+  fullgraph: false
+  dynamic: true
+  backend: null
+
+checkpoint:
+  enabled: true
+  checkpoint_dir: ${CHECKPOINT_DIR,checkpoints/babel_automodel}
+  model_save_format: safetensors
+  save_consolidated: false
+
+distributed:
+  strategy: fsdp2
+  dp_size: none
+  tp_size: ${TP_SIZE,1}
+  cp_size: ${CP_SIZE,1}
+  pp_size: ${PP_SIZE,1}
+  sequence_parallel: ${SEQUENCE_PARALLEL,true}
+  activation_checkpointing: ${ACTIVATION_CHECKPOINTING,true}
+
+  pipeline:
+    pp_schedule: interleaved1f1b
+    pp_microbatch_size: ${PP_MICROBATCH_SIZE,1}
+    scale_grads_in_schedule: false
+    round_virtual_stages_to_pp_multiple: up
+    dtype: bf16
+
+loss_fn:
+  _target_: nemo_automodel.components.loss.masked_ce.MaskedCrossEntropy
+
+dataset:
+  _target_: src/training_automodel/dataset.py:make_babel_reasoning_dataset
+  path_or_dataset_id: ${BABEL_DATASET_PATH,training_set/lean_rocq.json}
+  split: ${TRAIN_SPLIT,train}
+  prompt_lean_filepath: ${PROMPT_LEAN_PATH,config/prompts/prompt_lean.json}
+  prompt_rocq_filepath: ${PROMPT_ROCQ_PATH,config/prompts/prompt_rocq.json}
+  seq_length: ${SEQ_LENGTH,32768}
+  padding: do_not_pad
+  truncation: longest_first
+  answer_only_loss_mask: true
+  mask_reasoning_content: false
+  shuffle_seed: ${DATASET_SHUFFLE_SEED,1111}
+  limit_dataset_samples: ${LIMIT_DATASET_SAMPLES,None}
+
+dataloader:
+  _target_: torchdata.stateful_dataloader.StatefulDataLoader
+  collate_fn: nemo_automodel.components.datasets.utils.default_collater
+  shuffle: true
+  num_workers: ${NUM_WORKERS,8}
+
+optimizer:
+  _target_: torch.optim.Adam
+  betas: [0.9, 0.95]
+  eps: 1e-8
+  lr: ${LR,1.0e-5}
+  weight_decay: ${WEIGHT_DECAY,1.0e-4}
+
+clip_grad_norm:
+  max_norm: ${CLIP_GRAD_NORM,1.0}
+
+lr_scheduler:
+  init_lr: ${INIT_LR,0.0}
+  lr_decay_steps: ${MAX_STEPS,320}
+  lr_warmup_steps: ${WARMUP_STEPS,50}
+  lr_decay_style: cosine
+  min_lr: ${MIN_LR,0.0}
+  wd_incr_style: constant
