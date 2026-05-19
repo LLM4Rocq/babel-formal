@@ -1,0 +1,5 @@
+# label|model_path_or_hf_id|disable_reasoning
+base_qwen35_4b|Qwen/Qwen3.5-4B|0
+ft_babel_translate|/lustre/fsn1/projects/rech/mmr/ulu88xb/NEMO/checkpoints/babel_automodel_Qwen_Qwen3_5_4B/model/consolidated|0
+ft_babel_translate_no_reason_prompt|/lustre/fsn1/projects/rech/mmr/ulu88xb/NEMO/checkpoints/babel_automodel_Qwen_Qwen3_5_4B/model/consolidated|1
+ft_no_reasoning_model|/lustre/fsn1/projects/rech/mmr/ulu88xb/NEMO/checkpoints/babel_automodel_noreasoning/model/consolidated|1
